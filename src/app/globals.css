@@ -1,26 +1,121 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Phones under ~720px tall (iPhone SE class). Everything tightens a notch. */
+@custom-variant short (@media (max-height: 720px));
+
+/* Shouqi Serif: headings and wordmark only. Covers A-Z and a-z; digits and
+   punctuation fall through to Source Serif, which is why it is always listed
+   second. Drop the woff2 files in public/shouqi-serif/fonts/. */
+@font-face {
+  font-family: "Shouqi Serif";
+  src: url("/shouqi-serif/fonts/ShouqiSerif-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Shouqi Serif";
+  src: url("/shouqi-serif/fonts/ShouqiSerif-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@theme {
+  --color-ink: #010206;
+  --color-ink-2: #070b14;
+  --color-ink-3: #0d1320;
+  --color-sky: #8fd0fa;
+  --color-sky-dim: #5f9fc9;
+  --color-paper: #e9f1f8;
+  --color-mist: #96a9bc;
+  --color-line: rgba(143, 208, 250, 0.14);
+  --color-line-strong: rgba(143, 208, 250, 0.32);
+
+  --font-display: "Shouqi Serif", var(--font-body-serif), Georgia, serif;
+  --font-body: var(--font-body-serif), Georgia, serif;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html,
+body {
+  height: 100%;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-sky) 35%, transparent);
+  color: var(--color-paper);
+}
+
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.font-display-light {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.hairline {
+  border-color: var(--color-line);
+}
+
+/* Fine film grain over the whole viewport. Very low opacity so it reads as
+   texture, never as noise. */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  z-index: 40;
+  opacity: 0.05;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'/></filter><rect width='180' height='180' filter='url(%23n)'/></svg>");
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.story-scroll {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-scroll {
+    scroll-behavior: auto;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Print layout for the PDF export: one 1920x1080 page per chapter. */
+@page {
+  size: 1920px 1080px;
+  margin: 0;
+}
+.print-page {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  break-after: page;
+  page-break-after: always;
+  position: relative;
+}
+.print-page:last-child {
+  break-after: auto;
+  page-break-after: auto;
 }

@@ -1,0 +1,16 @@
+/* Mirror of the @font-face rules in src/app/globals.css, kept so the folder
+   Han receives can be dropped in whole. Not linked by the app. */
+@font-face {
+  font-family: "Shouqi Serif";
+  src: url("fonts/ShouqiSerif-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Shouqi Serif";
+  src: url("fonts/ShouqiSerif-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
