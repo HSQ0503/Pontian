@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowUpRight, Mail, MessageCircle } from "lucide-react";
 import Link from "next/link";
-import { Glow } from "@/components/Glow";
 import { LangToggle } from "@/components/LangToggle";
 import { Wordmark } from "@/components/Wordmark";
 import { useT } from "@/lib/i18n";
@@ -17,7 +16,6 @@ export function Contact() {
 
   return (
     <div className="relative min-h-dvh">
-      <Glow intensity={0.16} />
       <header className="fixed inset-x-0 top-0 z-20 flex items-center justify-between px-5 pt-[max(1rem,env(safe-area-inset-top))]">
         <Wordmark href="/" className="text-xl" />
         <LangToggle />
@@ -42,7 +40,7 @@ export function Contact() {
         </motion.p>
 
         <motion.ul
-          className="mt-10 divide-y divide-line border-y border-line"
+          className="mt-10 border-t border-line"
           initial="hidden"
           animate="show"
           variants={{
@@ -102,9 +100,9 @@ function Row({
         href={href}
         target={external ? "_blank" : undefined}
         rel={external ? "noopener noreferrer" : undefined}
-        className="group flex items-center gap-4 py-5 transition-colors active:bg-sky/5"
+        className="group flex items-center gap-4 border-b border-line py-5 transition-colors hover:border-sky/60"
       >
-        <span className="grid size-11 shrink-0 place-items-center rounded-full border border-line text-sky transition-colors group-hover:border-sky/60">
+        <span className="grid size-11 shrink-0 place-items-center border border-line text-sky transition-colors group-hover:border-sky/60">
           {icon}
         </span>
         <span className="flex min-w-0 flex-1 flex-col">

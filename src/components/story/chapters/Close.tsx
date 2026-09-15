@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowUpRight, Download, Mail, MessageCircle } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { mailtoUrl, site, whatsappUrl } from "@/lib/site";
-import { Body, Chapter, Kicker, Stage, Title, rise } from "../ui";
+import { Chapter, Lead, rise } from "../ui";
 
 export function Close({ print }: { print?: boolean }) {
   const { t, locale } = useT();
@@ -12,70 +12,44 @@ export function Close({ print }: { print?: boolean }) {
   const pdf = `/pontian-${locale}.pdf`;
 
   return (
-    <Chapter id="c9" index={8} print={print}>
-      <Kicker n={9} />
-      <Title className="text-sky">{c.title}</Title>
-      <Body>{c.body}</Body>
-
-      {print ? (
-        <div className="mt-14 grid grid-cols-2 gap-12 border-t border-line pt-8 text-2xl">
-          <div>
-            <div className="text-[0.7rem] uppercase tracking-[0.22em] text-mist/60">
-              {t.contactPage.emailLabel}
-            </div>
-            <div className="mt-2 text-paper">{site.email}</div>
-          </div>
-          <div>
-            <div className="text-[0.7rem] uppercase tracking-[0.22em] text-mist/60">
-              {t.contactPage.whatsappLabel}
-            </div>
-            <div className="mt-2 text-paper">+{site.whatsapp}</div>
-          </div>
-          <div className="col-span-2 text-mist text-lg">
-            {site.url.replace(/^https?:\/\//, "")}/story
-          </div>
+    <Chapter index={15} print={print}>
+      <div className="my-auto grid gap-8 md:grid-cols-[1.2fr_1fr] md:items-end md:gap-16">
+        <div>
+          <motion.h2 variants={rise} className="font-display text-sky text-[clamp(2.4rem,10vw,4rem)] leading-none md:text-[4.2rem]">
+            {c.title}
+          </motion.h2>
+          <Lead className="md:text-[1.15rem]">{c.body}</Lead>
         </div>
-      ) : (
-        <Stage>
-          <div className="flex flex-col gap-3 md:flex-row md:flex-wrap">
-            <Action
-              href={mailtoUrl(c.emailSubject)}
-              icon={<Mail className="size-4" strokeWidth={1.6} />}
-              primary
-            >
+
+        {print ? (
+          <motion.dl variants={rise} className="grid gap-4 border-t border-line pt-4 text-[1.05rem]">
+            <div>
+              <dt className="label text-mist/60">{t.contactPage.emailLabel}</dt>
+              <dd className="mt-1 text-paper">{site.email}</dd>
+            </div>
+            <div>
+              <dt className="label text-mist/60">{t.contactPage.whatsappLabel}</dt>
+              <dd className="mt-1 text-paper">+{site.whatsapp}</dd>
+            </div>
+            <div>
+              <dt className="label text-mist/60">Web</dt>
+              <dd className="mt-1 text-paper">{site.url.replace(/^https?:\/\//, "")}/story</dd>
+            </div>
+          </motion.dl>
+        ) : (
+          <motion.div variants={rise} className="grid border-t border-line">
+            <Action href={mailtoUrl(c.emailSubject)} icon={<Mail className="size-4" strokeWidth={1.6} />} value={site.email}>
               {t.ui.email}
             </Action>
-            <Action
-              href={whatsappUrl(c.whatsappPrefill)}
-              icon={<MessageCircle className="size-4" strokeWidth={1.6} />}
-              external
-            >
+            <Action href={whatsappUrl(c.whatsappPrefill)} icon={<MessageCircle className="size-4" strokeWidth={1.6} />} external>
               {t.ui.whatsapp}
             </Action>
-            <Action
-              href={pdf}
-              icon={<Download className="size-4" strokeWidth={1.6} />}
-              download
-            >
+            <Action href={pdf} icon={<Download className="size-4" strokeWidth={1.6} />} download value={`pontian-${locale}.pdf`}>
               {t.ui.pdf}
             </Action>
-          </div>
-        </Stage>
-      )}
-
-      <motion.div
-        variants={rise}
-        className="mt-auto flex items-end justify-between pt-12"
-      >
-        <span className="font-display text-sky text-3xl md:text-4xl">
-          Pontian
-        </span>
-        {!print && (
-          <span className="text-[0.68rem] uppercase tracking-[0.22em] text-mist/50">
-            Orlando · São Paulo
-          </span>
+          </motion.div>
         )}
-      </motion.div>
+      </div>
     </Chapter>
   );
 }
@@ -84,14 +58,14 @@ function Action({
   href,
   icon,
   children,
-  primary,
+  value,
   external,
   download,
 }: {
   href: string;
   icon: React.ReactNode;
   children: React.ReactNode;
-  primary?: boolean;
+  value?: string;
   external?: boolean;
   download?: boolean;
 }) {
@@ -101,17 +75,16 @@ function Action({
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}
       download={download ? true : undefined}
-      className={`group flex items-center justify-between gap-4 rounded-full border px-5 py-3.5 text-[0.78rem] uppercase tracking-[0.18em] transition-all active:scale-[0.98] md:px-6 ${
-        primary
-          ? "border-sky bg-sky text-ink hover:bg-sky/90"
-          : "border-line-strong text-paper hover:border-sky/70 hover:text-sky"
-      }`}
+      className="group flex items-center justify-between gap-4 border-b border-line py-3.5 transition-colors hover:border-sky/60 md:py-4"
     >
-      <span className="flex items-center gap-3">
-        {icon}
-        {children}
+      <span className="flex min-w-0 items-center gap-3">
+        <span className="text-sky">{icon}</span>
+        <span className="flex min-w-0 flex-col">
+          <span className="label text-paper">{children}</span>
+          {value && <span className="truncate text-[0.8rem] text-mist/60">{value}</span>}
+        </span>
       </span>
-      <ArrowUpRight className="size-4 opacity-60 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+      <ArrowUpRight className="size-4 shrink-0 text-mist/50 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-sky" />
     </a>
   );
 }

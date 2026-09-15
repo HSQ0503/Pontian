@@ -10,7 +10,7 @@ export default function Page() {
   return (
     <>
       {/* The print pages are 1920px wide, so rem scales up to match. */}
-      <style>{`html { font-size: 18px; } body::after { display: none; }`}</style>
+      <style>{`html { font-size: 21px; } body::after { display: none; }`}</style>
       <PrintStory />
     </>
   );

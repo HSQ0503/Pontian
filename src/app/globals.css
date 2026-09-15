@@ -92,9 +92,28 @@ body {
   display: none;
 }
 
+/* On a desktop the deck behaves like a sheet: the rem follows the viewport so a
+   page composed for 1440x900 keeps its proportions on a projector or a 27".
+   Phones keep the browser default. */
+@media (min-width: 768px) {
+  html:has(.deck-root) {
+    font-size: clamp(12px, min(1.2vw, 1.92vh), 22px);
+  }
+}
+
 .story-scroll {
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 @media (prefers-reduced-motion: reduce) {
   .story-scroll {
