@@ -2,6 +2,7 @@
 
 import { motion, type Variants } from "framer-motion";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { Wordmark } from "@/components/Wordmark";
 import { pageSections } from "@/lib/content";
 import { useT } from "@/lib/i18n";
 
@@ -123,8 +124,8 @@ export function Frame({ index, fixed, hideMark, extra }: { index: number; fixed?
       <div
         className={`${pos} inset-x-0 top-0 z-30 flex items-center justify-between px-6 pt-[max(0.9rem,env(safe-area-inset-top))] md:px-14 md:pt-6`}
       >
-        <span className={`font-display text-sky text-[1.15rem] transition-opacity duration-500 md:text-[1.35rem] ${hideMark ? "opacity-0" : "opacity-100"}`}>
-          Pontian
+        <span className={`inline-flex text-[1.15rem] transition-opacity duration-500 md:text-[1.35rem] ${hideMark ? "opacity-0" : "opacity-100"}`}>
+          <Wordmark className="text-[1em]" />
         </span>
         <nav className="hidden items-center gap-7 md:flex" aria-label="Sections">
           {keys.map((k) => (

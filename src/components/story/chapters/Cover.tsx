@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { Wordmark } from "@/components/Wordmark";
 import { useT } from "@/lib/i18n";
 import { Chapter, ease, rise } from "../ui";
 
@@ -11,8 +12,8 @@ export function Cover({ print }: { print?: boolean }) {
     <Chapter index={0} print={print}>
       <div className="my-auto grid gap-8 md:grid-cols-[1.4fr_1fr] md:items-end md:gap-16">
         <div>
-          <motion.div variants={rise} className="font-display text-sky text-[clamp(3.4rem,15vw,7.5rem)] leading-[0.95] md:text-[7.5rem]">
-            Pontian
+          <motion.div variants={rise} className="text-[clamp(3.4rem,15vw,7.5rem)] leading-none md:text-[7.5rem]">
+            <Wordmark className="text-[1em]" />
           </motion.div>
           <motion.h1
             variants={rise}

@@ -5,9 +5,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { LangToggle } from "@/components/LangToggle";
 import { Ripples } from "@/components/Ripples";
+import { Wordmark } from "@/components/Wordmark";
 import { useT } from "@/lib/i18n";
-
-const letters = "Pontian".split("");
 
 export function Home() {
   const { t } = useT();
@@ -20,18 +19,8 @@ export function Home() {
       </header>
 
       <main className="relative z-10 flex min-h-dvh flex-col items-center justify-center px-6 text-center">
-        <h1 className="font-display text-sky text-[clamp(3.4rem,14vw,9rem)] leading-none" aria-label="Pontian">
-          {letters.map((ch, i) => (
-            <motion.span
-              key={i}
-              className="inline-block"
-              initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{ delay: 0.15 + i * 0.06, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            >
-              {ch}
-            </motion.span>
-          ))}
+        <h1 className="text-[clamp(3.4rem,14vw,9rem)] leading-none">
+          <Wordmark animate className="text-[1em]" />
         </h1>
 
         <motion.p
