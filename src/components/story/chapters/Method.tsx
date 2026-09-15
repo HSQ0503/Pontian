@@ -163,6 +163,8 @@ function Ring({
               <motion.circle
                 cx={p.x}
                 cy={p.y}
+                r={on ? 5 : 3.2}
+                initial={false}
                 animate={{
                   r: on ? 5 : 3.2,
                   fill: on || done ? "#8fd0fa" : "#0d1320",
