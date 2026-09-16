@@ -41,7 +41,7 @@ export function Flow({ print }: { print?: boolean }) {
                         initial={print ? false : { height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         transition={{ duration: 0.45, ease }}
-                        className="overflow-hidden text-[0.86rem] leading-snug text-mist short:text-[0.8rem] md:text-[0.95rem]"
+                        className={`overflow-hidden text-[0.86rem] leading-snug text-mist short:text-[0.8rem] md:text-[0.95rem] ${current || print || shown >= n ? "" : "hidden md:block"}`}
                       >
                         <span className="block pt-1">{s.body}</span>
                       </motion.p>

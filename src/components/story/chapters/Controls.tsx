@@ -23,10 +23,10 @@ export function Controls({ print }: { print?: boolean }) {
       <Exhibit n={12}>
         {!print && (
           <div role="tablist" className="label mb-4 inline-grid grid-cols-2 border border-line-strong short:mb-3 md:hidden">
-            <button type="button" role="tab" aria-selected={tab === "controls"} onClick={() => setTab("controls")} className={`px-4 py-2 ${tab === "controls" ? "bg-sky text-ink" : "text-mist"}`}>
+            <button type="button" role="tab" aria-selected={tab === "controls"} onClick={() => setTab("controls")} className={`px-4 py-3 ${tab === "controls" ? "bg-sky text-ink" : "text-mist"}`}>
               {c.controlsLabel}
             </button>
-            <button type="button" role="tab" aria-selected={tab === "kpis"} onClick={() => setTab("kpis")} className={`px-4 py-2 ${tab === "kpis" ? "bg-sky text-ink" : "text-mist"}`}>
+            <button type="button" role="tab" aria-selected={tab === "kpis"} onClick={() => setTab("kpis")} className={`px-4 py-3 ${tab === "kpis" ? "bg-sky text-ink" : "text-mist"}`}>
               {c.kpiLabel}
             </button>
           </div>
@@ -42,7 +42,7 @@ export function Controls({ print }: { print?: boolean }) {
                     <span className={`tabular pt-0.5 text-[0.78rem] ${on ? "text-sky" : "text-mist/50"}`}>{String(i + 1).padStart(2, "0")}</span>
                     <span>
                       <span className={`font-display block text-[1rem] leading-tight short:text-[0.94rem] md:text-[1.12rem] ${on ? "text-paper" : "text-mist"}`}>{k.name}</span>
-                      <span className={`mt-0.5 block text-[0.85rem] leading-snug text-mist transition-opacity duration-500 short:text-[0.8rem] md:text-[0.92rem] ${on ? "opacity-100" : "opacity-0"}`}>
+                      <span className={`mt-0.5 text-[0.85rem] leading-snug text-mist transition-opacity duration-500 short:text-[0.8rem] md:block md:text-[0.92rem] ${on ? "block opacity-100" : "hidden opacity-0"}`}>
                         {k.body}
                       </span>
                     </span>

@@ -19,7 +19,7 @@ export function Adoption({ print }: { print?: boolean }) {
     <Chapter index={3} print={print} takeaway={a.takeaway} source={a.source}>
       <Title>{a.title}</Title>
       <Exhibit n={3} caption={a.caption}>
-        <div ref={ref} className="grid gap-1.5 md:gap-2">
+        <div ref={ref} className="grid gap-3 md:gap-2">
           {a.bars.map((b, i) => {
             const on = pick === i;
             const emphasis = i === 0 || i === a.bars.length - 1;
@@ -29,10 +29,10 @@ export function Adoption({ print }: { print?: boolean }) {
                 type="button"
                 disabled={print}
                 onClick={() => setPick(on ? null : i)}
-                className="group grid grid-cols-[minmax(7.5rem,11rem)_1fr_3.6rem] items-center gap-3 text-left md:grid-cols-[15rem_1fr_4.5rem] md:gap-5"
+                className="group grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 text-left md:grid-cols-[15rem_1fr_4.5rem] md:items-center md:gap-5"
               >
-                <span className={`text-[0.82rem] leading-tight md:text-[0.95rem] ${on ? "text-paper" : "text-mist"}`}>{b.label}</span>
-                <span className="relative h-5 border-l border-line md:h-6">
+                <span className={`text-[0.86rem] leading-tight md:text-[0.95rem] ${on ? "text-paper" : "text-mist"}`}>{b.label}</span>
+                <span className="relative order-last col-span-2 h-4 border-l border-line md:order-none md:col-span-1 md:h-6">
                   <motion.span
                     className={`absolute inset-y-0 left-0 ${emphasis ? "bg-sky" : "bg-sky/35"} ${on ? "bg-sky" : ""}`}
                     initial={{ width: print ? `${(b.value / max) * 100}%` : 0 }}
@@ -40,7 +40,7 @@ export function Adoption({ print }: { print?: boolean }) {
                     transition={{ duration: 0.9, ease, delay: i * 0.08 }}
                   />
                 </span>
-                <span className={`tabular text-right text-[0.9rem] md:text-[1rem] ${emphasis || on ? "text-paper" : "text-mist"}`}>{b.display}</span>
+                <span className={`tabular text-right text-[0.86rem] md:text-[1rem] ${emphasis || on ? "text-paper" : "text-mist"}`}>{b.display}</span>
               </button>
             );
           })}

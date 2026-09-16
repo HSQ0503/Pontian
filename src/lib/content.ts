@@ -11,7 +11,7 @@ export type Content = {
     undo: string;
     page: string;
     pdf: string;
-    email: string;
+    call: string;
     whatsapp: string;
     tapHint: string;
     clickHint: string;
@@ -28,10 +28,9 @@ export type Content = {
   contactPage: {
     title: string;
     body: string;
-    emailLabel: string;
+    phoneLabel: string;
     whatsappLabel: string;
     whatsappPrefill: string;
-    emailSubject: string;
   };
   cover: { title: string; sub: string };
   summary: {
@@ -125,7 +124,6 @@ export type Content = {
   close: {
     title: string;
     body: string;
-    emailSubject: string;
     whatsappPrefill: string;
   };
 };
@@ -139,7 +137,7 @@ const pt: Content = {
     undo: "Desfazer",
     page: "Página",
     pdf: "Baixar em PDF",
-    email: "Escrever por e-mail",
+    call: "Ligar",
     whatsapp: "Falar no WhatsApp",
     tapHint: "Toque para abrir",
     clickHint: "Clique para abrir",
@@ -155,11 +153,10 @@ const pt: Content = {
   home: { tagline: "Uma pequena empresa de tecnologia fazendo coisas grandes." },
   contactPage: {
     title: "Contato",
-    body: "Escreva ou chame. Respondemos no mesmo dia.",
-    emailLabel: "E-mail",
+    body: "Ligue ou mande mensagem. Respondemos no mesmo dia.",
+    phoneLabel: "Telefone",
     whatsappLabel: "WhatsApp",
     whatsappPrefill: "Olá, vi o site da Pontian e gostaria de conversar.",
-    emailSubject: "Conversa com a Pontian",
   },
   cover: {
     title: "Inteligência que trabalha dentro da empresa.",
@@ -524,7 +521,6 @@ const pt: Content = {
   close: {
     title: "Vamos conversar.",
     body: "Trinta minutos sobre onde o conhecimento da sua empresa está hoje e o que daria para fazer com ele.",
-    emailSubject: "Conversa com a Pontian",
     whatsappPrefill: "Olá, vi a apresentação da Pontian e gostaria de conversar.",
   },
 };
@@ -538,7 +534,7 @@ const en: Content = {
     undo: "Undo",
     page: "Page",
     pdf: "Download PDF",
-    email: "Email us",
+    call: "Call",
     whatsapp: "WhatsApp",
     tapHint: "Tap to open",
     clickHint: "Click to open",
@@ -554,11 +550,10 @@ const en: Content = {
   home: { tagline: "A small technology company doing big things." },
   contactPage: {
     title: "Contact",
-    body: "Write or call. We answer the same day.",
-    emailLabel: "Email",
+    body: "Call or message. We answer the same day.",
+    phoneLabel: "Phone",
     whatsappLabel: "WhatsApp",
     whatsappPrefill: "Hi, I saw the Pontian site and would like to talk.",
-    emailSubject: "A conversation with Pontian",
   },
   cover: {
     title: "Intelligence that works inside the company.",
@@ -923,7 +918,6 @@ const en: Content = {
   close: {
     title: "Let's talk.",
     body: "Thirty minutes on where your company's knowledge sits today and what could be done with it.",
-    emailSubject: "A conversation with Pontian",
     whatsappPrefill: "Hi, I saw the Pontian presentation and would like to talk.",
   },
 };

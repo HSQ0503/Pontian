@@ -9,7 +9,7 @@ npm run dev
 
 ## Things to swap
 
-- `src/lib/site.ts`: domain, email, WhatsApp number. Env vars `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_WHATSAPP` override them on Vercel.
+- `src/lib/site.ts`: domain and phone number (used for the call link and WhatsApp). Env vars `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_PHONE` override them on Vercel.
 - `src/lib/content.ts`: every word on the site, PT and EN.
 - Shouqi Serif: drop `ShouqiSerif-Regular.woff2` and `ShouqiSerif-SemiBold.woff2` into `public/shouqi-serif/fonts/`. Until then headings fall back to Source Serif 4.
 

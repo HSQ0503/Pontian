@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowUpRight, Download, Mail, MessageCircle } from "lucide-react";
+import { ArrowUpRight, Download, MessageCircle, Phone } from "lucide-react";
 import { useT } from "@/lib/i18n";
-import { mailtoUrl, site, whatsappUrl } from "@/lib/site";
+import { formatPhone, site, telUrl, whatsappUrl } from "@/lib/site";
 import { Chapter, Lead, rise } from "../ui";
 
 export function Close({ print }: { print?: boolean }) {
@@ -24,12 +24,12 @@ export function Close({ print }: { print?: boolean }) {
         {print ? (
           <motion.dl variants={rise} className="grid gap-4 border-t border-line pt-4 text-[1.05rem]">
             <div>
-              <dt className="label text-mist/60">{t.contactPage.emailLabel}</dt>
-              <dd className="mt-1 text-paper">{site.email}</dd>
+              <dt className="label text-mist/60">{t.contactPage.phoneLabel}</dt>
+              <dd className="mt-1 text-paper">{formatPhone()}</dd>
             </div>
             <div>
               <dt className="label text-mist/60">{t.contactPage.whatsappLabel}</dt>
-              <dd className="mt-1 text-paper">+{site.whatsapp}</dd>
+              <dd className="mt-1 text-paper">{formatPhone()}</dd>
             </div>
             <div>
               <dt className="label text-mist/60">Web</dt>
@@ -38,8 +38,8 @@ export function Close({ print }: { print?: boolean }) {
           </motion.dl>
         ) : (
           <motion.div variants={rise} className="grid border-t border-line">
-            <Action href={mailtoUrl(c.emailSubject)} icon={<Mail className="size-4" strokeWidth={1.6} />} value={site.email}>
-              {t.ui.email}
+            <Action href={telUrl()} icon={<Phone className="size-4" strokeWidth={1.6} />} value={formatPhone()}>
+              {t.ui.call}
             </Action>
             <Action href={whatsappUrl(c.whatsappPrefill)} icon={<MessageCircle className="size-4" strokeWidth={1.6} />} external>
               {t.ui.whatsapp}

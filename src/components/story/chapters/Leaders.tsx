@@ -31,7 +31,7 @@ export function Leaders({ print }: { print?: boolean }) {
                   disabled={print}
                   onClick={() => setOpen(i)}
                   aria-expanded={on}
-                  className="grid w-full grid-cols-[1fr_auto] items-baseline gap-4 py-3 text-left short:py-2 md:grid-cols-[8.5rem_12rem_1fr] md:gap-6 md:py-3"
+                  className="grid w-full grid-cols-1 gap-0.5 py-3 text-left short:py-2 md:grid-cols-[8.5rem_12rem_1fr] md:items-baseline md:gap-6 md:py-3"
                 >
                   <span className="font-display text-paper text-[1.1rem] md:text-[1.1rem]">{r.firm}</span>
                   <span className="text-[0.8rem] text-mist md:text-[0.88rem]">{r.profile}</span>

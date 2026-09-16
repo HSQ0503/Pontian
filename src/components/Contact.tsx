@@ -1,12 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, Mail, MessageCircle } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, MessageCircle, Phone } from "lucide-react";
 import Link from "next/link";
 import { LangToggle } from "@/components/LangToggle";
 import { Wordmark } from "@/components/Wordmark";
 import { useT } from "@/lib/i18n";
-import { mailtoUrl, site, whatsappUrl } from "@/lib/site";
+import { formatPhone, telUrl, whatsappUrl } from "@/lib/site";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -48,16 +48,16 @@ export function Contact() {
           }}
         >
           <Row
-            href={mailtoUrl(c.emailSubject)}
-            icon={<Mail className="size-5" strokeWidth={1.5} />}
-            label={c.emailLabel}
-            value={site.email}
+            href={telUrl()}
+            icon={<Phone className="size-5" strokeWidth={1.5} />}
+            label={c.phoneLabel}
+            value={formatPhone()}
           />
           <Row
             href={whatsappUrl(c.whatsappPrefill)}
             icon={<MessageCircle className="size-5" strokeWidth={1.5} />}
             label={c.whatsappLabel}
-            value={formatPhone(site.whatsapp)}
+            value={formatPhone()}
             external
           />
         </motion.ul>
@@ -117,11 +117,3 @@ function Row({
   );
 }
 
-function formatPhone(digits: string) {
-  // +1 407 555 0100 or +55 11 99999 9999. Good enough for display.
-  if (digits.startsWith("55") && digits.length === 13)
-    return `+55 ${digits.slice(2, 4)} ${digits.slice(4, 9)} ${digits.slice(9)}`;
-  if (digits.startsWith("1") && digits.length === 11)
-    return `+1 ${digits.slice(1, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
-  return `+${digits}`;
-}

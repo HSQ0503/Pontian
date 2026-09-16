@@ -10,7 +10,7 @@ export function LangToggle({ className = "" }: { className?: string }) {
       type="button"
       onClick={() => setLocale(l)}
       aria-pressed={locale === l}
-      className={`px-2 py-1 text-[0.72rem] tracking-[0.18em] uppercase transition-colors ${
+      className={`label px-2 py-2.5 transition-colors ${
         locale === l ? "text-sky" : "text-mist/60 hover:text-mist"
       }`}
     >

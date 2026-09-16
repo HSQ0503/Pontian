@@ -3,13 +3,20 @@
 export const site = {
   name: "Pontian",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://pontian.co",
-  email: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "guga@urso.ws",
-  // Digits only, country code first. Used to build the wa.me link.
-  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "14075550100",
+  // Digits only, country code first. Used for the call link and wa.me.
+  phone: process.env.NEXT_PUBLIC_PHONE ?? "14073998113",
 };
 
-export const whatsappUrl = (text?: string) =>
-  `https://wa.me/${site.whatsapp}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
+export const telUrl = () => `tel:+${site.phone}`;
 
-export const mailtoUrl = (subject?: string) =>
-  `mailto:${site.email}${subject ? `?subject=${encodeURIComponent(subject)}` : ""}`;
+export const whatsappUrl = (text?: string) =>
+  `https://wa.me/${site.phone}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
+
+// +1 407 399 8113 or +55 11 99999 9999. Display only.
+export function formatPhone(digits: string = site.phone) {
+  if (digits.startsWith("55") && digits.length === 13)
+    return `+55 ${digits.slice(2, 4)} ${digits.slice(4, 9)} ${digits.slice(9)}`;
+  if (digits.startsWith("1") && digits.length === 11)
+    return `+1 ${digits.slice(1, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
+  return `+${digits}`;
+}

@@ -23,7 +23,7 @@ export function Summary({ print }: { print?: boolean }) {
             return (
               <li
                 key={r.label}
-                className={`grid gap-1 border-b border-line py-3 transition-opacity duration-500 md:grid-cols-[9rem_1fr] md:gap-8 md:py-4 ${
+                className={`grid gap-0.5 border-b border-line py-2.5 transition-opacity duration-500 short:py-2 md:grid-cols-[9rem_1fr] md:gap-8 md:py-4 ${
                   on ? "opacity-100" : "opacity-20"
                 }`}
               >
@@ -35,7 +35,7 @@ export function Summary({ print }: { print?: boolean }) {
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, ease }}
-                      className={`max-w-[62ch] leading-relaxed ${isAnswer ? "text-paper text-[1rem] md:text-[1.12rem]" : "text-mist text-[0.95rem] md:text-[1.02rem]"}`}
+                      className={`max-w-[62ch] leading-snug md:leading-relaxed ${isAnswer ? "text-paper text-[0.95rem] short:text-[0.88rem] md:text-[1.12rem]" : "text-mist text-[0.9rem] short:text-[0.84rem] md:text-[1.02rem]"}`}
                     >
                       {r.body}
                     </motion.p>

@@ -77,7 +77,7 @@ export function Chapter({ index, children, print, className = "", takeaway, sour
     >
       {children}
       {(takeaway || source) && (
-        <motion.div variants={rise} className="mt-auto pt-5 short:pt-3 md:mt-0 md:pt-0">
+        <motion.div variants={rise}>
           {takeaway && (
             <p className="max-w-[64ch] border-t border-line pt-3 text-paper text-[0.95rem] leading-snug short:pt-2 short:text-[0.84rem] md:pt-4 md:text-[1.05rem]">
               {takeaway}
@@ -164,7 +164,7 @@ export function Title({ children, className = "" }: { children: ReactNode; class
   return (
     <motion.h2
       variants={rise}
-      className={`font-display max-w-[34ch] text-paper text-[clamp(1.35rem,5.4vw,2rem)] leading-[1.14] short:text-[clamp(1.2rem,4.8vw,1.7rem)] md:text-[2.15rem] md:leading-[1.16] ${className}`}
+      className={`font-display max-w-[34ch] text-balance text-paper text-[clamp(1.3rem,5.2vw,1.9rem)] leading-[1.18] short:text-[clamp(1.15rem,4.6vw,1.6rem)] md:text-[2.15rem] md:leading-[1.16] ${className}`}
     >
       {children}
     </motion.h2>
@@ -175,7 +175,7 @@ export function Lead({ children, className = "" }: { children: ReactNode; classN
   return (
     <motion.p
       variants={rise}
-      className={`mt-3 max-w-[60ch] text-mist text-[0.95rem] leading-relaxed short:text-[0.88rem] md:mt-4 md:text-[1.05rem] ${className}`}
+      className={`mt-3 max-w-[60ch] text-pretty text-mist text-[0.95rem] leading-relaxed short:text-[0.88rem] md:mt-4 md:text-[1.05rem] ${className}`}
     >
       {children}
     </motion.p>
@@ -197,7 +197,7 @@ export function Exhibit({
 }) {
   const { t } = useT();
   return (
-    <motion.figure variants={rise} className={`mt-5 flex flex-col short:mt-3 md:my-auto md:py-6 ${className}`}>
+    <motion.figure variants={rise} className={`my-auto flex flex-col py-6 short:py-4 md:py-8 ${className}`}>
       <figcaption className="label mb-3 flex flex-wrap items-baseline gap-x-3 text-mist/60 short:mb-2 md:mb-4">
         <span className="text-sky/80">
           {t.ui.exhibit} {n}
@@ -219,7 +219,7 @@ export function StepButton({ onClick, done, children }: { onClick: () => void; d
       type="button"
       onClick={onClick}
       disabled={done}
-      className={`label mt-4 inline-flex items-center gap-2 border px-4 py-2 transition-colors ${
+      className={`label mt-4 inline-flex min-h-11 items-center gap-2 border px-4 transition-colors md:min-h-10 ${
         done ? "border-line text-mist/40" : "border-sky/60 text-sky hover:bg-sky/10"
       }`}
     >

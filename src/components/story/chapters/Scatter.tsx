@@ -121,7 +121,7 @@ export function Scatter({ print }: { print?: boolean }) {
               <button
                 type="button"
                 onClick={toggle}
-                className={`label border px-4 py-2 transition-colors ${
+                className={`label inline-flex min-h-11 items-center border px-4 transition-colors md:min-h-10 ${
                   gathered ? "border-line text-mist hover:text-paper" : "border-sky/60 text-sky hover:bg-sky/10"
                 }`}
               >

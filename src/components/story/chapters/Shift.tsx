@@ -58,10 +58,10 @@ export function Shift({ print }: { print?: boolean }) {
               animate={{ left: after ? "50%" : "0%" }}
               transition={{ type: "spring", stiffness: 300, damping: 32 }}
             />
-            <button type="button" role="tab" aria-selected={!after} onClick={() => set(false)} className={`relative z-10 px-4 py-2 transition-colors md:px-5 ${after ? "text-mist" : "text-ink"}`}>
+            <button type="button" role="tab" aria-selected={!after} onClick={() => set(false)} className={`relative z-10 px-4 py-3 transition-colors md:px-5 md:py-2 ${after ? "text-mist" : "text-ink"}`}>
               {s.before}
             </button>
-            <button type="button" role="tab" aria-selected={after} onClick={() => set(true)} className={`relative z-10 px-4 py-2 transition-colors md:px-5 ${after ? "text-ink" : "text-mist"}`}>
+            <button type="button" role="tab" aria-selected={after} onClick={() => set(true)} className={`relative z-10 px-4 py-3 transition-colors md:px-5 md:py-2 ${after ? "text-ink" : "text-mist"}`}>
               {s.after}
             </button>
           </div>

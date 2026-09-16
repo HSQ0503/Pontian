@@ -75,7 +75,7 @@ export function Sectors({ print }: { print?: boolean }) {
                     setTouched(true);
                     setIdx(i);
                   }}
-                  className={`shrink-0 whitespace-nowrap border-b px-3 py-2 text-left text-[0.85rem] transition-colors md:flex md:items-center md:justify-between md:whitespace-normal md:border-line md:px-0 md:py-3 md:text-[1rem] ${
+                  className={`shrink-0 whitespace-nowrap border-b px-3 py-3 text-left text-[0.88rem] transition-colors md:flex md:items-center md:justify-between md:whitespace-normal md:border-line md:px-0 md:py-3 md:text-[1rem] ${
                     on ? "border-sky text-paper" : "border-line text-mist hover:text-paper"
                   }`}
                 >
