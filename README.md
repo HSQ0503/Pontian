@@ -1,6 +1,6 @@
 # Pontian
 
-Next.js 16, Tailwind 4, framer-motion. Three routes: `/` (one line), `/contact`, `/story` (the interactive presentation, unlisted). `/story/print` is the PDF source.
+Next.js 16, Tailwind 4, framer-motion. Three routes: `/` (the landing page, built on the brand guidelines in `src/app/(landing)` and `src/components/landing`), `/contact`, `/story` (the interactive presentation, unlisted). `/story/print` is the PDF source.
 
 ```bash
 npm install

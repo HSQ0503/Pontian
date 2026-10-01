@@ -138,3 +138,68 @@ body {
   break-after: auto;
   page-break-after: auto;
 }
+
+/* Landing page (src/app/(landing)). Values from the Pontian Brand + Digital
+   Guidelines v1.0. The dark serif theme above still owns /contact and /story. */
+@theme {
+  --color-pt-blue: #0173fd;
+  --color-pt-yellow: #fdd907;
+  --color-pt-red: #f51728;
+  --color-pt-ink: #111111;
+  --color-pt-action: #0068e8;
+  --color-pt-action-deep: #0054b8;
+  --color-pt-paper: #f6f5f2;
+  --color-pt-line: #e4e2dc;
+  --color-pt-muted: #4a4a48;
+
+  --animate-pt-from-left: pt-from-left 450ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-pt-from-right: pt-from-right 450ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-pt-from-below: pt-from-below 450ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-pt-scroll-hint: pt-scroll-hint 1.6s ease-in-out infinite;
+
+  @keyframes pt-from-left {
+    from { opacity: 0; transform: translateX(-56px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes pt-from-right {
+    from { opacity: 0; transform: translateX(56px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes pt-from-below {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes pt-scroll-hint {
+    0%   { transform: translateY(-100%); }
+    100% { transform: translateY(300%); }
+  }
+}
+
+html:has(.pontian-root),
+body:has(.pontian-root) {
+  background: #ffffff;
+  color: #111111;
+  overscroll-behavior-y: auto;
+}
+body:has(.pontian-root)::after {
+  display: none;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 320ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms);
+}
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
