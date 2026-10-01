@@ -19,7 +19,7 @@ import {
 import styles from "./skorman.module.css";
 
 export function DemoLabel({
-  children = "Illustrative experience",
+  children = "Example search journey",
 }: {
   children?: string;
 }) {
@@ -34,40 +34,41 @@ export function DemoLabel({
 const journeys = [
   {
     name: "Visit",
-    query: "A family afternoon near Clermont?",
-    title: "A place to spend the afternoon.",
+    query: "Where can we take the kids near Clermont?",
+    title: "An afternoon at Hills City Center.",
     property: "Hills City Center",
     answer:
-      "Explore the Crooked Can destination in Minneola. Check current attractions, food options, hours, and directions before you visit.",
+      "Hills City Center in Minneola includes Crooked Can and Splash & Play. Check the current hours and attractions when planning your visit.",
     action: "Plan a visit",
     route:
-      "Current attractions, directions, and the operator's visitor information.",
-    goal: "Useful visitor actions",
-    note: "Separate what's open today from what's coming next.",
+      "A page with current attractions, directions, and visitor information from the operator.",
+    goal: "Directions and event clicks",
+    note: "Let visitors check what's open before they make the trip.",
   },
   {
     name: "Live",
-    query: "Apartments near the Minneola turnpike?",
-    title: "A community that fits the search.",
+    query: "Apartments near the turnpike in Minneola?",
+    title: "Take a look at Minneola Hills.",
     property: "Minneola Hills",
     answer:
-      "Minneola Hills offers an apartment community in Minneola. Visit the property's leasing website to check current availability, floor plans, and tour options.",
+      "For Minneola Hills, start with the community's leasing website to check floor plans and current availability or ask about a tour.",
     action: "Explore the community",
-    route: "The existing property website and leasing team's inquiry process.",
+    route:
+      "The community's existing website, where the leasing team handles inquiries.",
     goal: "Qualified leasing inquiries",
-    note: "Keep availability and property details aligned with the operator.",
+    note: "Keep the website's availability and property details up to date with the operator.",
   },
   {
     name: "Lease",
     query: "Where could I open a business in Minneola?",
-    title: "The right conversation, earlier.",
+    title: "Find the contact for the property.",
     property: "Skorman's commercial developments",
     answer:
-      "Explore Skorman's retail and mixed-use developments. Ask the appropriate commercial contact about current or future opportunities that match your business.",
+      "Skorman has retail and mixed-use developments. Contact the team for the property you're considering to ask about space and upcoming phases.",
     action: "Ask about space",
     route: "The broker or team responsible for that specific property.",
     goal: "Relevant commercial inquiries",
-    note: "Show the right contact without inventing available space.",
+    note: "Help business owners find the contact who can confirm availability.",
   },
 ];
 
@@ -78,7 +79,7 @@ export function VisibilityDemo() {
   return (
     <div className={styles.visibilityDemo}>
       <div className={styles.demoTop}>
-        <span>From a question to a next step</span>
+        <span>How someone could find the property</span>
         <DemoLabel />
       </div>
       <div className={styles.segmented} aria-label="Choose a property audience">
@@ -130,16 +131,16 @@ export function VisibilityDemo() {
                   </i>
                 </div>
                 <h3>
-                  Be easy to find.
+                  Give people the details
                   <br />
-                  Be easy to understand.
+                  they&apos;re looking for.
                 </h3>
                 <p>{journey.note}</p>
               </>
             ) : step === 1 ? (
               <>
                 <span className={styles.smallLabel}>
-                  What a useful answer could say
+                  Example AI search answer
                 </span>
                 <h3>{journey.title}</h3>
                 <p>{journey.answer}</p>
@@ -150,7 +151,7 @@ export function VisibilityDemo() {
             ) : (
               <>
                 <span className={styles.smallLabel}>
-                  A clear path to the right team
+                  Where the visitor goes next
                 </span>
                 <h3>{journey.property}</h3>
                 <div className={styles.exampleAction}>
@@ -183,8 +184,8 @@ export function VisibilityDemo() {
         ))}
       </div>
       <p className={styles.finePrint}>
-        Example journey, not a captured search result. Search placement and lead
-        volume cannot be guaranteed.
+        These search results are written for the demo. Rankings and inquiry
+        volume aren&apos;t guaranteed.
       </p>
     </div>
   );
@@ -210,10 +211,10 @@ const exampleSites: ExampleSite[] = [
     kind: "Land",
     size: "22 acres",
     signal: "Newly marketed",
-    why: "The example parcel matches the team's land-use and size criteria near a growth corridor.",
+    why: "This 22-acre example fits the team's preferred use and size in a growth corridor.",
     check: "Verify access, utilities, zoning, and usable acreage.",
     source:
-      "Example broker listing + parcel record. A real feed would require agreed access and current records.",
+      "Example broker listing and parcel record. We'd need agreed access to current records for the real searcher.",
     x: 60,
     y: 29,
   },
@@ -223,10 +224,10 @@ const exampleSites: ExampleSite[] = [
     kind: "Apartments",
     size: "88 homes",
     signal: "Foreclosure notice",
-    why: "A public notice puts this example asset on the team's watchlist for further research.",
+    why: "A foreclosure notice flags this example for review. Check the case before treating it as a buying opportunity.",
     check: "Verify case status, title, condition, and comparable sales.",
     source:
-      "Example foreclosure notice + recorded sales. A notice alone does not establish availability or value.",
+      "Example foreclosure notice and recorded sales. A notice alone doesn't confirm that a property is available or worth buying.",
     x: 37,
     y: 62,
   },
@@ -236,10 +237,10 @@ const exampleSites: ExampleSite[] = [
     kind: "Commercial",
     size: "6 acres",
     signal: "Potential redevelopment",
-    why: "This example combines the target location with an existing commercial use worth reviewing.",
+    why: "The location and existing commercial use make this example worth checking for redevelopment.",
     check: "Confirm permitted use, site constraints, and owner interest.",
     source:
-      "Example parcel data + zoning layer. Owner willingness and development feasibility are unverified.",
+      "Example parcel data and zoning map. The owner's interest in selling and the site's development potential still need checking.",
     x: 78,
     y: 70,
   },
@@ -408,7 +409,7 @@ export function PropertySearcher() {
               <span className={styles.signal}>{active.signal}</span>
               <p>{active.why}</p>
               <div className={styles.checkNote}>
-                <span>Before you go further</span>
+                <span>What still needs checking</span>
                 {active.check}
               </div>
               <button
@@ -417,7 +418,7 @@ export function PropertySearcher() {
                 aria-expanded={evidence}
               >
                 <FileText size={15} />
-                {evidence ? "Hide example evidence" : "Why did this appear?"}
+                {evidence ? "Hide example evidence" : "Why this site?"}
                 <ChevronRight size={15} />
               </button>
               {evidence && (
@@ -483,22 +484,22 @@ const decisions = [
     due: "Before the next design review",
     kind: "Decision needed",
     update:
-      "A consultant's revised access route affects the planned loading area. The team needs one confirmed direction before it advances the drawings.",
+      "The proposed access route overlaps the loading area. The development lead needs to choose an arrangement before the drawings move ahead.",
     source: "Sample consultant update",
     excerpt:
-      "The revised access route overlaps the current loading layout. Development lead to confirm the preferred arrangement before the next design review.",
+      "The revised access route overlaps the loading area. Please confirm the preferred arrangement before the next design review.",
   },
   {
     project: "Example apartment opening",
-    title: "Align the public opening information",
+    title: "Confirm the opening information",
     owner: "Marketing + property operator",
     due: "Before publishing",
     kind: "Follow-up",
     update:
-      "The marketing draft and operator update show different opening information. Confirm one approved statement for the property pages.",
+      "The website draft and operator update disagree about the opening. Marketing and the operator need to approve the same information before it goes online.",
     source: "Sample operator update",
     excerpt:
-      "Opening information is awaiting approval. Marketing and the property operator should reconcile the website draft before publication.",
+      "The opening information hasn't been approved. Marketing and the property operator need to check the website draft together before publishing it.",
   },
   {
     project: "Example acquisition",
@@ -507,10 +508,10 @@ const decisions = [
     due: "Before site selection",
     kind: "Review",
     update:
-      "The initial shortlist matches the location criteria. The zoning check is still open and needs a documented answer before the team proceeds.",
+      "The site fits the location criteria, but the zoning review is still open. Acquisitions needs to confirm the permitted use before recommending it.",
     source: "Sample acquisition note",
     excerpt:
-      "Location screening is complete. Confirm the permitted use and any required approvals before recommending the site for further evaluation.",
+      "The site passes the location screen. Please confirm the permitted use and required approvals before recommending it for further review.",
   },
 ];
 
@@ -522,7 +523,7 @@ export function OversightDemo() {
   return (
     <div className={styles.briefDemo}>
       <div className={styles.demoTop}>
-        <span>Monday, with the whole picture</span>
+        <span>A weekly project brief</span>
         <DemoLabel>Proposed workflow / sample updates</DemoLabel>
       </div>
       <LayoutGroup id="skorman-brief">
@@ -554,13 +555,13 @@ export function OversightDemo() {
                   ),
                 )}
               </div>
-              <h3>The updates already exist.</h3>
-              <p>Bring them together around the decisions they affect.</p>
+              <h3>Start with the reports you have.</h3>
+              <p>Pull out the decisions that are still waiting on someone.</p>
               <button
                 className={styles.primarySmall}
                 onClick={() => setAssembled(true)}
               >
-                Bring the updates together <ArrowRight size={17} />
+                Build the sample brief <ArrowRight size={17} />
               </button>
             </motion.div>
           ) : (
@@ -575,7 +576,7 @@ export function OversightDemo() {
                   <span className={styles.smallLabel}>
                     Your weekly project brief
                   </span>
-                  <h3>Three things worth your attention.</h3>
+                  <h3>Three items need a follow-up.</h3>
                 </div>
                 <span className={styles.briefCount}>3</span>
               </div>
@@ -640,7 +641,7 @@ export function OversightDemo() {
                   setSourceOpen(false);
                 }}
               >
-                Replay the transformation
+                Show the reports again
               </button>
             </motion.div>
           )}
@@ -652,26 +653,26 @@ export function OversightDemo() {
 
 const answers = [
   {
-    question: "What is holding up the next design step?",
+    question: "What's holding up the drawings?",
     answer:
-      "The access route needs a decision. The revised route overlaps the planned loading area, so the drawings are waiting for the development lead's direction.",
-    next: "Confirm the preferred access arrangement before the next design review.",
+      "The access route overlaps the loading area. The drawings are waiting for the development lead to choose an arrangement.",
+    next: "Confirm the access arrangement before the next design review.",
     source: "Consultant update",
     excerpt: decisions[0].excerpt,
   },
   {
-    question: "Which opening information is approved?",
+    question: "Has the opening information been approved?",
     answer:
-      "The sample documents do not contain an approved opening statement. The marketing draft and operator update still need to be reconciled.",
-    next: "Ask marketing and the property operator to confirm the statement before publishing.",
+      "There's no approved opening statement in the sample files. The website draft and operator update still disagree.",
+    next: "Ask marketing and the property operator to approve the same information before publishing.",
     source: "Operator update",
     excerpt: decisions[1].excerpt,
   },
   {
     question: "What still needs checking on the new site?",
     answer:
-      "The location screen is complete. Permitted use and required approvals have not yet been confirmed in the sample acquisition record.",
-    next: "Have the acquisitions lead document the zoning review before site selection.",
+      "The site passes the location screen. The sample record still needs confirmation of the permitted use and required approvals.",
+    next: "Ask the acquisitions lead to finish and record the zoning review before selecting the site.",
     source: "Acquisition note",
     excerpt: decisions[2].excerpt,
   },
@@ -685,7 +686,7 @@ export function AnswersDemo() {
     <div className={styles.answersDemo}>
       <div className={styles.demoTop}>
         <span>
-          <Search size={16} /> Ask your projects
+          <Search size={16} /> Ask about a project
         </span>
         <DemoLabel>Prepared example answers</DemoLabel>
       </div>
@@ -749,8 +750,8 @@ export function AnswersDemo() {
         </motion.div>
       </AnimatePresence>
       <div className={styles.answerFooter}>
-        <Check size={15} /> Plain-language answers. Visible sources. Your
-        team&apos;s access rules.
+        <Check size={15} /> Answers link to the documents each person is allowed
+        to see.
       </div>
     </div>
   );

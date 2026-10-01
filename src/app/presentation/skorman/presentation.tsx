@@ -73,21 +73,22 @@ function Cover({ goTo }: { goTo: Navigate }) {
           A conversation with Skorman Development
         </p>
         <h1 data-scene-heading tabIndex={-1}>
-          A clearer view
+          From the first
           <br />
-          of what
+          site visit to
           <br />
-          comes next.
+          opening day.
         </h1>
         <p>
-          Find promising sites. Bring people to your properties. Keep every
-          project in view.
+          Pontian can help Skorman find sites that fit its plans and bring
+          renters and visitors to its properties. We can also build tools to
+          track development decisions.
         </p>
         <button className={styles.primaryButton} onClick={() => goTo(1)}>
-          Explore the opportunity <ArrowRight size={19} />
+          See what we could build <ArrowRight size={19} />
         </button>
         <span className={styles.coverNote}>
-          Built around your business. By Pontian.
+          A proposal from Pontian for Skorman Development.
         </span>
       </div>
       <motion.div
@@ -112,7 +113,7 @@ function Cover({ goTo }: { goTo: Navigate }) {
           {[
             { label: "Get discovered", index: 2 },
             { label: "Find the next site", index: 3 },
-            { label: "See the bigger picture", index: 4 },
+            { label: "Review project decisions", index: 4 },
           ].map((item, i) => (
             <button key={item.label} onClick={() => goTo(item.index)}>
               <span className={styles.colorDot} data-tone={i} />
@@ -138,9 +139,9 @@ function Portfolio() {
         tag="Built around Skorman"
         title={
           <>
-            One portfolio.
+            Start with
             <br />
-            Different priorities.
+            the property.
           </>
         }
         extra={
@@ -150,8 +151,9 @@ function Portfolio() {
         }
       >
         <p>
-          Every property has a next chapter. The right system starts with the
-          people and decisions that move it forward.
+          A family planning a visit to Hills City Center needs different
+          information from someone looking for an apartment at Minneola Hills.
+          We&apos;d build around each property&apos;s audience and stage.
         </p>
         <div
           className={styles.propertySelector}
@@ -217,30 +219,33 @@ function Visibility() {
         tag="Search visibility / GEO + SEO"
         title={
           <>
-            Be there when
+            Help people
             <br />
-            the search begins.
+            find your
+            <br />
+            properties.
           </>
         }
         extra={
           <div className={styles.outcome}>
             <span className={styles.colorDot} data-tone={0} />
-            <p>The goal: more relevant people taking the right next step.</p>
+            <p>Track website visits and inquiries from search.</p>
           </div>
         }
       >
         <p>
-          Make your properties easier to discover in Google and AI answers. Then
-          make it easy to visit, inquire, or reach the right team.
+          We&apos;d improve the property pages people find through Google and AI
+          search, so they can see what&apos;s available and contact the right
+          team.
         </p>
         <dl className={styles.definitions}>
           <div>
             <dt>SEO</dt>
-            <dd>Help search engines find and understand each property.</dd>
+            <dd>Make each property easier to find in Google.</dd>
           </div>
           <div>
             <dt>GEO</dt>
-            <dd>Help AI answers describe and recommend it accurately.</dd>
+            <dd>Improve how the property appears in AI search answers.</dd>
           </div>
         </dl>
       </SceneIntro>
@@ -256,22 +261,24 @@ function Searcher() {
         tag="Acquisitions / Property Searcher"
         title={
           <>
-            Your next site.
-            <br />A little easier
+            Find sites
             <br />
-            to spot.
+            that fit
+            <br />
+            your plans.
           </>
         }
         extra={
           <div className={styles.outcome}>
             <span className={styles.colorDot} data-tone={1} />
-            <p>A shortlist with reasons. Your team makes the call.</p>
+            <p>See why a site matched and what still needs checking.</p>
           </div>
         }
       >
         <p>
-          Bring newly available properties and signs of potential value into one
-          place, matched to what Skorman wants to develop.
+          Tell us the areas, property types, and size you&apos;re looking for.
+          We&apos;d combine listings and public records into a shortlist your
+          acquisitions team can review.
         </p>
         <ul className={styles.plainList}>
           <li>New listings and foreclosure notices</li>
@@ -279,8 +286,9 @@ function Searcher() {
           <li>Zoning, access, and site constraints</li>
         </ul>
         <p className={styles.secondaryCopy}>
-          Start with Central Florida land, apartments, and commercial sites.
-          Confirm value through further review.
+          Start with land, apartments, and commercial sites in Central Florida.
+          Your team would still check the title, condition, and development
+          potential.
         </p>
       </SceneIntro>
       <PropertySearcher />
@@ -295,28 +303,29 @@ function Oversight() {
         tag="Development / A simpler weekly brief"
         title={
           <>
-            Open Monday.
-            <br />
             Know what
             <br />
-            needs you.
+            needs a decision
+            <br />
+            this week.
           </>
         }
         extra={
           <div className={styles.outcome}>
             <span className={styles.colorDot} data-tone={2} />
-            <p>Less chasing updates. More time for decisions.</p>
+            <p>Use the reports your teams already produce.</p>
           </div>
         }
       >
         <p>
-          Turn approved meeting notes, consultant updates, and operator reports
-          into a clear view of what changed.
+          We&apos;d pull the changes that matter from meeting notes and project
+          reports, so you can review outstanding decisions without chasing each
+          team for an update.
         </p>
         <div className={styles.questionList}>
-          <span>What needs a decision?</span>
-          <span>Who owns the next step?</span>
-          <span>Where did the update come from?</span>
+          <span>Decisions waiting on approval</span>
+          <span>The person responsible</span>
+          <span>The original update</span>
         </div>
       </SceneIntro>
       <OversightDemo />
@@ -331,9 +340,11 @@ function Answers() {
         tag="Company knowledge / Answers with evidence"
         title={
           <>
-            Ask the question.
+            Get answers
             <br />
-            Find the answer.
+            from your
+            <br />
+            project files.
           </>
         }
         extra={
@@ -344,12 +355,12 @@ function Answers() {
         }
       >
         <p>
-          Give the team a simple way to find the latest decision, project note,
-          or open question without searching across folders and emails.
+          Ask which drawing is current or what&apos;s holding up a decision. The
+          answer comes with the note or document it used, so you can check it.
         </p>
         <p className={styles.secondaryCopy}>
-          Connect approved information. Keep existing permissions. Make missing
-          or conflicting information visible.
+          Your team keeps control of access. Missing or conflicting information
+          should be flagged.
         </p>
       </SceneIntro>
       <AnswersDemo />
@@ -360,31 +371,31 @@ function Answers() {
 const foundations = [
   {
     label: "Canes",
-    status: "Existing workflow software",
-    title: "From a first inquiry to getting the work done.",
-    text: "Pontian's Canes work connects lead intake, conversations, scheduling, and invoicing around the day-to-day work of a service business.",
+    status: "Software we've built",
+    title: "Keep the customer and the job together.",
+    text: "Canes brings customer messages, quotes, job scheduling, and invoices into one place. The work stays connected as a lead becomes a job.",
     takeaway:
-      "For Skorman: a clear owner and next action for every commercial inquiry.",
+      "For Skorman, we could build an inquiry list that shows who's responding and what needs to happen next.",
     steps: ["Inquiry", "Conversation", "Scheduled work", "Invoice"],
     icon: MessageSquare,
   },
   {
     label: "Across locations",
-    status: "Existing reporting foundation",
+    status: "Reporting tools we've built",
     title: "Compare locations in one view.",
-    text: "Our retail reporting work brings data from multiple locations into a common view. The useful pattern is consistent information that an owner can compare.",
+    text: "We've connected data from multiple retail locations so an owner can compare them in one report.",
     takeaway:
-      "For Skorman: build a comparable owner report from approved property-manager reports.",
+      "We could bring approved reports from Skorman's property managers into a format the owners can compare.",
     steps: ["Location reports", "Consistent measures", "Compare", "Review"],
     icon: Layers3,
   },
   {
     label: "Company knowledge",
-    status: "Existing knowledge foundation",
-    title: "Keep the source close to the answer.",
-    text: "Our knowledge systems retrieve company information with source citations and access controls. Connecting Skorman's information would be new work.",
+    status: "Document tools we've built",
+    title: "Find an answer in the company files.",
+    text: "Our document tools answer questions using company files and link to their sources. Access follows the user's permissions.",
     takeaway:
-      "For Skorman: project answers that lead back to the approved record.",
+      "We'd set this up with Skorman's approved files and the team's access rules.",
     steps: ["Approved files", "Your question", "A clear answer", "The source"],
     icon: FileText,
   },
@@ -392,8 +403,9 @@ const foundations = [
     label: "Project changes",
     status: "Demonstration / simulated integrations",
     title: "See who a change affects.",
-    text: "Our engineering demonstration follows a change through affected teams, tasks, and reviews. It shows an interaction pattern we could adapt together.",
-    takeaway: "For Skorman: a change becomes a visible decision with an owner.",
+    text: "We built a demo that follows a proposed design change through the teams and approvals it affects. Its external connections are simulated.",
+    takeaway:
+      "We could adapt that approach to track project changes and the people who need to review them.",
     steps: ["A change", "Affected teams", "Review", "Decision"],
     icon: Route,
   },
@@ -410,21 +422,22 @@ function Experience() {
           tag="The experience behind the proposal"
           title={
             <>
-              A foundation
+              Work we&apos;ve
               <br />
-              to build on.
+              already built.
             </>
           }
         >
           <p>
-            We build around real work, then stay involved to maintain and
-            improve the systems.
+            Canes is one example of our work on everyday operations. We&apos;ve
+            also built reporting and document tools that could support the
+            systems proposed here.
           </p>
         </SceneIntro>
         <p className={styles.experienceAside}>
-          A familiar starting point.
+          Our work with Sebastian
           <br />
-          <strong>Our work with Sebastian at Canes.</strong>
+          <strong>Canes Pressure Washing</strong>
         </p>
       </div>
       <div
@@ -477,8 +490,8 @@ function Experience() {
         </motion.div>
       </AnimatePresence>
       <p className={styles.finePrint}>
-        These are foundations and experience. The Skorman systems shown here are
-        proposals, not existing integrations.
+        The examples above describe existing work and a demo. Adapting them for
+        Skorman would be a new project.
       </p>
     </section>
   );
@@ -486,24 +499,24 @@ function Experience() {
 
 const horizons = [
   {
-    name: "One useful starting point",
+    name: "Start with one property",
     title: "Make one property easier to discover.",
-    body: "Begin with a defined property, accurate information, and a measurable path to an inquiry or visit.",
-    result: "A focused result the team can use.",
+    body: "Choose a property and improve the pages people use to plan a visit or make an inquiry. Agree upfront on what we'll measure.",
+    result: "A website pilot with agreed measures.",
     active: 1,
   },
   {
-    name: "A connected portfolio",
+    name: "Bring more properties in",
     title: "Bring opportunities and projects into view.",
-    body: "Add an acquisition shortlist and a shared development brief. Connect approved reports from the tools your teams already use.",
-    result: "A consistent view across properties and stages.",
+    body: "Add the property shortlist and weekly project brief. Bring in approved reports from the tools your teams already use.",
+    result: "See active projects alongside the acquisition pipeline.",
     active: 4,
   },
   {
-    name: "Knowledge that compounds",
+    name: "Use what you've learned",
     title: "Carry every project's lessons into the next.",
-    body: "Compare the original site assumptions with approvals, delivery, and operating results. Keep the reasoning behind the decisions.",
-    result: "A record that stays useful long after a project opens.",
+    body: "Compare what you expected at acquisition with the approvals, delivery, and operating results. That record can help the next team understand which assumptions held up.",
+    result: "Past assumptions and results, available for the next site review.",
     active: 5,
   },
 ];
@@ -525,20 +538,22 @@ function Horizon() {
           tag="The longer view"
           title={
             <>
-              Every project.
-              <br />A stronger starting point.
+              Keep what you learn
+              <br />
+              from each project.
             </>
           }
         >
           <p>
-            A shared record from the first site review to the lessons you take
-            into the next development.
+            Keep the original site research alongside later approvals and
+            operating reports, so the next team can see how the project
+            developed and why decisions were made.
           </p>
         </SceneIntro>
         <span className={styles.horizonCaption}>
-          A long-term partnership.
+          Pontian would maintain the systems
           <br />
-          Built one useful system at a time.
+          and keep improving them with your team.
         </span>
       </div>
       <div className={styles.horizonLayout}>
@@ -640,9 +655,9 @@ const startingPoints = [
     property: "Suggested start: Hills City Center",
     people: "Property lead + marketing owner",
     bring:
-      "Current website, approved property details, and existing inquiry paths.",
+      "The current website, approved property details, and the way inquiries reach the team.",
     result:
-      "Agree on the pages, visitor actions, and visibility measures for a first pilot.",
+      "Choose the first pages to improve and agree on which website visits and inquiries to track.",
   },
   {
     name: "Acquisition search",
@@ -651,16 +666,16 @@ const startingPoints = [
     bring:
       "Target areas, property types, site criteria, and examples of good past opportunities.",
     result:
-      "Define what deserves a place on the shortlist and which sources can support it.",
+      "Agree on the shortlist criteria and the records we'd need to find matching sites.",
   },
   {
     name: "Development brief",
     property: "Suggested start: One active project",
     people: "Development lead + the report owner",
     bring:
-      "An approved meeting record, project update, and the current reporting process.",
+      "A recent meeting record and project update, plus a look at how the team prepares its reports.",
     result:
-      "Agree on a brief that makes the next decision and its owner clear.",
+      "Choose which decisions the brief should cover and who needs to act on them.",
   },
 ];
 
@@ -673,27 +688,26 @@ function NextStep() {
         tag="Let's put it to work"
         title={
           <>
-            Start with one property.
+            Let&apos;s start with
             <br />
-            Keep the whole
-            <br />
-            portfolio in view.
+            Hills City Center.
           </>
         }
       >
         <p>
-          One working session. The people who know the process. A useful first
-          result we can define together.
+          Bring the property and marketing leads into a working session.
+          We&apos;ll review the current website and inquiry process, then agree
+          on a small first project and how to judge it.
         </p>
         <ol className={styles.nextSteps}>
           <li>
-            <span>01</span>Choose the property and the outcome.
+            <span>01</span>Confirm the first property and its audience.
           </li>
           <li>
-            <span>02</span>Walk through how it works today.
+            <span>02</span>Review the website and inquiry process.
           </li>
           <li>
-            <span>03</span>Agree on a focused, measurable pilot.
+            <span>03</span>Agree on the first changes and how to measure them.
           </li>
         </ol>
       </SceneIntro>
@@ -749,7 +763,7 @@ function NextStep() {
           </motion.div>
         </AnimatePresence>
         <p className={styles.sessionFoot}>
-          A starting point for the conversation.
+          Choose a topic above to see a suggested agenda.
         </p>
       </div>
     </section>
@@ -909,7 +923,7 @@ export function SkormanPresentation() {
           </button>
           <div className={styles.headerTitle}>
             <span>For Skorman Development</span>
-            <span>A view of what&apos;s possible</span>
+            <span>Software for Skorman&apos;s properties</span>
           </div>
           <nav className={styles.headerTools} aria-label="Presentation tools">
             <button aria-label="Chapters" onClick={() => openPanel("chapters")}>
@@ -1080,7 +1094,7 @@ export function SkormanPresentation() {
             {panel === "notes" && (
               <>
                 <p className={styles.dialogLead}>
-                  Suggested talking points, not a script to memorize. Visible on
+                  Use these notes in your own words. They&apos;re visible on
                   this screen while open.
                 </p>
                 <div className={styles.presenterCurrent}>

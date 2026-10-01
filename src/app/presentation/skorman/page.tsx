@@ -5,9 +5,11 @@ import { SkormanPresentation } from "./presentation";
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: { absolute: "A clearer view of what comes next | Pontian × Skorman" },
+  title: {
+    absolute: "From the first site visit to opening day | Pontian × Skorman",
+  },
   description:
-    "A conversation about finding opportunities, bringing people to properties, and making development easier to oversee.",
+    "Proposed tools to help Skorman find sites, attract renters and visitors, and track development decisions.",
   robots: { index: false, follow: false },
   icons: {
     icon: {
@@ -19,7 +21,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Pontian × Skorman Development",
-    description: "A clearer view of what comes next.",
+    description: "From the first site visit to opening day.",
     images: [
       {
         url: "/pontian/frontier-logo.png",

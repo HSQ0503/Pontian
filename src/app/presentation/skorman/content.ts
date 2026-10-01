@@ -3,110 +3,111 @@ export const chapters = [
     id: "begin",
     label: "The opportunity",
     time: "45 sec",
-    say: "Pontian builds useful systems around the way a business works. For Skorman, we see a connected opportunity: help people find your properties, help you find the next site, and make every project easier to oversee.",
-    do: "Start the experience. The three links on the image let you jump directly to an offer.",
+    say: "Pontian builds software around the work a team does every day. For Skorman, that could start with helping people find your properties, then extend to finding new sites and keeping track of development decisions.",
+    do: "Begin here, or use the links on the image to jump to the part they want to discuss.",
   },
   {
     id: "skorman",
-    label: "Your world",
+    label: "Skorman's properties",
     time: "45 sec",
-    say: "Your portfolio has different jobs at different stages. A destination needs visitors. An apartment community needs qualified prospects. A development needs clear decisions. The technology should follow those differences.",
-    do: "Select each property. Mention that the images are developer visuals and project stages come from public sources, checked October 1, 2026.",
+    say: "Someone planning a trip to Hills City Center needs different information from a renter considering Minneola Hills. We'd start by understanding who each property needs to reach and where it is in development.",
+    do: "Click through the properties. The images come from Skorman, and the project descriptions reflect public sources checked October 1, 2026.",
   },
   {
     id: "visibility",
     label: "Get discovered",
     time: "90 sec",
-    say: "SEO helps people find your properties in Google. GEO helps AI answers describe them accurately. We improve the information people need, then make the next step obvious. We would measure useful visits and inquiries, alongside search visibility.",
-    do: "Pick Visit, Live, or Lease, then click through the three steps. These are illustrative journeys, not captured Google or ChatGPT results. There is no ranking or lead guarantee.",
+    say: "If someone asks Google or an AI tool where to live or spend the afternoon, we'd like them to find your property. We'd improve the information on its website and make the contact or visit details easy to find. Then we'd track search visibility, website visits, and inquiries.",
+    do: "Use Visit, Live, or Lease to follow a sample search from the question through to the property page. The answers are written for this demo. Rankings and lead volume aren't guaranteed.",
   },
   {
     id: "searcher",
     label: "Find the next site",
     time: "90 sec",
-    say: "Tell us what a good site looks like. We bring relevant public and licensed information into a shortlist, explain why each site matches, and show what still needs checking. Foreclosure is one signal. Your team decides what deserves a closer look.",
-    do: "Filter by land, apartments, or commercial. Select a map marker, open the evidence, and save a site. All sites, acreage, and signals in this demo are invented. A real system would be a new build.",
+    say: "Tell us the area, size, and type of property you're looking for. We'd combine listings and public records into a shortlist, with an explanation for each match. A foreclosure notice might flag a site for review, but your team would still check its value and suitability.",
+    do: "Click a site to show why it matched, then save it or try a different property type. The sites, acreage, and signals are fictional. We'd build the real searcher with Skorman's criteria and agreed data sources.",
   },
   {
     id: "oversight",
-    label: "Know what needs you",
+    label: "This week's decisions",
     time: "60 sec",
-    say: "Imagine opening one brief on Monday and seeing what changed, what needs a decision, and who owns the next step. We can build that around the reports and documents your teams already use.",
-    do: "Bring the updates together, then select a decision. This is a proposed workflow with fictional project updates, not an audit of Skorman's operations.",
+    say: "On Monday, you could open a brief with the decisions still waiting on someone, the person responsible, and the update behind each one. We'd put it together from the reports your teams already produce.",
+    do: "Build the sample brief, select a decision, and open the note behind it. These updates are fictional. We'd need to review Skorman's reporting process before building its version.",
   },
   {
     id: "answers",
-    label: "Ask your projects",
+    label: "Ask about a project",
     time: "60 sec",
-    say: "Ask a normal question about a project. Get a short answer and the document behind it. If the latest information is missing, the system should say so. Each person only sees information they are allowed to access.",
-    do: "Try the suggested questions, then open a supporting note. These are prepared example responses. Skorman's documents and integrations would be configured together.",
+    say: "Ask which drawing is current. The tool would answer from the project files, link to the source, and say when the information is missing or conflicting. Your team's access rules still apply.",
+    do: "Choose a question and open its source. The answers are prepared examples. We'd connect Skorman's approved files and set up access with the team.",
   },
   {
     id: "experience",
-    label: "A foundation to build on",
+    label: "Work we've built",
     time: "60 sec",
-    say: "Use your own words about working with Pontian on Canes. The concrete capabilities are lead intake, conversations, scheduling, and invoices in a connected workflow. Other work gives us foundations for reporting across locations and answering questions from company documents.",
-    do: "Choose a capability. Describe what you have personally used; do not invent a testimonial or a quantified result. The project-change example is a demonstration, not a delivered construction integration.",
+    say: "Tell them about your own experience with Pontian at Canes. You can point to the tools for leads, customer messages, scheduling, and invoices. The other examples show our work on reports across locations and answers drawn from company files.",
+    do: "Use an example you know personally and stick to results you can support. The project-change demo uses simulated connections to other systems.",
   },
   {
     id: "horizon",
     label: "The longer view",
     time: "60 sec",
-    say: "Over time, the same property record can follow a site from first review to planning, construction, and operations. Compare what you expected with what happened. Keep that knowledge for the next project. Pontian stays involved to maintain and improve the systems.",
-    do: "Move through the three horizons. These describe a possible direction, not a committed schedule or existing Skorman integration.",
+    say: "Over time, we'd like a project's original site research to stay connected to its approvals, construction records, and operating reports. When you're considering the next site, you could look back at what you expected and how similar projects turned out. Pontian would maintain the systems as they grow.",
+    do: "Click through the three stages. They're a proposed direction. The scope, data access, and timing would be agreed with Skorman.",
   },
   {
     id: "next",
     label: "Start the conversation",
     time: "45 sec",
-    say: "Let's bring the right people together for one working session. Pick a property, walk through the current process, and agree on one useful first result. We suggest starting with search visibility at Hills City Center, then growing from there.",
-    do: "Choose the starting focus to show a suggested session agenda. This only changes the presentation; it does not book a meeting or send information.",
+    say: "We suggest starting with Hills City Center. Bring the property and marketing leads into a working session, walk through the current website and inquiry process, and agree on the first changes and how we'll measure them.",
+    do: "Choose a topic to show the suggested agenda. This is a planning example. Selecting it doesn't book a meeting or send anything.",
   },
 ] as const;
 
 export const properties = [
   {
     name: "Hills City Center",
-    kind: "A destination taking shape",
+    kind: "Open attractions, with more planned",
     image: "hills-city-center.png",
     stat: "96",
-    unit: "acre mixed-use program",
+    unit: "acre mixed-use development",
     status: "Open attractions + future phases",
-    opportunity: "Help visitors understand what's open and plan a visit.",
+    opportunity:
+      "Help visitors find out what's open before they make the trip.",
     detail:
-      "Crooked Can and Splash & Play are described as open. Homes and additional uses remain future phases.",
+      "The destination lists Crooked Can and Splash & Play as open. Homes and other parts of the development are still planned.",
     source: "https://www.hillscitycenter.com/about",
     credit:
-      "Hills City Center development visual, via Skorman. Shown as a vision, not completed inventory.",
+      "Hills City Center rendering from Skorman, showing a planned phase.",
   },
   {
     name: "Minneola Hills",
-    kind: "An established apartment community",
+    kind: "Apartments with an existing leasing team",
     image: "minneola-hills.png",
     stat: "297",
     unit: "apartments",
     status: "Completed in 2021, per Skorman",
     opportunity:
-      "Help the right renters discover the community and reach leasing.",
+      "Help prospective renters find Minneola Hills and contact leasing.",
     detail:
-      "A dedicated property website already supports leasing. Work with its operator and existing process.",
+      "The community already has a leasing website. We'd work with the property operator and the process they use.",
     source: "https://www.skormandevelopment.com/minneola-hills",
     credit: "Minneola Hills property visual, via Skorman Development.",
   },
   {
     name: "Vista Hills",
-    kind: "The next phase of growth",
+    kind: "An apartment development in progress",
     image: "vista-hills.png",
     stat: "324",
     unit: "planned apartments",
     status: "Groundbreaking reported January 2026",
     opportunity:
-      "Keep development decisions and future opening information aligned.",
+      "Keep the team up to date as construction moves toward opening.",
     detail:
-      "Skorman reports a construction start. Completion and current occupancy have not been established.",
+      "Skorman reports a construction start. We haven't verified completion or current occupancy.",
     source: "https://www.skormandevelopment.com/vista-hills",
     credit:
-      "Vista Hills development rendering, via Skorman. Not a claim of completion.",
+      "Vista Hills rendering from Skorman. Completion hasn't been verified.",
   },
 ] as const;
 
@@ -114,7 +115,7 @@ export const sources = [
   {
     label: "Skorman's business and featured developments",
     detail:
-      "Portfolio and asset types. Inclusion does not establish current ownership.",
+      "Featured projects and property types. A project listing doesn't establish current ownership.",
     href: "https://www.skormandevelopment.com/developments",
   },
   {
@@ -124,8 +125,7 @@ export const sources = [
   },
   {
     label: "Hills City Center: open and planned phases",
-    detail:
-      "Current attractions and future plans, as described by the destination.",
+    detail: "The destination's description of what's open and what's planned.",
     href: "https://www.hillscitycenter.com/about",
   },
   {
@@ -153,7 +153,7 @@ export const sources = [
   {
     label: "Lake County foreclosure sales",
     detail:
-      "A potential research input. A notice does not establish investment value.",
+      "A possible source for the searcher. A foreclosure notice alone doesn't establish value.",
     href: "https://www.lakecountyclerkfl.gov/departments/courts-management/civil/real-property-mortgage-foreclosure/foreclosure-sales-calendar/",
   },
   {
