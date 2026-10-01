@@ -1,15 +1,15 @@
 import type { Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Manrope } from "next/font/google";
 
-const inter = Inter({ subsets: ["latin"], display: "swap" });
+const manrope = Manrope({ subsets: ["latin"], display: "swap" });
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#080808",
 };
 
 export default function LandingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div lang="en" className={`pontian-root min-h-screen bg-white text-pt-ink antialiased ${inter.className}`}>
+    <div lang="en" className={`pontian-root min-h-screen antialiased ${manrope.className}`}>
       {children}
     </div>
   );

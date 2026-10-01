@@ -185,6 +185,10 @@ body:has(.pontian-root)::after {
   display: none;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.pontian-root) { scroll-behavior: smooth; }
+}
+
 .reveal {
   opacity: 0;
   transform: translateY(12px);
