@@ -26,6 +26,12 @@ export default function PontianPage() {
         </a>
         </section>
         <Industries />
+        <section className={styles.statement} aria-labelledby="pontian-approach">
+          <div className={styles.statementAccent} aria-hidden="true"><span /><span /><span /></div>
+          <h2 id="pontian-approach" className={styles.statementText}>
+            We build custom software, integrate AI and business systems, and keep them running, with a clear vision for what comes next.
+          </h2>
+        </section>
       </main>
     </div>
   );

@@ -11,9 +11,31 @@
 .iconButton svg { width: 19px; height: 19px; }
 .start:hover, .iconButton:hover { background: #dcdcd9; }
 .hero { position: relative; min-height: 100svh; display: grid; place-items: center; padding: 140px 5% 120px; }
+.hero::before, .statement::before { content: ""; position: absolute; inset: 0; background: url("/pontian/grain.svg") repeat; opacity: .085; pointer-events: none; }
+.hero > *, .statement > * { z-index: 1; }
+.headline { position: relative; }
+.statement { position: relative; overflow: hidden; background: #f5f5f2; color: #161616; padding: clamp(80px, 10vw, 160px) 7%; }
+.statement::before { opacity: .045; mix-blend-mode: multiply; }
+.statementAccent { position: relative; display: flex; gap: 5px; max-width: 1200px; margin: 0 auto 36px; }
+.statementAccent span { width: 20px; height: 3px; background: #f51625; }
+.statementAccent span:nth-child(2) { background: #fed603; }
+.statementAccent span:nth-child(3) { background: #007dfe; }
+.statementText { position: relative; max-width: 1200px; margin: 0 auto; font-family: var(--font-frontier-headline), sans-serif; font-size: clamp(36px, 4.3vw, 68px); font-weight: 400; line-height: 1.17; letter-spacing: -.04em; text-wrap: pretty; }
+@media (max-width: 700px) {
+  .statement { padding: 72px 24px; }
+  .statementText { font-size: clamp(30px, 7.7vw, 50px); line-height: 1.18; letter-spacing: -.04em; }
+  .statementAccent { margin-bottom: 28px; }
+}
 .explore { position: absolute; bottom: 34px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 10px 16px; white-space: nowrap; font-size: 13px; color: #d4d4d2; transition: color 180ms; }
 .explore:hover { color: #fff; }
-.headline { text-align: center; font-size: clamp(42px, 5.05vw, 112px); font-weight: 400; line-height: 1.11; letter-spacing: -.055em; margin: 0; }
+@keyframes explore-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(7px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .explore svg { animation: explore-bounce 1.6s ease-in-out infinite; }
+}
+.headline { text-align: center; font-family: var(--font-frontier-headline), sans-serif; font-size: clamp(42px, 5.05vw, 112px); font-weight: 400; line-height: 1.11; letter-spacing: -.05em; margin: 0; }
 .headline span { display: block; }
 .skip { position: fixed; left: 24px; top: -100px; z-index: 100; background: white; color: black; padding: 12px 18px; }
 .skip:focus { top: 24px; }
