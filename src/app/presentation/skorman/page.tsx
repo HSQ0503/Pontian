@@ -1,12 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { FrontierShell } from "@/components/landing/frontier-shell";
 import { SkormanPresentation } from "./presentation";
-
-const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   title: {
-    absolute: "From the first site visit to opening day | Pontian × Skorman",
+    absolute: "Built around Skorman | Pontian",
   },
   description:
     "Proposed tools to help Skorman find sites, attract renters and visitors, and track development decisions.",
@@ -21,7 +19,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Pontian × Skorman Development",
-    description: "From the first site visit to opening day.",
+    description:
+      "Technology for Skorman's properties and development decisions.",
     images: [
       {
         url: "/pontian/frontier-logo.png",
@@ -42,8 +41,8 @@ export const viewport: Viewport = { themeColor: "#080808" };
 
 export default function SkormanPage() {
   return (
-    <div lang="en" className={inter.className}>
+    <FrontierShell>
       <SkormanPresentation />
-    </div>
+    </FrontierShell>
   );
 }

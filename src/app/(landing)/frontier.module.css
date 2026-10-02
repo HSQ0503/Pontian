@@ -1,6 +1,7 @@
 .home { min-height: 100svh; background: #080808; color: #eeeeec; }
 .header { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); width: calc(90.6% - (90.6% - min(640px, 90.6%)) * var(--nav-progress, 0)); z-index: 50; height: 54px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; gap: 18px; background: linear-gradient(135deg, rgb(255 255 255 / 7%), rgb(255 255 255 / 3%)), rgb(22 22 24 / calc(.48 + .36 * var(--nav-progress, 0))); backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%); border-radius: 9px; }
 .brand { display: inline-flex; align-items: center; flex-shrink: 0; gap: 6px; font-size: 19px; font-weight: 500; letter-spacing: -.85px; }
+.context { display: block; font-size: 9px; line-height: 1; letter-spacing: 0; color: #b8b8b6; margin-top: 1px; }
 .mark { width: 23.5px; height: 22px; overflow: hidden; position: relative; }
 .logoArtwork { position: absolute; width: 29.5px; height: 29.5px; max-width: none; left: -3px; top: -4.8px; }
 .actions { display: flex; align-items: center; gap: 22px; }

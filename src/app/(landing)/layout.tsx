@@ -1,8 +1,5 @@
 import type { Viewport } from "next";
-import { Manrope, Space_Grotesk } from "next/font/google";
-
-const manrope = Manrope({ subsets: ["latin"], display: "swap" });
-const headline = Space_Grotesk({ subsets: ["latin"], weight: "400", display: "swap", variable: "--font-frontier-headline" });
+import { FrontierShell } from "@/components/landing/frontier-shell";
 
 export const viewport: Viewport = {
   themeColor: "#080808",
@@ -10,8 +7,6 @@ export const viewport: Viewport = {
 
 export default function LandingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div lang="en" className={`pontian-root min-h-screen antialiased ${manrope.className} ${headline.variable}`}>
-      {children}
-    </div>
+    <FrontierShell>{children}</FrontierShell>
   );
 }

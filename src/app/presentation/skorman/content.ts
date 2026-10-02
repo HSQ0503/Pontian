@@ -1,68 +1,53 @@
-export const chapters = [
+export const sections = [
+  { id: "searcher", label: "Find sites" },
+  { id: "oversight", label: "Track changes" },
+  { id: "answers", label: "Keep knowledge" },
+  { id: "investors", label: "Investor updates" },
+  { id: "visibility", label: "Get discovered" },
+];
+
+export const talkingPoints = [
   {
-    id: "begin",
-    label: "The opportunity",
-    time: "45 sec",
-    say: "Pontian builds software around the work a team does every day. For Skorman, that could start with helping people find your properties, then extend to finding new sites and keeping track of development decisions.",
-    do: "Begin here, or use the links on the image to jump to the part they want to discuss.",
+    title: "Start with Skorman",
+    say: "Pontian builds software around the work a company does. For Skorman, that could mean finding promising sites, keeping development decisions clear, and helping people discover the properties.",
+    show: "Start with the property image and context. Hills City Center includes both open attractions and future phases. The image is a rendering, not a claim of completion.",
   },
   {
-    id: "skorman",
-    label: "Skorman's properties",
-    time: "45 sec",
-    say: "Someone planning a trip to Hills City Center needs different information from a renter considering Minneola Hills. We'd start by understanding who each property needs to reach and where it is in development.",
-    do: "Click through the properties. The images come from Skorman, and the project descriptions reflect public sources checked October 1, 2026.",
+    title: "Find sites",
+    say: "Tell us the area, property type, and size you want. We can bring listings and public records into a shortlist and explain why each site appeared. Your team decides what to investigate.",
+    show: "Choose a parcel on the map. All three sites are fictional. Foreclosure is one signal, and availability, value, title, and feasibility still need checking.",
   },
   {
-    id: "visibility",
-    label: "Get discovered",
-    time: "90 sec",
-    say: "If someone asks Google or an AI tool where to live or spend the afternoon, we'd like them to find your property. We'd improve the information on its website and make the contact or visit details easy to find. Then we'd track search visibility, website visits, and inquiries.",
-    do: "Use Visit, Live, or Lease to follow a sample search from the question through to the property page. The answers are written for this demo. Rankings and lead volume aren't guaranteed.",
+    title: "Track changes",
+    say: "An updated plan can affect several people. We could flag what changed, identify who needs to review it, and keep the supporting document close to the decision.",
+    show: "Open the sample change. It follows a revised access plan to the decision needed before drawings can proceed.",
   },
   {
-    id: "searcher",
-    label: "Find the next site",
-    time: "90 sec",
-    say: "Tell us the area, size, and type of property you're looking for. We'd combine listings and public records into a shortlist, with an explanation for each match. A foreclosure notice might flag a site for review, but your team would still check its value and suitability.",
-    do: "Click a site to show why it matched, then save it or try a different property type. The sites, acreage, and signals are fictional. We'd build the real searcher with Skorman's criteria and agreed data sources.",
+    title: "Keep company knowledge",
+    say: "Project files contain the reasoning behind decisions. We can make that information easier to find, with answers that link to the original note and respect the team's access rules.",
+    show: "Open the project question, then its source. The records are examples. Skorman's approved files would be connected in a new implementation.",
   },
   {
-    id: "oversight",
-    label: "This week's decisions",
-    time: "60 sec",
-    say: "On Monday, you could open a brief with the decisions still waiting on someone, the person responsible, and the update behind each one. We'd put it together from the reports your teams already produce.",
-    do: "Build the sample brief, select a decision, and open the note behind it. These updates are fictional. We'd need to review Skorman's reporting process before building its version.",
+    title: "Make investor updates easier",
+    say: "We could assemble approved project facts and supporting documents into an update for your team to review. Your people keep the relationship and decide what gets sent.",
+    show: "Open the sample draft. The project and update are fictional, and nothing is sent from this page.",
   },
   {
-    id: "answers",
-    label: "Ask about a project",
-    time: "60 sec",
-    say: "Ask which drawing is current. The tool would answer from the project files, link to the source, and say when the information is missing or conflicting. Your team's access rules still apply.",
-    do: "Choose a question and open its source. The answers are prepared examples. We'd connect Skorman's approved files and set up access with the team.",
+    title: "Get properties discovered",
+    say: "When someone searches Google or asks an AI tool where to live or spend the afternoon, we want the property information to be accurate and useful. We'd improve the website, then track search visibility, website visits, and inquiries.",
+    show: "Choose Visit, Live, or Lease. These are prepared examples, not captured AI search results. Rankings and lead volume aren't guaranteed.",
   },
   {
-    id: "experience",
-    label: "Work we've built",
-    time: "60 sec",
-    say: "Tell them about your own experience with Pontian at Canes. You can point to the tools for leads, customer messages, scheduling, and invoices. The other examples show our work on reports across locations and answers drawn from company files.",
-    do: "Use an example you know personally and stick to results you can support. The project-change demo uses simulated connections to other systems.",
+    title: "Explain our experience",
+    say: "Use your own experience with Pontian at Canes. We've also built reporting and document tools, with a separate engineering demo showing how a change can move through reviews.",
+    show: "Stick to the features you've used and results you can support. The engineering connections are simulated. Work for Skorman would be a new implementation.",
   },
   {
-    id: "horizon",
-    label: "The longer view",
-    time: "60 sec",
-    say: "Over time, we'd like a project's original site research to stay connected to its approvals, construction records, and operating reports. When you're considering the next site, you could look back at what you expected and how similar projects turned out. Pontian would maintain the systems as they grow.",
-    do: "Click through the three stages. They're a proposed direction. The scope, data access, and timing would be agreed with Skorman.",
+    title: "Close with a working session",
+    say: "We suggest starting with Hills City Center. Bring the property and marketing leads together, review the current website and inquiry process, and agree on the first changes and how we'll measure them.",
+    show: "Use the final section to agree on a next conversation. The longer-term idea is to keep each property's research, decisions, and operating results useful for the next development.",
   },
-  {
-    id: "next",
-    label: "Start the conversation",
-    time: "45 sec",
-    say: "We suggest starting with Hills City Center. Bring the property and marketing leads into a working session, walk through the current website and inquiry process, and agree on the first changes and how we'll measure them.",
-    do: "Choose a topic to show the suggested agenda. This is a planning example. Selecting it doesn't book a meeting or send anything.",
-  },
-] as const;
+];
 
 export const properties = [
   {
