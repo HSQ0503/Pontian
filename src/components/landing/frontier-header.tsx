@@ -10,6 +10,8 @@ const defaultPages = [
   { title: "Home", detail: "Frontier technology for industrial operations", href: "/" },
   { title: "Get Started", detail: "Tell us about your company", href: "/get-started" },
   { title: "Contact", detail: "Start a conversation with Pontian", href: "/contact" },
+  { title: "Privacy Policy", detail: "How Pontian handles personal information", href: "/privacy" },
+  { title: "Terms of Service", detail: "Website and client engagement terms", href: "/terms" },
 ];
 
 type FrontierHeaderProps = {

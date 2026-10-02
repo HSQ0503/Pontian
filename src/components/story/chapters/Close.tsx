@@ -5,6 +5,7 @@ import { ArrowUpRight, Download, MessageCircle, Phone } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { formatPhone, site, telUrl, whatsappUrl } from "@/lib/site";
 import { Chapter, Lead, rise } from "../ui";
+import { LegalLinks } from "@/components/legal/legal-links";
 
 export function Close({ print }: { print?: boolean }) {
   const { t, locale } = useT();
@@ -50,6 +51,7 @@ export function Close({ print }: { print?: boolean }) {
           </motion.div>
         )}
       </div>
+      {!print && <LegalLinks locale={locale} className="mt-4 text-mist" />}
     </Chapter>
   );
 }

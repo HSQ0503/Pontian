@@ -7,11 +7,12 @@ import { LangToggle } from "@/components/LangToggle";
 import { Wordmark } from "@/components/Wordmark";
 import { useT } from "@/lib/i18n";
 import { formatPhone, telUrl, whatsappUrl } from "@/lib/site";
+import { LegalLinks } from "@/components/legal/legal-links";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
 export function Contact() {
-  const { t } = useT();
+  const { t, locale } = useT();
   const c = t.contactPage;
 
   return (
@@ -63,7 +64,7 @@ export function Contact() {
         </motion.ul>
       </main>
 
-      <footer className="fixed inset-x-0 bottom-0 z-20 flex justify-center pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+      <footer className="fixed inset-x-0 bottom-0 z-20 flex flex-col items-center gap-1 bg-ink/95 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <Link
           href="/"
           className="flex items-center gap-2 px-4 py-2 text-[0.72rem] uppercase tracking-[0.22em] text-mist/70 transition-colors hover:text-sky"
@@ -71,6 +72,7 @@ export function Contact() {
           <ArrowLeft className="size-3.5" />
           {t.ui.back}
         </Link>
+        <LegalLinks locale={locale} className="text-mist" />
       </footer>
     </div>
   );
@@ -116,4 +118,3 @@ function Row({
     </motion.li>
   );
 }
-

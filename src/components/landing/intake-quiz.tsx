@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Check, X } from "lucide-react";
 import { intakeQuestions, isIntakeAnswerValid } from "@/lib/intake";
 import styles from "./intake-quiz.module.css";
 import { HumanVerification } from "./human-verification";
+import { LegalLinks } from "@/components/legal/legal-links";
 
 const colors = ["#f51625", "#fed603", "#007dfe"];
 
@@ -106,7 +107,7 @@ export function IntakeQuiz({ contactOnly = false }: { contactOnly?: boolean }) {
                     <label>Company<input required autoComplete="organization" name="company" maxLength={180} value={contact.company} onChange={(e) => setContact({ ...contact, company: e.target.value })} placeholder="Company name" /></label>
                     <label className={styles.email}>Work email<input required type="email" autoComplete="email" name="email" maxLength={254} value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} placeholder="you@company.com" /></label>
                   </div>
-                  <p className={styles.note}>We’ll use these details to follow up about your company.</p>
+                  <p className={styles.note}>We’ll use these details to respond to your inquiry as described in our <Link href="/privacy" className="text-[#d5d5d5] underline underline-offset-4">Privacy Policy</Link>. Submitting an inquiry does not purchase services. See our <Link href="/terms" className="text-[#d5d5d5] underline underline-offset-4">Terms of Service</Link>.</p>
                   <HumanVerification key={verificationAttempt} token={verificationToken} onToken={setVerificationToken} />
                   {error && <p className={styles.error} role="alert">{error} <Link href="/contact">Contact Pontian directly <ArrowUpRight size={14} /></Link></p>}
                   <div className={styles.controls}>
@@ -147,7 +148,7 @@ export function IntakeQuiz({ contactOnly = false }: { contactOnly?: boolean }) {
           </>
         )}
       </main>
-      <footer className={styles.footer}><span className={styles.brandBars} aria-hidden="true"><i /><i /><i /></span><span>Built around your business.</span></footer>
+      <footer className={`${styles.footer} flex-wrap gap-x-6 gap-y-2`}><span className={styles.brandBars} aria-hidden="true"><i /><i /><i /></span><span>Built around your business.</span><LegalLinks /></footer>
     </div>
   );
 }

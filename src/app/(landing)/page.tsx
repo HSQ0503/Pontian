@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ArrowDown } from "lucide-react";
 import { FrontierHeader } from "@/components/landing/frontier-header";
 import { Industries } from "@/components/landing/industries";
+import { LegalLinks } from "@/components/legal/legal-links";
 import styles from "./frontier.module.css";
 
 export const metadata: Metadata = {
@@ -33,6 +34,9 @@ export default function PontianPage() {
           </h2>
         </section>
       </main>
+      <footer className="border-t border-white/10 bg-[#080808] px-6 py-6 text-[#bdbdbd]">
+        <LegalLinks />
+      </footer>
     </div>
   );
 }

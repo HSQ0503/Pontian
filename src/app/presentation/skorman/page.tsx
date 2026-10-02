@@ -9,14 +9,6 @@ export const metadata: Metadata = {
   description:
     "Proposed tools to help Skorman find sites, attract renters and visitors, and track development decisions.",
   robots: { index: false, follow: false },
-  icons: {
-    icon: {
-      url: "/pontian/frontier-logo.png",
-      type: "image/png",
-      sizes: "any",
-    },
-    apple: "/pontian/frontier-logo.png",
-  },
   openGraph: {
     title: "Pontian × Skorman Development",
     description:

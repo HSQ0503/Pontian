@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { FrontierHeader } from "@/components/landing/frontier-header";
 import { Reveal } from "@/components/landing/reveal";
+import { LegalLinks } from "@/components/legal/legal-links";
 import frontier from "@/app/(landing)/frontier.module.css";
 import industry from "@/components/landing/industries.module.css";
 import { ParcelStudy, PresentationTools, VisibilityExample } from "./demos";
@@ -510,6 +511,7 @@ export function SkormanPresentation() {
             </Link>
             <span>Prepared for Skorman Development</span>
             <PresentationTools />
+            <LegalLinks />
           </footer>
         </section>
       </main>
