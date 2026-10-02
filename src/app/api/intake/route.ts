@@ -24,13 +24,16 @@ export async function POST(request: Request) {
   }
 
   const token = data?.verificationToken;
-  if (typeof token !== "string" || !token || token.length > 2048) {
+  if (typeof token !== "string" || !token.trim() || token.length > 2048) {
     return Response.json({ error: "Please complete the human verification before sending." }, { status: 400 });
   }
-  const testMode = process.env.NODE_ENV === "development" && !process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && !process.env.TURNSTILE_SECRET_KEY;
-  const secret = process.env.TURNSTILE_SECRET_KEY || (testMode ? "1x0000000000000000000000000000000AA" : "");
-  if (!secret || (process.env.NODE_ENV === "production" && /^[123]x0{10}/.test(secret))) {
-    return Response.json({ error: "Verification is not configured yet. Please contact us directly." }, { status: 503 });
+  const sitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
+  const secret = process.env.TURNSTILE_SECRET_KEY?.trim();
+  const testSitekey = Boolean(sitekey && /^[123]x0{10}/.test(sitekey));
+  const testSecret = Boolean(secret && /^[123]x0{10}/.test(secret));
+  const testMode = process.env.NODE_ENV === "development" && testSitekey && testSecret;
+  if (!sitekey || !secret || ((testSitekey || testSecret) && !testMode)) {
+    return Response.json({ error: "Verification is currently unavailable. Please contact us directly." }, { status: 503 });
   }
   try {
     const verification = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
@@ -40,7 +43,8 @@ export async function POST(request: Request) {
       signal: AbortSignal.timeout(10000),
     });
     const result = await verification.json();
-    if (!verification.ok || !result.success || (!testMode && (result.action !== "intake" || result.hostname !== new URL(request.url).hostname))) {
+    if (!verification.ok) throw new Error("Verification service unavailable");
+    if (!result || typeof result !== "object" || result.success !== true || (!testMode && (result.action !== "intake" || result.hostname !== new URL(request.url).hostname))) {
       return Response.json({ error: "Verification failed or expired. Please verify again." }, { status: 400 });
     }
   } catch {

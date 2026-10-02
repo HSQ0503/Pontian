@@ -1,60 +1,105 @@
 "use client";
 
-import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
-import { Check, ShieldCheck } from "lucide-react";
 import styles from "./intake-quiz.module.css";
 
 type Turnstile = {
   render: (container: HTMLElement, options: {
-    sitekey: string; theme: string; size: string; action: string;
+    sitekey: string;
+    theme: "dark";
+    size: "flexible";
+    action: "intake";
     callback: (token: string) => void;
     "expired-callback": () => void;
-    "error-callback": () => void;
+    "error-callback": () => boolean;
     "timeout-callback": () => void;
+    "refresh-expired": "auto";
+    "refresh-timeout": "auto";
   }) => string;
   remove: (id: string) => void;
 };
 
-declare global { interface Window { turnstile?: Turnstile } }
+const getTurnstile = () => (window as Window & { turnstile?: Turnstile }).turnstile;
+const sitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() || "";
+const testKey = /^[123]x0{10}/.test(sitekey);
+const configured = Boolean(sitekey) && (!testKey || process.env.NODE_ENV === "development");
+let scriptPromise: Promise<Turnstile> | undefined;
 
-const testMode = process.env.NODE_ENV === "development" && !process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-const sitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || (testMode ? "3x00000000000000000000FF" : "");
+function loadTurnstile(): Promise<Turnstile> {
+  const existing = getTurnstile();
+  if (existing) return Promise.resolve(existing);
+  if (scriptPromise) return scriptPromise;
+
+  scriptPromise = new Promise<Turnstile>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    script.async = true;
+    const fail = () => {
+      clearTimeout(timeout);
+      script.remove();
+      reject(new Error("Verification could not load. Check your connection and try again."));
+    };
+    const timeout = window.setTimeout(fail, 15000);
+    script.onerror = fail;
+    script.onload = () => {
+      const api = getTurnstile();
+      if (!api) { fail(); return; }
+      clearTimeout(timeout);
+      resolve(api);
+    };
+    document.head.appendChild(script);
+  }).catch((error: unknown) => {
+    // A failed script must be loadable again without discarding the form answers.
+    scriptPromise = undefined;
+    throw error;
+  });
+  return scriptPromise;
+}
 
 export function HumanVerification({ token, onToken }: { token: string; onToken: (token: string) => void }) {
   const container = useRef<HTMLDivElement>(null);
-  const [requested, setRequested] = useState(false);
-  const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    if (!requested || !ready || !container.current || !window.turnstile) return;
-    const api = window.turnstile;
-    const fail = (message: string) => { onToken(""); setError(message); };
-    const id = api.render(container.current, {
-      sitekey, theme: "dark", size: "compact", action: "intake",
-      callback: (value) => { onToken(value); setError(""); },
-      "expired-callback": () => fail("Verification expired. Please verify again."),
-      "error-callback": () => fail("Verification couldn’t load. Please retry."),
-      "timeout-callback": () => fail("Verification timed out. Please retry."),
-    });
-    return () => { api.remove(id); onToken(""); };
-  }, [requested, ready, attempt, onToken]);
+    if (!configured) return;
+    let active = true;
+    let widgetId: string | undefined;
+    let api: Turnstile | undefined;
+    const fail = (message: string) => {
+      if (!active) return;
+      onToken("");
+      setError(message);
+    };
+    loadTurnstile().then((loaded) => {
+      if (!active || !container.current) return;
+      api = loaded;
+      widgetId = api.render(container.current, {
+        sitekey, theme: "dark", size: "flexible", action: "intake",
+        callback: (value) => { if (active) { onToken(value); setError(""); } },
+        "expired-callback": () => { if (active) { onToken(""); setError(""); } },
+        "error-callback": () => { fail("Verification failed. Please try again."); return true; },
+        "timeout-callback": () => fail("Verification timed out. Please try again."),
+        "refresh-expired": "auto",
+        "refresh-timeout": "auto",
+      });
+    }).catch(() => fail("Verification could not load. Check your connection and try again."));
+    return () => {
+      active = false;
+      if (api && widgetId !== undefined) api.remove(widgetId);
+      onToken("");
+    };
+  }, [attempt, onToken]);
 
   return (
     <div className={styles.verification}>
-      <button type="button" className={styles.verifyButton} disabled={!sitekey || (requested && !error)} onClick={() => { setError(""); setRequested(true); setAttempt(attempt + 1); }}>
-        <span className={styles.verifyCheck}>{token && <Check size={17} />}</span>
-        <span>{token ? "You’re verified" : "I’m not a robot"}</span>
-        <ShieldCheck size={19} className={styles.verifyShield} />
-      </button>
-      {requested && sitekey && <>
-        <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" onReady={() => setReady(true)} onError={() => { onToken(""); setError("Verification is unavailable. Please reload and try again."); }} />
-        <div ref={container} className={styles.verifyWidget} />
-      </>}
-      <p className={styles.verifyNote} aria-live="polite">{error || (!sitekey ? "Verification is not configured yet." : token ? "Ready to send." : requested ? "Complete the security check below." : "One quick check before we connect.")}</p>
-      {testMode && <p className={styles.verifyNote}>Local preview · test verification</p>}
+      <p className={styles.verifyLabel}>Human verification</p>
+      {configured && <div ref={container} className={styles.verifyWidget} />}
+      <p className={styles.verifyNote} role={error ? "alert" : "status"}>
+        {!configured ? "Verification is currently unavailable. Please contact Pontian directly." : error || (token ? "Verification complete. You can send your details." : "Complete the Cloudflare security check to send your details.")}
+      </p>
+      {error && <button type="button" className={styles.verifyRetry} onClick={() => { onToken(""); setError(""); setAttempt(value => value + 1); }}>Retry verification</button>}
+      {testKey && process.env.NODE_ENV === "development" && <p className={styles.verifyNote}>Development test widget. This does not protect a live form.</p>}
     </div>
   );
 }

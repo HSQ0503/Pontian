@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:intake": "node --test tests/intake.test.mjs",
     "export:pdf": "node scripts/export-pdf.mjs",
     "export:og": "node scripts/export-og.mjs"
   },
