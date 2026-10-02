@@ -45,7 +45,7 @@
 }
 @media (prefers-reduced-motion: reduce) { .arrows button { transition: none; } }
 .status { width: var(--card-width); margin: 20px auto 0; display: flex; justify-content: space-between; color: #707273; font-size: 11px; }
-.section button:focus-visible, .rail:focus-visible, .contact:focus-visible { outline: 2px solid #0068e8; outline-offset: 3px; }
+.section button:focus-visible, .section a:focus-visible, .rail:focus-visible, .contact:focus-visible { outline: 2px solid #0068e8; outline-offset: 3px; }
 .dialog { position: fixed; inset: 0; margin: auto; width: min(680px, calc(100% - 32px)); max-height: calc(100svh - 40px); border: 0; background: #eee; color: #262829; border-radius: 5px; }
 .dialog::backdrop { background: rgb(0 0 0 / 70%); backdrop-filter: blur(12px); }
 .dialogContent { padding: 48px; }

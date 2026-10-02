@@ -2,19 +2,10 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play } from "lucide-react";
+import { industries } from "@/lib/industries";
 import styles from "./industries.module.css";
 
-// Add approved imagery and solution content to these industry entries next.
-const industries = [
-  { name: "Construction", headline: "Bespoke infrastructure for the jobsite.", tone: "clay", image: "/pontian/construction.png" },
-  { name: "Design & Engineering", headline: "Built around the design process.", tone: "steel", image: "/pontian/design-engineering.jpeg", noir: true },
-  { name: "Logistics", headline: "Designed around a world in motion.", tone: "slate", image: "/pontian/logistics-truck.png", noir: true },
-  { name: "Manufacturing", headline: "Optimize for the factory floor.", tone: "sage", image: "/pontian/manufacturing.png", noir: true },
-  { name: "Retail", headline: "Built for every point of sale.", tone: "ochre", image: "/pontian/retail.png", noir: true },
-  { name: "Property Services", headline: "Behind every well-run property.", tone: "graphite", image: "/pontian/property-services.png", noir: true, imagePosition: "center 32%" },
-  { name: "Equipment Rental", headline: "Keep your fleet working.", tone: "slate", image: "/pontian/equipment-rental.png", noir: true, imagePosition: "70% center" },
-];
 const count = industries.length;
 // Adjacent backgrounds differ; avoid red/blue text-background combinations.
 const brandPairings = [
@@ -39,9 +30,7 @@ export function Industries() {
   const categories = useRef<HTMLDivElement>(null);
   const position = useRef(count);
   const drag = useRef({ start: 0, scroll: 0, moved: false, down: false });
-  const dialog = useRef<HTMLDialogElement>(null);
   const [active, setActive] = useState(0);
-  const [detail, setDetail] = useState<number | null>(null);
   const elapsed = useRef(0);
   const interacting = useRef(false);
   const wheelActive = useRef(false);
@@ -63,7 +52,7 @@ export function Industries() {
     const tick = (now: number) => {
       const delta = Math.min(now - previous, 100);
       previous = now;
-      if (!paused && visible && !document.hidden && !dialog.current?.open && !interacting.current && !wheelActive.current && !drag.current.down) {
+      if (!paused && visible && !document.hidden && !interacting.current && !wheelActive.current && !drag.current.down) {
         elapsed.current += delta;
         if (elapsed.current >= SLIDE_DURATION) {
           elapsed.current = 0;
@@ -165,11 +154,6 @@ export function Industries() {
     return () => { clearTimeout(timer); resize.disconnect(); element.removeEventListener("scroll", update); };
   }, []);
 
-  function openDetail(index: number | null) {
-    setDetail(index);
-    dialog.current?.showModal();
-  }
-
   return (
     <section id="industries" className={styles.section} aria-label="Industries"
       onPointerDownCapture={() => { interacting.current = true; }}
@@ -207,18 +191,20 @@ export function Industries() {
           }}
           onPointerCancel={(event) => { drag.current.down = false; event.currentTarget.style.scrollSnapType = ""; }}
           onClickCapture={(event) => { if (drag.current.moved) { event.preventDefault(); event.stopPropagation(); drag.current.moved = false; } }}>
-          {slides.map((industry, index) => <article key={index} className={`${styles.card} ${styles[industry.tone]}`} aria-roledescription="slide" aria-label={`${index % count + 1} of ${count}: ${industry.name}`} aria-hidden={index !== count + active}>
-            <button type="button" className={styles.cardLink} tabIndex={index === count + active ? 0 : -1} onClick={() => openDetail(index % count)} aria-label={`Explore ${industry.name} solutions`}>
+          {slides.map((industry, index) => {
+            const content = <>
               {industry.image && <><span aria-hidden="true" className={`${styles.photo} ${industry.noir ? styles.noir : ""} ${industry.name === "Property Services" ? styles.workerPhoto : ""}`} style={{ backgroundImage: `url("${industry.image}")`, backgroundPosition: industry.imagePosition ?? "center" }} /><span aria-hidden="true" className={styles.photoShade} /></>}
               <span className={styles.caption} style={brandPairings[(index % count) % brandPairings.length]}><span className={styles.eyebrow}>{industry.name}</span><span className={styles.cardTitle}>{industry.headline} <ArrowUpRight aria-hidden="true" /></span></span>
               {!industry.image && <span className={styles.backdropWord} aria-hidden="true">{industry.name}</span>}
               <span className={styles.cardBottom}><span>Explore solutions <ArrowUpRight size={17} /></span><span>0{index % count + 1} / 0{count}</span></span>
-            </button>
+            </>;
+            return <article key={index} className={`${styles.card} ${styles[industry.tone]}`} aria-roledescription="slide" aria-label={`${index % count + 1} of ${count}: ${industry.name}`} aria-hidden={index !== count + active}>
+            <Link href={`/industries/${industry.slug}`} draggable={false} className={styles.cardLink} tabIndex={index === count + active ? 0 : -1} aria-label={`Explore ${industry.name} solutions`}>{content}</Link>
             <div className={styles.arrows}>
               <button type="button" tabIndex={index === count + active ? 0 : -1} aria-label="Previous industry" onClick={() => goTo(index - 1)}><ArrowLeft strokeWidth={1.4} /></button>
               <button type="button" tabIndex={index === count + active ? 0 : -1} aria-label="Next industry" onClick={() => goTo(index + 1)}><ArrowRight strokeWidth={1.4} /></button>
             </div>
-          </article>)}
+          </article>; })}
         </div>
       </div>
       <div className={styles.status}>
@@ -228,14 +214,6 @@ export function Industries() {
           <span>0{active + 1} / 0{count}</span>
         </div>
       </div>
-      <dialog ref={dialog} className={styles.dialog} aria-labelledby="industry-dialog-title" onClick={(event) => { if (event.target === event.currentTarget) dialog.current?.close(); }}>
-        <div className={styles.dialogContent}>
-          <button className={styles.close} type="button" aria-label="Close industries" onClick={() => dialog.current?.close()}><X /></button>
-          <p className={styles.eyebrow}>Pontian / Industries</p>
-          <h2 id="industry-dialog-title">{detail === null ? "Explore industries" : `Solutions for ${industries[detail].name.toLowerCase()}.`}</h2>
-          {detail === null ? <div className={styles.directory}>{industries.map((industry, index) => <button key={industry.name} type="button" onClick={() => { dialog.current?.close(); goTo(count + index); }}>{industry.name}<ArrowUpRight /></button>)}</div> : <><p className={styles.description}>Connect with Pontian to explore technology for your {industries[detail].name.toLowerCase()} operations.</p><Link className={styles.contact} href="/contact">Start a conversation <ArrowUpRight size={18} /></Link></>}
-        </div>
-      </dialog>
     </section>
   );
 }
