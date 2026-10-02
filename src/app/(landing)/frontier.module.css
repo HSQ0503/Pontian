@@ -13,6 +13,7 @@
 .start:hover, .iconButton:hover { background: #dcdcd9; }
 .hero { position: relative; min-height: 100svh; display: grid; place-items: center; padding: 140px 5% 120px; }
 .hero::before, .statement::before { content: ""; position: absolute; inset: 0; background: url("/pontian/grain.svg") repeat; opacity: .085; pointer-events: none; }
+.hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgb(255 255 255 / 5%) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 5%) 1px, transparent 1px); background-size: 80px 80px; background-position: center center; mask-image: radial-gradient(ellipse at 50% 45%, #000 15%, transparent 78%); -webkit-mask-image: radial-gradient(ellipse at 50% 45%, #000 15%, transparent 78%); }
 .hero > *, .statement > * { z-index: 1; }
 .headline { position: relative; }
 .statement { position: relative; overflow: hidden; background: #f5f5f2; color: #161616; padding: clamp(80px, 10vw, 160px) 7%; }

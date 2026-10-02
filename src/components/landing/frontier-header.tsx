@@ -8,6 +8,7 @@ import styles from "@/app/(landing)/frontier.module.css";
 
 const defaultPages = [
   { title: "Home", detail: "Frontier technology for industrial operations", href: "/" },
+  { title: "Get Started", detail: "Tell us about your company", href: "/get-started" },
   { title: "Contact", detail: "Start a conversation with Pontian", href: "/contact" },
 ];
 
@@ -18,7 +19,7 @@ type FrontierHeaderProps = {
   originalArtwork?: boolean;
 };
 
-export function FrontierHeader({ context, action = { label: "Get Started", href: "/contact" }, pages = defaultPages, originalArtwork = false }: FrontierHeaderProps = {}) {
+export function FrontierHeader({ context, action = { label: "Get Started", href: "/get-started" }, pages = defaultPages, originalArtwork = false }: FrontierHeaderProps = {}) {
   const header = useRef<HTMLElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const [panel, setPanel] = useState<"menu" | "search">("menu");
