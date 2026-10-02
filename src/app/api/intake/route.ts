@@ -14,12 +14,13 @@ export async function POST(request: Request) {
   const answers = data?.answers;
   const otherAnswers = Array.isArray(data?.otherAnswers) ? data.otherAnswers : [];
   const contact = data?.contact;
-  if (!Array.isArray(answers) || answers.length !== intakeQuestions.length ||
-      !intakeQuestions.every((_, index) => isIntakeAnswerValid(index, answers[index], otherAnswers[index])) ||
+  const contactOnly = data?.mode === "skorman-contact";
+  if ((!contactOnly && (!Array.isArray(answers) || answers.length !== intakeQuestions.length ||
+      !intakeQuestions.every((_, index) => isIntakeAnswerValid(index, answers[index], otherAnswers[index])))) ||
       !contact || typeof contact.name !== "string" || !contact.name.trim() || contact.name.length > 120 ||
       typeof contact.company !== "string" || !contact.company.trim() || contact.company.length > 180 ||
       typeof contact.email !== "string" || contact.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())) {
-    return Response.json({ error: "Please complete all questions and enter your name, company, and a valid email." }, { status: 400 });
+    return Response.json({ error: contactOnly ? "Please enter your name, company, and a valid email." : "Please complete all questions and enter your name, company, and a valid email." }, { status: 400 });
   }
 
   const token = data?.verificationToken;
@@ -61,10 +62,10 @@ export async function POST(request: Request) {
         ...(process.env.PONTIAN_INTAKE_WEBHOOK_TOKEN ? { Authorization: `Bearer ${process.env.PONTIAN_INTAKE_WEBHOOK_TOKEN}` } : {}),
       },
       body: JSON.stringify({
-        source: "pontian-intake",
+        source: contactOnly ? "skorman-presentation" : "pontian-intake",
         submittedAt: new Date().toISOString(),
         contact: { name: contact.name.trim(), company: contact.company.trim(), email: contact.email.trim() },
-        responses: intakeQuestions.map((question, index) => ({ question: question.title, answer: answers[index] === "Other" ? `Other: ${otherAnswers[index].trim()}` : answers[index] })),
+        responses: contactOnly ? [] : intakeQuestions.map((question, index) => ({ question: question.title, answer: answers[index] === "Other" ? `Other: ${otherAnswers[index].trim()}` : answers[index] })),
       }),
       signal: AbortSignal.timeout(10000),
       redirect: "error",

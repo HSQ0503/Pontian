@@ -9,8 +9,8 @@ import { HumanVerification } from "./human-verification";
 
 const colors = ["#f51625", "#fed603", "#007dfe"];
 
-export function IntakeQuiz() {
-  const [step, setStep] = useState(0);
+export function IntakeQuiz({ contactOnly = false }: { contactOnly?: boolean }) {
+  const [step, setStep] = useState(contactOnly ? intakeQuestions.length : 0);
   const [answers, setAnswers] = useState<string[]>(Array(intakeQuestions.length).fill(""));
   const [otherAnswers, setOtherAnswers] = useState<string[]>(Array(intakeQuestions.length).fill(""));
   const [contact, setContact] = useState({ name: "", company: "", email: "" });
@@ -45,7 +45,7 @@ export function IntakeQuiz() {
       const response = await fetch("/api/intake", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers, otherAnswers: otherAnswers.map((value, index) => answers[index] === "Other" ? value.trim() : ""), contact, verificationToken }),
+        body: JSON.stringify({ mode: contactOnly ? "skorman-contact" : "quiz", answers: contactOnly ? [] : answers, otherAnswers: contactOnly ? [] : otherAnswers.map((value, index) => answers[index] === "Other" ? value.trim() : ""), contact, verificationToken }),
         signal: AbortSignal.timeout(25000),
       });
       const result = await response.json();
@@ -72,32 +72,32 @@ export function IntakeQuiz() {
           Pontian
         </Link>
         <span className={styles.headerLabel}>A better first conversation.</span>
-        <Link href="/" className={styles.close} aria-label="Exit quiz and return home"><X size={21} strokeWidth={1.4} /></Link>
+        <Link href={contactOnly ? "/presentation/skorman" : "/"} className={styles.close} aria-label={contactOnly ? "Return to Skorman presentation" : "Exit quiz and return home"}><X size={21} strokeWidth={1.4} /></Link>
       </header>
 
       <main className={styles.main}>
         {status === "success" ? (
           <section className={styles.success}>
             <span className={styles.successIcon}><Check size={28} /></span>
-            <p className={styles.eyebrow}>CONTEXT RECEIVED</p>
+            <p className={styles.eyebrow}>{contactOnly ? "DETAILS RECEIVED" : "CONTEXT RECEIVED"}</p>
             <h1 ref={title} tabIndex={-1}>Let’s see what’s next.</h1>
-            <p>Thanks, {contact.name.split(" ")[0]}. We have your company’s context and contact details for the first conversation.</p>
+            <p>Thanks, {contact.name.split(" ")[0]}. {contactOnly ? "We have your contact details for a conversation about Skorman." : "We have your company’s context and contact details for the first conversation."}</p>
             <Link href="/" className={styles.continue}>Back to Pontian <ArrowUpRight size={19} /></Link>
           </section>
         ) : (
           <>
-            <div className={styles.progressHeader}>
-              <span>{contactStep ? "YOUR COMPANY, IN CONTEXT" : "LET’S UNDERSTAND YOUR COMPANY"}</span>
-              <span aria-live="polite">{contactStep ? "10 of 10 complete · Final details" : `${String(step + 1).padStart(2, "0")} / 10`}</span>
-            </div>
-            <div className={styles.progress} role="progressbar" aria-label="Questions completed" aria-valuemin={0} aria-valuemax={10} aria-valuenow={completed}>
+            {!contactOnly && <div className={styles.progressHeader}>
+              <span>{contactOnly ? "PONTIAN / SKORMAN" : contactStep ? "YOUR COMPANY, IN CONTEXT" : "LET’S UNDERSTAND YOUR COMPANY"}</span>
+              <span aria-live="polite">{contactOnly ? "Contact details" : contactStep ? "10 of 10 complete · Final details" : `${String(step + 1).padStart(2, "0")} / 10`}</span>
+            </div>}
+            {!contactOnly && <div className={styles.progress} role="progressbar" aria-label="Questions completed" aria-valuemin={0} aria-valuemax={10} aria-valuenow={completed}>
               {intakeQuestions.map((item, index) => <span key={item.title} className={isIntakeAnswerValid(index, answers[index], otherAnswers[index]) ? styles.filled : index === step ? styles.current : ""} />)}
-            </div>
+            </div>}
 
             <section key={step} className={styles.stage}>
-              <p className={styles.eyebrow}>{contactStep ? "ONE LAST INTRODUCTION" : `QUESTION ${String(step + 1).padStart(2, "0")}`}</p>
-              <h1 ref={title} tabIndex={-1} id="intake-question">{contactStep ? "Where can we reach you?" : question.title}</h1>
-              <p className={styles.hint}>{contactStep ? "Your context is ready. Add your details to start the conversation." : question.hint || "Choose the option that fits best."}</p>
+              <p className={styles.eyebrow}>{contactOnly ? "PONTIAN / SKORMAN" : contactStep ? "ONE LAST INTRODUCTION" : `QUESTION ${String(step + 1).padStart(2, "0")}`}</p>
+              <h1 ref={title} tabIndex={-1} id="intake-question">{contactOnly ? "Contact Pontian." : contactStep ? "Where can we reach you?" : question.title}</h1>
+              <p className={styles.hint}>{contactOnly ? "Leave your details to start a conversation about Skorman." : contactStep ? "Your context is ready. Add your details to start the conversation." : question.hint || "Choose the option that fits best."}</p>
 
               {contactStep ? (
                 <form onSubmit={submit} className={styles.contactForm}>
@@ -110,8 +110,8 @@ export function IntakeQuiz() {
                   <HumanVerification key={verificationAttempt} token={verificationToken} onToken={setVerificationToken} />
                   {error && <p className={styles.error} role="alert">{error} <Link href="/contact">Contact Pontian directly <ArrowUpRight size={14} /></Link></p>}
                   <div className={styles.controls}>
-                    <button className={styles.back} type="button" disabled={status === "sending"} onClick={() => setStep(step - 1)}><ArrowLeft size={17} /> Back</button>
-                    <button className={styles.continue} disabled={status === "sending" || !verificationToken} type="submit">{status === "sending" ? "Sending…" : "Start the conversation"}<ArrowRight size={18} /></button>
+                    {contactOnly ? <Link className={styles.back} href="/presentation/skorman"><ArrowLeft size={17} /> Back</Link> : <button className={styles.back} type="button" disabled={status === "sending"} onClick={() => setStep(step - 1)}><ArrowLeft size={17} /> Back</button>}
+                    <button className={styles.continue} disabled={status === "sending" || !verificationToken} type="submit">{status === "sending" ? "Sending…" : contactOnly ? "Send details" : "Start the conversation"}<ArrowRight size={18} /></button>
                   </div>
                 </form>
               ) : (

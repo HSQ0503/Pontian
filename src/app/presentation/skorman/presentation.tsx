@@ -33,7 +33,6 @@ export function SkormanPresentation() {
         context="For Skorman"
         action={{ label: "Start here", href: "#next" }}
         pages={menuPages}
-        originalArtwork
       />
       <main id="content">
         <section
@@ -300,63 +299,62 @@ export function SkormanPresentation() {
         </section>
 
         <section
-          id="investors"
-          className={`${styles.section} ${styles.investors}`}
-          aria-labelledby="investor-heading"
+          id="improvement"
+          className={styles.section}
+          aria-labelledby="improvement-heading"
         >
           <Reveal className={styles.sectionHeading}>
             <div>
-              <p className={styles.overline}>Investor communication</p>
+              <p className={styles.overline}>An ongoing technology partner</p>
               <h2
-                id="investor-heading"
+                id="improvement-heading"
                 className={`${frontier.statementText} ${styles.sectionTitle}`}
               >
-                Make investor
+                Always finding
                 <br />
-                updates easier.
+                a better way.
               </h2>
             </div>
             <p>
-              Prepare the facts, supporting documents, and a draft response.
-              Your team reviews it and keeps the relationship personal.
+              We&apos;ll continuously find ways to improve your business with
+              technology, as your needs change and new possibilities emerge.
             </p>
           </Reveal>
           <div className={styles.correspondence}>
-            <div className={styles.investorQuestion}>
-              <span>Illustrative investor request</span>
-              <p>Can you send the latest project update?</p>
+            <div className={styles.improvementQuestion}>
+              <span>The question we keep asking</span>
+              <p>What could work better for your business?</p>
             </div>
             <div className={styles.documentIndex}>
-              <span>Pull from the approved record</span>
+              <span>A continuous process</span>
               <p>
-                Project status <span>01</span>
+                Identify opportunities <span>01</span>
               </p>
               <p>
-                Latest decisions <span>02</span>
+                Test practical improvements <span>02</span>
               </p>
               <p>
-                Supporting documents <span>03</span>
+                Build on what works <span>03</span>
               </p>
             </div>
           </div>
           <details className={styles.example}>
             <summary>
-              <span>Read an example draft</span>
-              <span className={styles.exampleHint}>Prepared for review</span>
+              <span>How we keep improving</span>
+              <span className={styles.exampleHint}>Beyond the first launch</span>
               <ArrowUpRight size={18} strokeWidth={1.4} />
             </summary>
-            <div className={styles.investorDraft}>
+            <div className={styles.improvementApproach}>
               <span className={styles.caption}>
-                Fictional project / Draft only
+                Built around your business
               </span>
               <p>
-                The team is reviewing a revised access plan that affects the
-                loading area. The development lead needs to confirm the
-                arrangement before the drawings proceed.
+                Stay close to how your team works. Find repetitive tasks,
+                gaps in information, and systems that no longer fit the business.
               </p>
               <p>
-                The supporting plan and consultant note would accompany the
-                update. Your team checks the facts and decides what to send.
+                Test new tools against real needs, measure the difference,
+                and refine the technology as your business evolves.
               </p>
             </div>
           </details>
@@ -412,17 +410,11 @@ export function SkormanPresentation() {
               </h2>
             </div>
             <p>
-              Sebastian knows our work with Canes. Other projects give us
-              experience connecting reports and making company information
-              easier to use.
+              Our work includes connecting reports and making company
+              information easier to use.
             </p>
           </div>
           <div className={styles.experienceRows}>
-            <div>
-              <h3>Canes Pressure Washing</h3>
-              <p>Leads, customer messages, scheduling, and invoices.</p>
-              <span>Built software</span>
-            </div>
             <div>
               <h3>Reporting across locations</h3>
               <p>Data from several retail locations in one owner report.</p>
@@ -506,7 +498,7 @@ export function SkormanPresentation() {
               changes and how to measure them.
             </p>
             <Link
-              href="/contact"
+              href="/contact/skorman"
               className={`${industry.contact} ${styles.contactLink}`}
             >
               Talk with Pontian <ArrowUpRight size={18} strokeWidth={1.4} />

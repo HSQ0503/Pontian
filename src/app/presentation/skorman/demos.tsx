@@ -347,7 +347,7 @@ export function PresentationTools() {
                 designs, not completed inventory.
               </p>
               <p className={styles.notesIntro}>
-                The sites, project records, investor draft, and search answers
+                The sites, project records, and search answers
                 are examples. No live feeds or Skorman documents are connected.
                 Property images come from Skorman&apos;s public website;
                 engineering imagery comes from Pontian&apos;s existing site.

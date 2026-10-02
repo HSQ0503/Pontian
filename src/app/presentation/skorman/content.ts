@@ -2,7 +2,7 @@ export const sections = [
   { id: "searcher", label: "Find sites" },
   { id: "oversight", label: "Track changes" },
   { id: "answers", label: "Keep knowledge" },
-  { id: "investors", label: "Investor updates" },
+  { id: "improvement", label: "Keep improving" },
   { id: "visibility", label: "Get discovered" },
 ];
 
@@ -28,9 +28,9 @@ export const talkingPoints = [
     show: "Open the project question, then its source. The records are examples. Skorman's approved files would be connected in a new implementation.",
   },
   {
-    title: "Make investor updates easier",
-    say: "We could assemble approved project facts and supporting documents into an update for your team to review. Your people keep the relationship and decide what gets sent.",
-    show: "Open the sample draft. The project and update are fictional, and nothing is sent from this page.",
+    title: "Keep improving the business",
+    say: "We'll continuously find ways to improve your business with technology. As your needs change and new tools become useful, we'll identify opportunities, test what matters, and build on what works.",
+    show: "Walk through the ongoing approach: identify opportunities, test practical improvements, and refine what works. This describes the proposed partnership, not a completed implementation.",
   },
   {
     title: "Get properties discovered",
@@ -39,8 +39,8 @@ export const talkingPoints = [
   },
   {
     title: "Explain our experience",
-    say: "Use your own experience with Pontian at Canes. We've also built reporting and document tools, with a separate engineering demo showing how a change can move through reviews.",
-    show: "Stick to the features you've used and results you can support. The engineering connections are simulated. Work for Skorman would be a new implementation.",
+    say: "We've built reporting and document tools, with a separate engineering demo showing how a change can move through reviews.",
+    show: "Stick to features and results you can support. The engineering connections are simulated. Work for Skorman would be a new implementation.",
   },
   {
     title: "Close with a working session",

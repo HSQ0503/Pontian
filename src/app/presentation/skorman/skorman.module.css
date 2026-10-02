@@ -507,12 +507,12 @@
   padding: 48px 0 32px;
   border-top: 1px solid var(--rule);
 }
-.investorQuestion > span,
+.improvementQuestion > span,
 .documentIndex > span {
   font-size: 11px;
   color: var(--muted);
 }
-.investorQuestion > p {
+.improvementQuestion > p {
   font-family: var(--font-frontier-headline), sans-serif;
   font-size: clamp(30px, 3vw, 48px);
   line-height: 1.25;
@@ -537,13 +537,13 @@
   color: #6e6e6b;
   font-size: 11px;
 }
-.investorDraft {
+.improvementApproach {
   max-width: 670px;
   margin: 0 0 30px;
   padding: 24px 28px;
   border-left: 1px solid #777;
 }
-.investorDraft p {
+.improvementApproach p {
   color: #bdbdb9;
   font-size: 15px;
   line-height: 1.8;
@@ -1092,17 +1092,17 @@
     gap: 30px;
     padding: 26px 0 10px;
   }
-  .investorQuestion > p {
+  .improvementQuestion > p {
     font-size: 31px;
     margin: 19px 0 0;
   }
   .documentIndex > p {
     font-size: 14px;
   }
-  .investorDraft {
+  .improvementApproach {
     padding: 10px 0 10px 18px;
   }
-  .investorDraft p {
+  .improvementApproach p {
     font-size: 16px;
   }
   .discoveryTabs {
