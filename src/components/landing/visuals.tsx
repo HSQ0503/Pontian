@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Check } from "./brand";
 
-function Window({ title, meta, children }: { title: string; meta: string; children: ReactNode }) {
+export function Window({ title, meta, children }: { title: string; meta: string; children: ReactNode }) {
   return (
     <div aria-hidden className="overflow-hidden rounded-[18px] bg-white text-pt-ink shadow-[0_1px_0_rgba(17,17,17,0.04),0_24px_48px_-24px_rgba(17,17,17,0.4)]">
       <div className="flex items-center justify-between border-b border-pt-line px-5 py-3.5 text-[13px]">
