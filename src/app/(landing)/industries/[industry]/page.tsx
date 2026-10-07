@@ -10,6 +10,7 @@ import { industryVisuals } from "@/components/landing/industry-visuals";
 import { Reveal } from "@/components/landing/reveal";
 import frontier from "../../frontier.module.css";
 import styles from "./industry.module.css";
+import { EquipmentRentalPage, equipmentRentalHeadline, equipmentRentalSummary } from "./equipment-rental";
 
 const sections = [
   { id: "perspective", label: "Our perspective" },
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: PageProps<"/industries/[indus
   const content = industryPages[slug];
   if (!industry || !content) notFound();
   const title = `Pontian for ${industry.name}`;
-  const description = `${content.promise} ${content.summary}`;
+  const description = slug === "equipment-rental" ? `${equipmentRentalHeadline} ${equipmentRentalSummary}` : `${content.promise} ${content.summary}`;
   const url = `/industries/${industry.slug}`;
   return {
     title: industry.name,
@@ -46,6 +47,7 @@ export default async function IndustryPage({ params }: PageProps<"/industries/[i
   const industry = industries[index];
   const content = industryPages[slug];
   if (!industry || !content) notFound();
+  if (slug === "equipment-rental") return <EquipmentRentalPage industry={industry} index={index} next={industries[(index + 1) % industries.length]} />;
   const Visual = industryVisuals[slug];
   const next = industries[(index + 1) % industries.length];
   const engagement = [
