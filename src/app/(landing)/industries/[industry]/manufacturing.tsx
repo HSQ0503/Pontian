@@ -164,7 +164,7 @@ export function ManufacturingPage({ industry, index, next }: { industry: Industr
         <section id="how-we-start" className={styles.start} aria-labelledby="how-we-start-title">
           <div>
             <p className={styles.startLabel}>How we start</p>
-            <h2 id="how-we-start-title" className={styles.startTitle}>One process. One question. A testable result.</h2>
+            <h2 id="how-we-start-title" className={styles.startTitle}>One process. One question. A&nbsp;testable result.</h2>
           </div>
           <div>
             <p className={styles.startBody}>We work with your operators and engineers to choose a focused problem, establish the necessary inputs, and test the workflow against representative examples before expanding it.</p>

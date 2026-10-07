@@ -58,6 +58,8 @@ const geometry = {
   outline: band(0.36, 0.28, 0.045, 0.012),
   roller: new THREE.CylinderGeometry(0.022, 0.022, 0.4, 10).rotateX(Math.PI / 2),
   carton: new THREE.BoxGeometry(0.3, 0.18, 0.24),
+  focusBox: new THREE.BoxGeometry(0.36, 0.38, 0.62),
+  focusEdges: new THREE.EdgesGeometry(new THREE.BoxGeometry(0.36, 0.38, 0.62)),
 };
 
 const standard = (color: string, roughness = 0.6, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
@@ -87,7 +89,8 @@ const material = {
   light: new THREE.MeshStandardMaterial({ color: "#ffffff", emissive: "#ffffff", emissiveIntensity: 0.9 }),
   marker: new THREE.MeshBasicMaterial({ color: "#fed603", side: THREE.DoubleSide }),
   expected: new THREE.MeshBasicMaterial({ color: "#007dfe", side: THREE.DoubleSide }),
-  focus: new THREE.MeshBasicMaterial({ color: "#fed603", transparent: true, opacity: 0.3, depthWrite: false }),
+  focus: new THREE.MeshBasicMaterial({ color: "#fed603", transparent: true, opacity: 0.14, depthWrite: false }),
+  focusEdge: new THREE.LineBasicMaterial({ color: "#d9b400" }),
   tape: new THREE.MeshBasicMaterial({ color: "#fed603" }),
   proposedTape: new THREE.MeshBasicMaterial({ color: "#007dfe" }),
 };
@@ -132,10 +135,11 @@ function LabelProjector({ labels, layer }: { labels: SceneLabel[]; layer: string
       const element = document.getElementById(`${layer}-${label.id}`);
       if (!element) continue;
       scratch.set(...label.at).project(camera);
-      const x = ((scratch.x + 1) / 2) * size.width;
+      const half = element.offsetWidth / 2;
+      const x = Math.min(Math.max(((scratch.x + 1) / 2) * size.width, half + 4), size.width - half - 4);
       const y = ((1 - scratch.y) / 2) * size.height;
       element.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, ${label.place === "below" ? "8px" : "calc(-100% - 8px)"})`;
-      element.style.visibility = scratch.z < 1 ? "visible" : "hidden";
+      element.style.visibility = scratch.z < 1 && x > 0 && x < size.width && y > 0 && y < size.height ? "visible" : "hidden";
     }
   });
   return null;
@@ -206,7 +210,7 @@ export function ProductCanvas({ sample, showFinding, onReady }: { sample: Sample
       <Canvas
         orthographic
         flat
-        shadows
+        shadows="percentage"
         dpr={[1, 2]}
         frameloop="demand"
         camera={{ position: [0, 1.3, 1.05], zoom: 600, near: 0.01, far: 10 }}
@@ -394,7 +398,12 @@ function ConveyorDrive({ focused }: { focused: boolean }) {
       </group>
       <mesh position={[0, 0.115, 0.2]} material={material.ink} castShadow><boxGeometry args={[0.1, 0.05, 0.1]} /></mesh>
       <mesh position={[0.075, 0.03, 0.09]} material={material.yellow}><cylinderGeometry args={[0.014, 0.014, 0.02, 12]} /></mesh>
-      {focused && <mesh position={[0, 0.02, 0.17]} material={material.focus}><boxGeometry args={[0.36, 0.38, 0.62]} /></mesh>}
+      {focused && (
+        <group position={[0, 0.02, 0.17]}>
+          <mesh geometry={geometry.focusBox} material={material.focus} />
+          <lineSegments geometry={geometry.focusEdges} material={material.focusEdge} />
+        </group>
+      )}
     </group>
   );
 }
@@ -465,8 +474,8 @@ export type CellView = "cell" | "drive";
 type ViewPreset = { target: [number, number, number]; direction: [number, number, number]; bounds: [[number, number, number], [number, number, number]] };
 
 const views: Record<CellView | "cellPortrait", ViewPreset> = {
-  cell: { target: [0, 0.7, -0.55], direction: [-0.32, 1.05, 1], bounds: [[-6.1, 0, -3.0], [6.1, 2.0, 1.95]] },
-  cellPortrait: { target: [0, 0.7, -0.55], direction: [1, 1.55, 0.22], bounds: [[-6.1, 0, -3.0], [6.1, 2.0, 1.95]] },
+  cell: { target: [0, 0.6, -0.5], direction: [-0.2, 1.35, 1], bounds: [[-6.0, 0, -2.75], [6.0, 1.95, 1.7]] },
+  cellPortrait: { target: [0, 0.6, -0.5], direction: [0.62, 2.3, 0.12], bounds: [[-6.0, 0, -2.75], [6.0, 1.95, 1.7]] },
   drive: { target: [4.55, 0.7, 0.3], direction: [0.85, 0.5, 1], bounds: [[3.95, 0.3, -0.3], [5.15, 1.05, 0.9]] },
 };
 
@@ -485,7 +494,7 @@ function fitCamera(preset: ViewPreset, fov: number, aspect: number) {
   for (const x of [min[0], max[0]]) for (const y of [min[1], max[1]]) for (const z of [min[2], max[2]]) {
     const relative = new THREE.Vector3(x, y, z).sub(target);
     const depth = relative.dot(direction);
-    distance = Math.max(distance, depth + (Math.abs(relative.dot(right)) * 1.05) / horizontal, depth + (Math.abs(relative.dot(up)) * 1.08) / vertical);
+    distance = Math.max(distance, depth + (Math.abs(relative.dot(right)) * 1.02) / horizontal, depth + (Math.abs(relative.dot(up)) * 1.05) / vertical);
   }
   return { position: target.clone().add(direction.multiplyScalar(distance)), target };
 }
@@ -528,16 +537,17 @@ function cellLabels(configuration: Configuration, time: number, showStatus: bool
   const status = cellStatus(runs[configuration], time);
   const proposed = configuration === "proposed";
   const blocked = status.assembly === "blocked";
-  return [
+  const labels: SceneLabel[] = [
     { id: "A1", at: [layout.fixture[0], 2.15, 0], text: "A1 Assembly", detail: showStatus ? (blocked ? "Holding a part, no space" : "Assembling") : undefined, tone: showStatus && blocked ? "alert" : "default" },
-    { id: "queue", at: [-2.1, 1.0, 0.05], text: showStatus ? `${status.waitingForInspection} waiting for inspection` : "Accumulation conveyor", tone: showStatus && status.waitingForInspection >= 2 ? "accent" : "quiet", minor: !showStatus },
+    { id: "queue", at: [-2.6, 1.0, 0.05], text: `${status.waitingForInspection} waiting`, detail: "before inspection", tone: status.waitingForInspection >= 2 ? "accent" : "quiet" },
     { id: "I1", at: [0, 2.08, 0], text: "I1 Inspection", detail: showStatus ? (status.inspection.I1 === "inspecting" ? "Inspecting" : "Waiting for parts") : undefined },
     proposed
       ? { id: "I2", at: [0, 2.08, -2.2], text: "I2 Inspection, proposed", detail: showStatus ? (status.inspection.I2 === "inspecting" ? "Inspecting" : "Waiting for parts") : undefined, tone: "proposed" }
-      : { id: "I2", at: [0, 0.05, -2.2], text: "Space for proposed I2", tone: "quiet", minor: true },
+      : { id: "I2", at: [0, 0.05, -2.7], text: "Space for proposed I2", tone: "quiet", minor: true },
     { id: "P1", at: [5.4, 1.12, -0.1], text: "P1 Packaging", detail: showStatus ? `${status.packaged} packaged` : undefined },
     { id: "CD1", at: [layout.drive[0], focusDrive ? 0.86 : 0.5, layout.drive[1] + 0.3], text: "CD-1 Conveyor drive", tone: focusDrive ? "accent" : "quiet", minor: !focusDrive, place: focusDrive ? "above" : "below" },
   ];
+  return showStatus ? labels : labels.filter((label) => label.id !== "queue" && label.id !== "I2");
 }
 
 export function CellCanvas({ configuration, clock, time, animating, view, instant, focusDrive = false, showStatus = false, onReady }: CellCanvasProps) {
@@ -549,7 +559,7 @@ export function CellCanvas({ configuration, clock, time, animating, view, instan
     <div className={styles.sceneCanvas}>
       <Canvas
         flat
-        shadows
+        shadows="percentage"
         dpr={[1, 2]}
         frameloop={animating ? "always" : "demand"}
         camera={{ fov: 30, near: 0.1, far: 80, position: [-4, 9, 12] }}

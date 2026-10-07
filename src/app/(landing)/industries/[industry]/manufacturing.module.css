@@ -135,12 +135,12 @@
 .block[data-moved="true"] { background: #007dfe; color: #fff; }
 .block[data-kind="setup"] { padding: 0 4px; background: repeating-linear-gradient(135deg, #c9cacb 0 5px, #eeeeec 5px 10px); }
 .block[data-kind="setup"] .blockName { font-size: 11px; }
-.block[data-added="true"] { background: repeating-linear-gradient(135deg, #f51625 0 5px, #ffd9dc 5px 10px); box-shadow: inset 0 0 0 2px #f51625; color: #17191a; }
+.block[data-added="true"] { background: repeating-linear-gradient(135deg, #ffc7cc 0 5px, #fff1f2 5px 10px); box-shadow: inset 0 0 0 2px #f51625; color: #17191a; }
 .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 4px; font-size: 12px; color: #555758; }
 .legend span { display: inline-flex; align-items: center; gap: 8px; }
 .legend span::before { content: ""; width: 14px; height: 10px; background: #fed603; }
 .legend span[data-kind="moved"]::before { background: #007dfe; }
-.legend span[data-kind="added"]::before { background: repeating-linear-gradient(135deg, #f51625 0 3px, #ffd9dc 3px 6px); }
+.legend span[data-kind="added"]::before { background: repeating-linear-gradient(135deg, #ffc7cc 0 3px, #fff1f2 3px 6px); box-shadow: inset 0 0 0 2px #f51625; }
 .impact { display: grid; gap: 12px; }
 .table { width: 100%; border-collapse: collapse; background: #fff; font-size: 14px; }
 .table caption { padding: 14px 16px 10px; text-align: left; background: #fff; }
@@ -296,7 +296,7 @@
 @media (max-width: 760px) {
   .outcome { grid-template-columns: minmax(0, 1fr); }
   .outcome li + li { border-left: 0; border-top: 1px solid #d8d9d9; }
-  .scene { aspect-ratio: 4 / 4.6; }
+  .scene { aspect-ratio: 3 / 4.2; }
   .scene[data-shape="product"] { aspect-ratio: 5 / 4; }
   .scene[data-shape="detail"] { aspect-ratio: 1 / 1; }
   .sceneLabelMinor { display: none !important; }
@@ -304,6 +304,7 @@
   .sceneLabel span { font-size: 10px; }
   .lane { grid-template-columns: minmax(0, 1fr); gap: 6px; }
   .axis { margin-left: 0; }
+  .axis span:nth-child(even) { display: none; }
   .blockMeta { display: none; }
   .block { padding: 0 4px; }
   .block[data-kind="setup"] .blockName { display: none; }
