@@ -15,6 +15,7 @@ import { PropertyServicesPage, propertyServicesMetadata } from "./property-servi
 import frontier from "../../frontier.module.css";
 import styles from "./industry.module.css";
 import { ConstructionPage, constructionHeadline, constructionSummary } from "./construction";
+import { ManufacturingPage, manufacturingHeadline, manufacturingSummary } from "./manufacturing";
 
 const sections = [
   { id: "perspective", label: "Our perspective" },
@@ -38,7 +39,7 @@ export async function generateMetadata({ params }: PageProps<"/industries/[indus
   const content = industryPages[slug];
   if (!industry || (!content && slug !== "construction")) notFound();
   const title = `Pontian for ${industry.name}`;
-  const description = content ? `${content.promise} ${content.summary}` : `${constructionHeadline} ${constructionSummary}`;
+  const description = slug === "manufacturing" ? `${manufacturingHeadline} ${manufacturingSummary}` : content ? `${content.promise} ${content.summary}` : `${constructionHeadline} ${constructionSummary}`;
   const url = `/industries/${industry.slug}`;
   return {
     title: industry.name,
@@ -60,6 +61,7 @@ export default async function IndustryPage({ params }: PageProps<"/industries/[i
   if (!industry) notFound();
   const next = industries[(index + 1) % industries.length];
   if (slug === "construction") return <ConstructionPage industry={industry} index={index} next={next} />;
+  if (slug === "manufacturing") return <ManufacturingPage industry={industry} index={index} next={next} />;
   const content = industryPages[slug];
   if (!content) notFound();
   const Visual = industryVisuals[slug];
