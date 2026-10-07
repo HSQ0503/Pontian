@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { industries } from "@/lib/industries";
+import { LogisticsPage, logisticsMetadata } from "./logistics";
 import { engagementSteps, industryPages } from "@/lib/industry-pages";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import { FrontierHeader } from "@/components/landing/frontier-header";
@@ -29,6 +30,7 @@ export async function generateMetadata({ params }: PageProps<"/industries/[indus
   const { industry: slug } = await params;
   if (slug === "design-engineering") return designEngineeringMetadata;
   const industry = industries.find((item) => item.slug === slug);
+  if (slug === "logistics") return logisticsMetadata;
   const content = industryPages[slug];
   if (!industry || (!content && slug !== "construction")) notFound();
   const title = `Pontian for ${industry.name}`;
@@ -47,6 +49,7 @@ export default async function IndustryPage({ params }: PageProps<"/industries/[i
   const { industry: slug } = await params;
   if (slug === "design-engineering") return <DesignEngineeringPage />;
   const index = industries.findIndex((item) => item.slug === slug);
+  if (slug === "logistics") return <LogisticsPage index={index} />;
   const industry = industries[index];
   if (!industry) notFound();
   const next = industries[(index + 1) % industries.length];
