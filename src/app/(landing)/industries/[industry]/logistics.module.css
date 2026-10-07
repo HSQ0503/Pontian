@@ -85,6 +85,7 @@
 .choice button[aria-pressed="true"] { background: #17191a; color: #fff; }
 .choiceDetail { max-width: 300px; font-size: 12px; line-height: 1.4; color: #707273; }
 .choice button[aria-pressed="true"] .choiceDetail { color: #c9c9c6; }
+.exampleBody > .choice button { flex: 1 1 260px; }
 .sheet .choice button, .mapSheet .choice button { background: #eee; }
 .sheet .choice button[aria-pressed="true"], .mapSheet .choice button[aria-pressed="true"] { background: #17191a; }
 

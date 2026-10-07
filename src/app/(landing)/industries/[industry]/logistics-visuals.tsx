@@ -225,7 +225,7 @@ function ShipmentDetail({ id, routes }: { id: string; routes: Record<VehicleId, 
         {shipment.collectionWindow && <div><dt>Collect from</dt><dd>{places[shipment.from].name}, {shipment.collectionWindow[0]}–{shipment.collectionWindow[1]}</dd></div>}
         <div><dt>Customer delivery window</dt><dd>{places[shipment.to].name}, {shipment.deliveryWindow[0]}–{shipment.deliveryWindow[1]}</dd></div>
         <div><dt>Space required</dt><dd>{shipment.pallets} pallet spaces · {formatSize(shipment)} each · {formatKg(totalWeight(shipment))}</dd></div>
-        <div><dt>Assigned to</dt><dd>{vehicleId ? `${vehicles[vehicleId].name}, stop ${stopNumbers.join(" and ")}` : "Not yet assigned"}</dd></div>
+        <div><dt>Assigned to</dt><dd>{vehicleId ? `${vehicles[vehicleId].name}, ${stopNumbers.length > 1 ? "stops" : "stop"} ${stopNumbers.join(" and ")}` : "Not yet assigned"}</dd></div>
       </dl>
     </div>
   );

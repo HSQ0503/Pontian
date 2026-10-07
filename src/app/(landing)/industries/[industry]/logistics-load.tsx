@@ -5,115 +5,10 @@ import { Play, Square } from "lucide-react";
 import styles from "./logistics.module.css";
 import { Choice, Example } from "./logistics-visuals";
 import { formatKg, formatSize, loadStops, operation, places, plans, shipments, totalWeight, vehicles } from "./logistics-data";
-
-type ArrangementId = "initial" | "proposed";
-type Lane = 0 | 1;
-type Slot = { row: number; lane: Lane };
-type Point = { x: number; y: number };
-type Item = { key: string; shipment: string; stop: number };
+import { arrangements, blockersAt, CARGO, items, laneY, PALLET_BASE, placements, ROWS, rowX, transitionMoves, type ArrangementId, type Lane, type Point } from "./logistics-load-plan";
 
 const PX_PER_M = 44;
-const CARGO = vehicles.B.cargo;
-const ROWS = 5;
-const PALLET_BASE = 0.14;
-const rowX = (row: number) => 0.05 + row * 1.22;
-const laneY: Record<Lane, number> = { 0: 0.15, 1: 1.3 };
-const DOOR_X = CARGO.length + 0.1;
-const stageX = (index: number) => CARGO.length + 1.5 + index * 1.3;
-const exitY: Record<Lane, number> = { 0: -1.35, 1: CARGO.width + 0.25 };
 const CENTER: Point = { x: 4.9, y: 1.2 };
-const MS_PER_M = 150;
-const FADE_MS = 260;
-
-const items: Item[] = loadStops.flatMap(({ stop, shipment }) =>
-  Array.from({ length: shipments[shipment].pallets }, (_, index) => ({ key: `${shipment}-${index + 1}`, shipment, stop })),
-);
-
-// Both arrangements use the same seven floor positions and stack nothing;
-// only which pallet sits where changes.
-const arrangements: Record<ArrangementId, Record<string, Slot>> = {
-  initial: {
-    "KV-2041-1": { row: 0, lane: 0 }, "KV-2041-2": { row: 0, lane: 1 },
-    "KV-2042-1": { row: 1, lane: 0 }, "KV-2042-2": { row: 1, lane: 1 }, "KV-2042-3": { row: 2, lane: 0 },
-    "KV-2043-1": { row: 2, lane: 1 }, "KV-2043-2": { row: 3, lane: 0 },
-  },
-  proposed: {
-    "KV-2043-1": { row: 0, lane: 0 }, "KV-2043-2": { row: 0, lane: 1 },
-    "KV-2042-1": { row: 1, lane: 0 }, "KV-2042-2": { row: 1, lane: 1 }, "KV-2042-3": { row: 2, lane: 0 },
-    "KV-2041-1": { row: 3, lane: 0 }, "KV-2041-2": { row: 2, lane: 1 },
-  },
-};
-
-const slotPoint = (slot: Slot): Point => ({ x: rowX(slot.row), y: laneY[slot.lane] });
-
-type Action = { key: string; kind: "stage" | "deliver"; lane: Lane; stageIndex: number };
-
-// Unloading works from the door inward, lane by lane. Freight for a later
-// stop that sits between the door and this stop's freight moves straight
-// back along its lane to the space behind the truck, and is reloaded the
-// same way before the truck drives on.
-function stopActions(arrangement: ArrangementId, stop: number): Action[] {
-  const slots = arrangements[arrangement];
-  return ([0, 1] as Lane[]).flatMap((lane) => {
-    const inLane = items.filter((item) => item.stop >= stop && slots[item.key].lane === lane).sort((a, b) => slots[b.key].row - slots[a.key].row);
-    const target = inLane.filter((item) => item.stop === stop);
-    if (target.length === 0) return [];
-    const deepest = Math.min(...target.map((item) => slots[item.key].row));
-    const sequence = inLane.filter((item) => slots[item.key].row >= deepest);
-    const staged = sequence.filter((item) => item.stop !== stop);
-    return sequence.map((item): Action => item.stop === stop
-      ? { key: item.key, kind: "deliver", lane, stageIndex: -1 }
-      : { key: item.key, kind: "stage", lane, stageIndex: staged.length - 1 - staged.indexOf(item) });
-  });
-}
-
-const blockersAt = (arrangement: ArrangementId, stop: number) => stopActions(arrangement, stop).filter((action) => action.kind === "stage").length;
-
-type Placement = Point & { gone: boolean; staged: boolean };
-
-function placements(arrangement: ArrangementId, step: number): Record<string, Placement> {
-  const slots = arrangements[arrangement];
-  const actions = step > 0 ? stopActions(arrangement, step) : [];
-  return Object.fromEntries(items.map((item) => {
-    const slot = slots[item.key];
-    const action = actions.find((entry) => entry.key === item.key);
-    if (item.stop < step || action?.kind === "deliver") return [item.key, { x: DOOR_X, y: exitY[slot.lane], gone: true, staged: false }];
-    if (action?.kind === "stage") return [item.key, { x: stageX(action.stageIndex), y: laneY[slot.lane], gone: false, staged: true }];
-    return [item.key, { ...slotPoint(slot), gone: false, staged: false }];
-  }));
-}
-
-type Move = { key: string; path: Point[]; delay: number; duration: number; fade: boolean };
-
-const pathLength = (path: Point[]) => path.slice(1).reduce((sum, point, index) => sum + Math.hypot(point.x - path[index].x, point.y - path[index].y), 0);
-
-// Lanes unload in parallel; within a lane each pallet waits for the one in
-// front, so nothing passes through other freight.
-function transitionMoves(arrangement: ArrangementId, step: number): { moves: Move[]; total: number } {
-  const slots = arrangements[arrangement];
-  const reload = step > 1 ? stopActions(arrangement, step - 1).filter((action) => action.kind === "stage") : [];
-  const current = stopActions(arrangement, step);
-  const moves: Move[] = [];
-  let total = 0;
-  ([0, 1] as Lane[]).forEach((lane) => {
-    let cursor = 0;
-    const push = (key: string, path: Point[], fade = false) => {
-      const travel = Math.round(220 + pathLength(path) * MS_PER_M);
-      moves.push({ key, path, delay: cursor, duration: travel + (fade ? FADE_MS : 0), fade });
-      cursor += travel + 60;
-    };
-    reload.filter((action) => action.lane === lane).sort((a, b) => a.stageIndex - b.stageIndex).forEach((action) => {
-      push(action.key, [{ x: stageX(action.stageIndex), y: laneY[lane] }, slotPoint(slots[action.key])]);
-    });
-    current.filter((action) => action.lane === lane).forEach((action) => {
-      const from = slotPoint(slots[action.key]);
-      if (action.kind === "stage") push(action.key, [from, { x: stageX(action.stageIndex), y: from.y }]);
-      else push(action.key, [from, { x: DOOR_X, y: from.y }, { x: DOOR_X, y: exitY[lane] }], true);
-    });
-    total = Math.max(total, cursor + FADE_MS);
-  });
-  return { moves, total };
-}
 
 const px = (metres: number) => metres * PX_PER_M;
 const toPx = (point: Point, z = 0) => `translate3d(${px(point.x - CENTER.x).toFixed(1)}px, ${px(point.y - CENTER.y).toFixed(1)}px, ${px(z).toFixed(1)}px)`;
@@ -144,7 +39,7 @@ function subscribeToMotion(update: () => void) {
 const views = {
   angle: { yaw: 32, pitch: 58, label: "Three-quarter view" },
   side: { yaw: 0, pitch: 64, label: "Side view" },
-  rear: { yaw: 90, pitch: 62, label: "From the rear door" },
+  rear: { yaw: 90, pitch: 54, label: "From the rear door" },
   top: { yaw: 0, pitch: 0, label: "From above" },
 };
 type ViewId = keyof typeof views;
@@ -180,7 +75,7 @@ export function LoadPlan() {
     const element = viewport.current;
     if (!element) return;
     const observer = new ResizeObserver(([entry]) => {
-      camera.current.zoom = Math.max(0.42, Math.min(1.05, entry.contentRect.width / 760));
+      camera.current.zoom = Math.max(0.5, Math.min(1.3, entry.contentRect.width / 600));
       applyCamera();
     });
     observer.observe(element);
@@ -203,21 +98,19 @@ export function LoadPlan() {
       return;
     }
     if (step !== before.step + 1) return;
-    for (const move of transitionMoves(arrangement, step).moves) {
-      const element = itemElements.current.get(move.key);
+    for (const track of transitionMoves(arrangement, step).tracks) {
+      const element = itemElements.current.get(track.key);
       if (!element) continue;
-      const travelShare = move.fade ? (move.duration - FADE_MS) / move.duration : 1;
-      const total = pathLength(move.path) || 1;
-      let covered = 0;
-      const frames: Keyframe[] = move.path.map((point, index) => {
-        if (index > 0) covered += Math.hypot(point.x - move.path[index - 1].x, point.y - move.path[index - 1].y);
-        return { transform: toPx(point), offset: (covered / total) * travelShare, easing: "ease-in-out" };
-      });
-      if (move.fade) frames.push({ transform: toPx(move.path[move.path.length - 1]), offset: 1 });
-      running.current.push(element.animate(frames, { duration: move.duration, delay: move.delay, fill: "backwards" }));
-      if (move.fade) {
+      const last = track.frames[track.frames.length - 1];
+      const duration = Math.max(last.at, track.fade?.to ?? 0);
+      const frames: Keyframe[] = [{ transform: toPx(track.frames[0].point), offset: 0 }];
+      track.frames.forEach((frame) => frames.push({ transform: toPx(frame.point), offset: frame.at / duration, easing: "ease-in-out" }));
+      frames.push({ transform: toPx(last.point), offset: 1 });
+      running.current.push(element.animate(frames, { duration }));
+      if (track.fade) {
+        const fadeStart = track.fade.from / duration;
         element.querySelectorAll<HTMLElement>(`.${styles.face}`).forEach((face) => {
-          running.current.push(face.animate([{ opacity: 1, offset: 0 }, { opacity: 1, offset: travelShare }, { opacity: 0, offset: 1 }], { duration: move.duration, delay: move.delay, fill: "backwards" }));
+          running.current.push(face.animate([{ opacity: 1, offset: 0 }, { opacity: 1, offset: fadeStart }, { opacity: 0, offset: 1 }], { duration }));
         });
       }
     }
@@ -421,7 +314,7 @@ export function LoadPlan() {
               <div><dt>Dimensions</dt><dd>{formatSize(selectedShipment)} per pallet</dd></div>
               <div><dt>Weight</dt><dd>{formatKg(selectedShipment.pallet.weightKg)} per pallet, {formatKg(totalWeight(selectedShipment))} in total</dd></div>
               <div><dt>Can be stacked?</dt><dd>{selectedShipment.stackable}</dd></div>
-              <div><dt>Position</dt><dd>Row {selectedRows.join(" and ")} of {ROWS}, counted from the front</dd></div>
+              <div><dt>Position</dt><dd>{selectedRows.length > 1 ? "Rows" : "Row"} {selectedRows.join(" and ")} of {ROWS}, counted from the front</dd></div>
               <div><dt>Reachable at its stop</dt><dd data-tone={selectedBlockers > 0 ? "alert" : "ok"}>{selectedBlockers > 0 ? `No. ${selectedBlockers} pallets for later stops are between it and the door.` : "Yes, without moving freight for later stops."}</dd></div>
             </dl>
           </div>
