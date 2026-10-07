@@ -45,7 +45,7 @@ function Example({ stage, title, children, footer }: { stage: number; title: str
   );
 }
 
-const VIEWBOX = { wide: "0 0 400 300", close: "56 12 276 236" };
+const VIEWBOX = { wide: "12 4 376 296", close: "56 12 276 236" };
 
 type PlanProps = {
   view: keyof typeof VIEWBOX;
@@ -328,7 +328,7 @@ const QUESTIONS: CrewQuestion[] = [
   {
     question: "Is the side path included?",
     answer: "The side path is not included in the accepted estimate. Confirm additional work with the office.",
-    status: ["accepted", "Answered from the record"],
+    status: ["received", "Answered from the record"],
     sources: ["Accepted estimate", "Side-path request remains unapproved"],
     area: "path",
     excerpt: ESTIMATE_EXCERPT,
@@ -336,7 +336,7 @@ const QUESTIONS: CrewQuestion[] = [
   {
     question: "What was done on the previous visit?",
     answer: "The last recorded visit was on 12 October last year: driveway cleaning only. That is the property's history. Today's work comes from the accepted estimate.",
-    status: ["accepted", "Answered from the record"],
+    status: ["received", "Answered from the record"],
     sources: ["Service record, 12 October last year"],
     area: "driveway",
     excerpt: {

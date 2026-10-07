@@ -83,8 +83,8 @@
 .houseLine { fill: none; stroke: #8f908e; stroke-width: 1.2; }
 .garageDoor { stroke: #555758; stroke-width: 4; }
 .door { stroke: #fff; stroke-width: 4; }
-.planLabel { font-family: inherit; font-size: 11px; font-weight: 600; fill: #17191a; pointer-events: none; }
-.planNote { font-family: inherit; font-size: 10px; fill: #707273; pointer-events: none; }
+.planLabel { font-family: inherit; font-size: 12px; font-weight: 600; fill: #17191a; pointer-events: none; }
+.planNote { font-family: inherit; font-size: 10.5px; fill: #707273; pointer-events: none; }
 .area .surface { fill: #e2e2df; stroke: #8f908e; stroke-width: 1; transition: fill 220ms, stroke 220ms, stroke-width 220ms; }
 .area[data-tone="scope"][data-state="marked"] .surface { fill: rgb(0 125 254 / 14%); stroke: #007dfe; stroke-width: 1.5; }
 .area[data-tone="scope"][data-state="selected"] .surface { fill: rgb(0 125 254 / 38%); stroke: #007dfe; stroke-width: 3; }
