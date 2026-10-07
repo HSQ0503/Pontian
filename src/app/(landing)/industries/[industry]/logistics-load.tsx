@@ -8,7 +8,7 @@ import { formatKg, formatSize, loadStops, operation, places, plans, shipments, t
 import { arrangements, blockersAt, CARGO, items, laneY, PALLET_BASE, placements, ROWS, rowX, transitionMoves, type ArrangementId, type Lane, type Point } from "./logistics-load-plan";
 
 const PX_PER_M = 44;
-const CENTER: Point = { x: 4.9, y: 1.2 };
+const CENTER: Point = { x: 5.6, y: 1.2 };
 
 const px = (metres: number) => metres * PX_PER_M;
 const toPx = (point: Point, z = 0) => `translate3d(${px(point.x - CENTER.x).toFixed(1)}px, ${px(point.y - CENTER.y).toFixed(1)}px, ${px(z).toFixed(1)}px)`;
@@ -75,7 +75,7 @@ export function LoadPlan() {
     const element = viewport.current;
     if (!element) return;
     const observer = new ResizeObserver(([entry]) => {
-      camera.current.zoom = Math.max(0.5, Math.min(1.3, entry.contentRect.width / 600));
+      camera.current.zoom = Math.max(0.45, Math.min(1.2, entry.contentRect.width / 640));
       applyCamera();
     });
     observer.observe(element);
