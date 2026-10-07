@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useId, useRef, useState, type ReactNode } from "react";
 import { ArrowDown, ArrowRight, Check, RotateCcw } from "lucide-react";
 import styles from "./design-engineering.module.css";
 
@@ -73,7 +73,7 @@ const WALLS: Wall[] = [
   { id: "W4", name: "West exterior wall", length: "6.00 m", thickness: "300 mm", x0: 0, x1: 0.3, y0: 0.3, y1: 5.7, tag: [-0.75, 3] },
   { id: "W5", name: "Interior partition", length: "5.40 m", thickness: "100 mm", x0: 5.95, x1: 6.05, y0: 0.3, y1: 5.7, tag: [6, 1.4] },
   { id: "W2", name: "East exterior wall", length: "6.00 m", thickness: "300 mm", x0: 9.7, x1: 10, y0: 0.3, y1: 5.7, tag: [10.75, 3] },
-  { id: "W3", name: "South exterior wall", length: "10.00 m", thickness: "300 mm", x0: 0, x1: 10, y0: 5.7, y1: 6, tag: [3, 6.6] },
+  { id: "W3", name: "South exterior wall", length: "10.00 m", thickness: "300 mm", x0: 0, x1: 10, y0: 5.7, y1: 6, tag: [3, 6.5] },
 ];
 const WALL_ORDER = ["W1", "W2", "W3", "W4", "W5"];
 const WALL_HEIGHT = 3;
@@ -119,7 +119,8 @@ function SourcePlan({ selected, onSelect }: { selected: string; onSelect: (id: s
 function InterpretedPlan({ selected, onSelect }: { selected: string; onSelect: (id: string) => void }) {
   return (
     <svg viewBox="0 0 310 214" className={styles.drawing} role="img" aria-label="The same plan with the proposed floor outline and five proposed walls, W1 to W5, marked over the source drawing.">
-      <rect x={px(0)} y={py(0)} width={10 * PLAN_SCALE} height={6 * PLAN_SCALE} fill="#eaf3ff" stroke="#007dfe" strokeWidth="1.5" strokeDasharray="5 4" />
+      <rect x={px(0) - 5} y={py(0) - 5} width={10 * PLAN_SCALE + 10} height={6 * PLAN_SCALE + 10} fill="none" stroke="#007dfe" strokeWidth="1.2" strokeDasharray="5 4" />
+      <rect x={px(0)} y={py(0)} width={10 * PLAN_SCALE} height={6 * PLAN_SCALE} fill="#eaf3ff" />
       {WALLS.map((wall) => {
         const active = wall.id === selected;
         return (
@@ -131,7 +132,7 @@ function InterpretedPlan({ selected, onSelect }: { selected: string; onSelect: (
           </g>
         );
       })}
-      <text x={px(5)} y={204} textAnchor="middle" className={styles.planText}>Floor outline, 10.00 × 6.00 m</text>
+      <text x={px(5)} y={211} textAnchor="middle" className={styles.planText}>Floor outline, dashed: 10.00 × 6.00 m</text>
     </svg>
   );
 }
@@ -196,7 +197,12 @@ export function FirstModel() {
         <div className={styles.sheet}>
           <p className={styles.stageLabel}><span>1</span>Source plan</p>
           <SourcePlan selected={selected} onSelect={setSelected} />
-          <p className={styles.sheetMeta}>Ground floor plan, scale 1:100</p>
+          <dl className={styles.inputs}>
+            <div><dt>Overall size</dt><dd>10.00 × 6.00 m</dd></div>
+            <div><dt>Rooms</dt><dd>Two, 6.00 m and 4.00 m wide</dd></div>
+            <div><dt>Title block</dt><dd>Ground floor plan, scale 1:100</dd></div>
+          </dl>
+          <p className={styles.sheetMeta}>The drawing the team already has</p>
         </div>
         <StageArrow />
         <div className={styles.sheet}>
@@ -247,16 +253,17 @@ const REVISED_DUCT_TOP = 0.85;
 const CEILING = 1.45;
 const CLASH = { x0: 4.2, x1: 4.6, top: DUCT.top, bottom: 0.8 };
 
-type Layers = { structural: boolean; ventilation: boolean; revised?: boolean; marked?: boolean; focus?: boolean };
+type Layers = { structural: boolean; ventilation: boolean; revised?: boolean; marked?: boolean; focus?: boolean; viewBox?: string };
 
-function Section({ structural, ventilation, revised = false, marked = false, focus = false }: Layers) {
+function Section({ structural, ventilation, revised = false, marked = false, focus = false, viewBox = "0 0 340 122" }: Layers) {
+  const patternId = `de-overlap-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const ductTop = revised ? REVISED_DUCT_TOP : DUCT.top;
   const overlap = structural && ventilation && !revised;
   return (
-    <svg viewBox="0 0 340 122" className={styles.drawing} aria-hidden="true">
+    <svg viewBox={viewBox} className={styles.drawing} aria-hidden="true">
       {overlap && (
         <defs>
-          <pattern id="de-overlap" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <pattern id={patternId} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <rect width="6" height="6" fill="#fed603" />
             <line x1="0" y1="0" x2="0" y2="6" stroke="#17191a" strokeWidth="1.6" />
           </pattern>
@@ -286,7 +293,7 @@ function Section({ structural, ventilation, revised = false, marked = false, foc
       )}
       {overlap && (
         <g>
-          <rect x={SX(CLASH.x0)} y={SY(CLASH.top)} width={(CLASH.x1 - CLASH.x0) * SECTION_SCALE} height={(CLASH.bottom - CLASH.top) * SECTION_SCALE} fill="url(#de-overlap)" stroke="#17191a" />
+          <rect x={SX(CLASH.x0)} y={SY(CLASH.top)} width={(CLASH.x1 - CLASH.x0) * SECTION_SCALE} height={(CLASH.bottom - CLASH.top) * SECTION_SCALE} fill={`url(#${patternId})`} stroke="#17191a" />
           {marked && <rect x={SX(CLASH.x0) - 7} y={SY(CLASH.top) - 7} width={(CLASH.x1 - CLASH.x0) * SECTION_SCALE + 14} height={(CLASH.bottom - CLASH.top) * SECTION_SCALE + 14} fill="none" stroke="#17191a" strokeWidth="1.5" strokeDasharray="4 3" />}
         </g>
       )}
@@ -330,12 +337,22 @@ export function DesignFit() {
       <div className={styles.combined}>
         <div className={styles.combinedHead}>
           <p className={styles.stageLabel}><span>=</span>{viewTitle}</p>
-          <span className={styles.sheetMeta}>Section along the corridor, same scale as the source models</span>
+          {revised && combined
+            ? <span className={styles.revisionTag}>Possible revision — requires review</span>
+            : <span className={styles.sheetMeta}>Section along the corridor, same scale as the source models</span>}
         </div>
-        <div className={styles.sectionFrame} role="img" aria-label={combined ? (revised ? "Combined section with the duct lowered below beam B-13 as a possible revision. The original route is shown dotted." : "Combined section: supply duct SD-04 passes through the lower part of beam B-13. The overlapping area is hatched.") : `Section showing ${viewTitle.toLowerCase()}.`}>
+        <div className={styles.combinedGrid}>
+        <div role="img" aria-label={combined ? (revised ? "Combined section with the duct lowered below beam B-13 as a possible revision. The original route is shown dotted." : "Combined section: supply duct SD-04 passes through the lower part of beam B-13. The overlapping area is hatched.") : `Section showing ${viewTitle.toLowerCase()}.`}>
           <Section structural={layers.structural} ventilation={layers.ventilation} revised={revised} marked={combined && !revised} focus={focus && combined} />
-          {revised && combined && <span className={styles.revisionTag}>Possible revision, requires review</span>}
+          {combined && !revised && (
+            <div className={styles.closeUp}>
+              <span className={styles.sheetMeta}>Close-up at beam B-13</span>
+              <Section structural ventilation marked focus={focus} viewBox="190 8 110 92" />
+            </div>
+          )}
         </div>
+        <div className={styles.combinedSide}>
+        {!combined && <p className={styles.revisionNote}>Show both disciplines to combine them and check for overlaps.</p>}
         {combined && !revised && (
           <button type="button" className={styles.finding} aria-pressed={focus} onClick={() => setFocus(!focus)}>
             <span className={styles.findingText}><span className={styles.findingSwatch} aria-hidden="true" /><strong>Duct and beam overlap.</strong> These elements occupy the same space in the example model.</span>
@@ -353,9 +370,11 @@ export function DesignFit() {
             <button type="button" className={styles.textButton} aria-pressed={revised} onClick={() => { setRevised(!revised); setFocus(false); }}>
               {revised ? <><RotateCcw size={13} strokeWidth={1.6} aria-hidden="true" /> Back to the original route</> : <>Sketch a possible revision <ArrowRight size={13} strokeWidth={1.6} aria-hidden="true" /></>}
             </button>
-            {revised && <p>The overlap disappears in this sketch, but that does not make the route acceptable. Lowering the duct reduces the space above the ceiling. The ventilation and structural teams decide.</p>}
+            {revised && <p className={styles.revisionNote}>The overlap disappears in this sketch, but that does not make the route acceptable. Lowering the duct reduces the space above the ceiling. The ventilation and structural teams decide.</p>}
           </div>
         )}
+        </div>
+        </div>
       </div>
       <div className={styles.checks}>
         <p className={styles.sheetLabel}>What this check covers</p>
@@ -430,8 +449,8 @@ function PlantRoom({ focus }: { focus: Focus }) {
       <rect {...rect(0, 0, 5, 3.4)} fill="#fff" stroke="#262829" strokeWidth="4" />
       <line x1={RX(3.8)} y1={RY(3.4)} x2={RX(4.7)} y2={RY(3.4)} stroke="#fff" strokeWidth="6" />
       <path d={`M ${RX(3.8)} ${RY(3.4)} L ${RX(3.8)} ${RY(2.5)} A ${0.9 * ROOM_SCALE} ${0.9 * ROOM_SCALE} 0 0 1 ${RX(4.7)} ${RY(3.4)}`} fill="none" stroke="#9a9b9b" />
-      <rect {...rect(0.4, 2.55, 1.7, 3.2)} fill="#eeeeec" stroke={on("space") ? "#17191a" : "#9a9b9b"} strokeWidth={on("space") ? 1.5 : 1} />
-      <text x={RX(1.05)} y={RY(2.95)} textAnchor="middle" className={styles.planText}>Existing tank</text>
+      <rect {...rect(0.3, 2.55, 2.0, 3.2)} fill="#eeeeec" stroke={on("space") ? "#17191a" : "#9a9b9b"} strokeWidth={on("space") ? 1.5 : 1} />
+      <text x={RX(1.15)} y={RY(2.95)} textAnchor="middle" className={styles.planText}>Existing tank</text>
       <rect {...rect(0.8, 1.5, 2.4, 2.3)} fill="url(#de-access)" stroke={on("space") ? "#0054b8" : "#9fc6f5"} strokeWidth={on("space") ? 1.5 : 1} strokeDasharray="4 3" />
       <text x={RX(2.5)} y={RY(2.0)} className={on("space") ? styles.planTextStrong : styles.planText}>Access space</text>
       <rect {...rect(0.7, 0.4, 2.1, 1.4)} fill="none" stroke={on("support") ? "#17191a" : "#9a9b9b"} strokeWidth={on("support") ? 1.8 : 1} strokeDasharray="8 3 2 3" />
@@ -467,7 +486,7 @@ export function RevisionScope() {
         </ul>
       </div>
       <div className={styles.revision}>
-        <div className={styles.sheet}>
+        <div className={`${styles.sheet} ${styles.stickyPlan}`}>
           <p className={styles.stageLabel}><span>A</span>Same room, both footprints</p>
           <PlantRoom focus={selected} />
           <p className={styles.sheetMeta}>Highlighted: {question.part.toLowerCase()}</p>
@@ -537,7 +556,7 @@ function BuildingModel({ selected, flagged, onSelect }: { selected: string | nul
       })}
       {flagged && (() => {
         const [x, y] = SMALL_MODEL(BUILDING.length, 1.45, BUILDING.head + 0.55);
-        return <g><rect x={x - 4} y={y - 10} width="86" height="15" fill="#fed603" stroke="#17191a" /><text x={x + 39} y={y + 1} textAnchor="middle" className={styles.tagText} fill="#17191a">Not in schedule</text></g>;
+        return <g><rect x={x - 60} y={y - 10} width="86" height="15" fill="#fed603" stroke="#17191a" /><text x={x - 17} y={y + 1} textAnchor="middle" className={styles.tagText} fill="#17191a">Not in schedule</text></g>;
       })()}
     </svg>
   );
@@ -579,7 +598,17 @@ export function Deliverables() {
   const [corrected, setCorrected] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("schedule");
+  const model = useRef<HTMLDivElement>(null);
   const rows = corrected ? WINDOWS : WINDOWS.filter((item) => item.mark !== MISSING);
+  // Stacked layouts put the model above the schedule, out of view.
+  function pick(mark: string) {
+    const next = selected === mark ? null : mark;
+    setSelected(next);
+    if (next && window.matchMedia("(max-width: 1100px)").matches) {
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      model.current?.scrollIntoView({ block: "center", behavior: reduced ? "auto" : "smooth" });
+    }
+  }
   const notes: { check: string; result: string; tone: "ok" | "open" | "quiet"; status: string }[] = [
     { check: "Window count", result: corrected ? "Model 4, schedule 4." : "Model 4, schedule 3.", tone: corrected ? "ok" : "open", status: corrected ? "Matches" : "Issue" },
     { check: "Missing entry", result: corrected ? "W03 added from the reviewed model." : "W03 is modeled on the east side but not listed in the schedule.", tone: corrected ? "ok" : "open", status: corrected ? "Resolved" : "Issue" },
@@ -607,7 +636,7 @@ export function Deliverables() {
         ))}
       </ol>
       <div className={styles.documents}>
-        <div className={styles.sheet}>
+        <div ref={model} className={styles.sheet}>
           <p className={styles.stageLabel}><span>In</span>Reviewed model</p>
           <p className={styles.figure}><span>4</span> windows</p>
           <BuildingModel selected={selected} flagged={!corrected} onSelect={(mark) => setSelected(selected === mark ? null : mark)} />
@@ -630,11 +659,11 @@ export function Deliverables() {
                   {WINDOWS.map((item) => {
                     const listed = corrected || item.mark !== MISSING;
                     return listed ? (
-                      <button key={item.mark} type="button" className={styles.scheduleRow} aria-pressed={selected === item.mark} data-added={corrected && item.mark === MISSING} onClick={() => setSelected(selected === item.mark ? null : item.mark)}>
+                      <button key={item.mark} type="button" className={styles.scheduleRow} aria-pressed={selected === item.mark} data-added={corrected && item.mark === MISSING} onClick={() => pick(item.mark)}>
                         <span>{item.mark}</span><span>{item.elevation}</span><span>{item.size}</span><span>{item.type}</span>
                       </button>
                     ) : (
-                      <button key={item.mark} type="button" className={styles.missingRow} aria-pressed={selected === item.mark} onClick={() => setSelected(selected === item.mark ? null : item.mark)}>
+                      <button key={item.mark} type="button" className={styles.missingRow} aria-pressed={selected === item.mark} onClick={() => pick(item.mark)}>
                         <span>No entry for {item.mark}. A modeled window is missing here.</span>
                         <span className={styles.findingAction}>{selected === item.mark ? "Shown in the model" : "Show in the model"} <ArrowRight size={13} strokeWidth={1.5} aria-hidden="true" /></span>
                       </button>
@@ -666,16 +695,16 @@ export function Deliverables() {
               </div>
             )}
           </div>
+          <div className={`${styles.finding} ${styles.findingStatic}`} data-resolved={corrected}>
+            <span className={styles.findingText}>
+              <span className={styles.findingSwatch} aria-hidden="true" />
+              {corrected ? <><strong>4 entries. Ready for review.</strong> The schedule now matches the reviewed model. Approval stays with your team.</> : <><strong>One modeled window is missing from the schedule.</strong> Review and update the schedule.</>}
+            </span>
+            <button type="button" className={styles.findingAction} onClick={() => { setCorrected(!corrected); setSelected(corrected ? null : MISSING); setTab("schedule"); }}>
+              {corrected ? <><RotateCcw size={13} strokeWidth={1.6} aria-hidden="true" /> Back to the first draft</> : <>Show the corrected draft <ArrowRight size={14} strokeWidth={1.5} aria-hidden="true" /></>}
+            </button>
+          </div>
         </div>
-      </div>
-      <div className={`${styles.finding} ${styles.findingStatic}`} data-resolved={corrected}>
-        <span className={styles.findingText}>
-          <span className={styles.findingSwatch} aria-hidden="true" />
-          {corrected ? <><strong>4 entries. Ready for review.</strong> The schedule now matches the reviewed model. Approval stays with your team.</> : <><strong>One modeled window is missing from the schedule.</strong> Review and update the schedule.</>}
-        </span>
-        <button type="button" className={styles.findingAction} onClick={() => { setCorrected(!corrected); setSelected(corrected ? null : MISSING); setTab("schedule"); }}>
-          {corrected ? <><RotateCcw size={13} strokeWidth={1.6} aria-hidden="true" /> Back to the first draft</> : <>Show the corrected draft <ArrowRight size={14} strokeWidth={1.5} aria-hidden="true" /></>}
-        </button>
       </div>
     </Example>
   );

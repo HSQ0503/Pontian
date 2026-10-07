@@ -31,7 +31,7 @@
 .outcomeLine { display: flex; align-items: baseline; gap: 18px; margin: clamp(32px, 4vw, 52px) 0 0; font-family: var(--font-frontier-headline), sans-serif; font-size: clamp(24px, 2.4vw, 38px); line-height: 1.2; letter-spacing: -.04em; color: #eeeeec; }
 .outcomeLine::before { content: ""; flex-shrink: 0; width: 30px; height: 4px; transform: translateY(-.3em); background: var(--accent); }
 
-.example { margin: 0; overflow: hidden; border-radius: 4px; background: #eee; color: #262829; }
+.example { margin: 0; overflow: clip; border-radius: 4px; background: #eee; color: #262829; }
 .exampleBar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 16px 20px; border-bottom: 1px solid #d8d9d9; font-size: 13px; }
 .exampleTag { padding: 5px 9px; background: #fff; color: #17191a; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
 .exampleTitle { font-weight: 600; color: #17191a; }
@@ -111,8 +111,13 @@
 .combined { display: grid; gap: 12px; padding: 18px; border-radius: 2px; background: #fff; }
 .combinedHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
 .combinedHead .sheetMeta { margin: 0; padding: 0; }
-.sectionFrame { position: relative; }
-.revisionTag { position: absolute; left: 12px; bottom: 10px; padding: 3px 8px; background: #17191a; color: #fff; font-size: 12px; }
+.combinedGrid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.combinedSide { display: grid; gap: 12px; }
+.combinedSide .affected { grid-template-columns: minmax(0, 1fr); }
+.revisionTag { padding: 4px 9px; background: #17191a; color: #fff; font-size: 13px; }
+.revisionNote { margin: 0; font-size: 14px; line-height: 1.55; color: #555758; }
+.documents .findingStatic { margin-top: auto; }
+.closeUp { display: none; }
 .finding { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; width: 100%; padding: 14px 16px; border: 1px dashed #b9baba; border-radius: 2px; background: #fff; text-align: left; font-size: 15px; line-height: 1.5; color: #262829; cursor: pointer; }
 .finding[aria-pressed="true"] { border-style: solid; border-color: #17191a; }
 .findingStatic { cursor: default; border-style: solid; border-color: #17191a; box-shadow: inset 4px 0 0 #fed603; }
@@ -130,7 +135,6 @@
 .affected strong { font-weight: 600; color: #17191a; }
 .affected li > span:last-child > span { font-size: 13px; color: #555758; }
 .revisionToggle { display: grid; gap: 8px; }
-.revisionToggle p { margin: 0; max-width: 760px; font-size: 14px; line-height: 1.55; color: #555758; }
 .checks { padding: 18px; border-radius: 2px; background: #fff; }
 .checks ul, .notes { display: grid; margin: 10px 0 0; padding: 0; list-style: none; border-top: 1px solid #e4e4e2; }
 .checks li, .notes li { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) auto; gap: 6px 16px; align-items: center; padding: 11px 0; border-bottom: 1px solid #e4e4e2; font-size: 14px; line-height: 1.45; }
@@ -244,7 +248,7 @@
   .arrowAcross { display: none; }
   .arrowDown { display: block; }
   .sheet .drawing { max-width: 520px; }
-  .revision, .documents { grid-template-columns: minmax(0, 1fr); }
+  .revision, .documents, .combinedGrid { grid-template-columns: minmax(0, 1fr); }
   .foundationList { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 40px; }
   .start { grid-template-columns: minmax(0, 1fr); }
 }
@@ -257,6 +261,12 @@
   .checkResult { grid-column: 1; }
   .checks .status, .notes .status { grid-column: 2; grid-row: 1 / 3; }
   .pickerDetail { margin-left: 0; width: 100%; }
+  .stickyPlan { position: sticky; top: 68px; z-index: 2; box-shadow: 0 8px 18px rgb(0 0 0 / 10%); }
+  .closeUp { display: grid; gap: 6px; margin-top: 12px; }
+  .closeUp .drawing { max-width: 260px; }
+}
+@media (max-width: 760px) {
+  .closeUp .planText, .closeUp .planTextStrong { font-size: 5px; }
 }
 @media (max-width: 700px) {
   .hero { min-height: 92svh; padding: 120px 24px 32px; }
@@ -275,6 +285,10 @@
   .exampleBody { padding: 14px; gap: 14px; }
   .sheet, .discipline, .combined, .checks, .event, .evidence { padding: 14px; }
   .scheduleHead, .scheduleRow { grid-template-columns: 44px 48px minmax(0, 1fr) 56px; gap: 8px; font-size: 13px; }
+  .planText, .planTextStrong, .ductText { font-size: 12px; }
+  .tagText { font-size: 10px; }
+  .picker { gap: 8px; }
+  .pickerLabel { width: 100%; }
   .foundation, .closing { padding: 72px 24px; }
   .foundationTitle, .closingTitle { font-size: clamp(30px, 7.7vw, 46px); line-height: 1.18; }
   .foundationBody, .closingBody { font-size: 16px; }
