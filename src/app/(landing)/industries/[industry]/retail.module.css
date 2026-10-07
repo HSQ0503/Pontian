@@ -136,7 +136,7 @@
 .recDetail .starter { font-family: var(--font-frontier-headline), sans-serif; font-size: 17px; letter-spacing: -.02em; color: #17191a; }
 
 .questionRow { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px 24px; padding: 16px 18px; border-radius: 2px; background: #fff; }
-.questionRow > div { display: grid; gap: 8px; }
+.questionRow > div:first-child { display: grid; gap: 8px; }
 .ownerQuestion { margin: 0; font-family: var(--font-frontier-headline), sans-serif; font-size: clamp(20px, 2vw, 28px); line-height: 1.2; letter-spacing: -.035em; color: #17191a; }
 .storeTiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .storeTile { display: grid; gap: 10px; padding: 16px 18px; border: 1px dashed #b9baba; border-radius: 2px; background: #fff; text-align: left; cursor: pointer; transition: background 180ms; }
@@ -180,11 +180,12 @@
 .dot:first-child span { left: 0; transform: none; }
 .dotNew { border-color: #17191a; box-shadow: 0 0 0 3px #fff, 0 0 0 4px #17191a; }
 .dotNew span { left: auto; right: 0; transform: none; }
-.interval { position: absolute; top: 46px; height: 2px; background: #262829; }
-.interval, .gap { font-size: 11px; line-height: 1; color: #555758; text-align: center; }
-.interval { padding-top: 14px; }
-.gap { position: absolute; top: 46px; height: 2px; padding-top: 14px; background: repeating-linear-gradient(90deg, #f51625 0 6px, transparent 6px 10px); font-weight: 600; color: #b30f1a; white-space: nowrap; }
-.gap[data-found="true"] { background: #262829; color: #555758; font-weight: 400; }
+.interval, .gap { position: absolute; top: 46px; padding-top: 14px; font-size: 11px; line-height: 1; text-align: center; white-space: nowrap; color: #555758; }
+.interval::before, .gap::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: #262829; }
+.gap { font-weight: 600; color: #b30f1a; }
+.gap::before { background: repeating-linear-gradient(90deg, #f51625 0 6px, transparent 6px 10px); }
+.gap[data-found="true"] { font-weight: 400; color: #555758; }
+.gap[data-found="true"]::before { background: #262829; }
 .today { position: absolute; top: 34px; width: 1px; height: 26px; background: #17191a; }
 .today span { position: absolute; top: calc(100% + 26px); right: 0; font-size: 12px; white-space: nowrap; color: #17191a; }
 .patternGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding-top: 14px; border-top: 1px solid #e4e4e2; }
@@ -335,7 +336,12 @@
   .exampleBody { padding: 12px; gap: 12px; }
   .sheet, .evidence, .lookup, .questionRow, .storeTile, .location { padding: 14px; }
   .table { font-size: 12px; }
+  .table th { white-space: normal; vertical-align: bottom; font-size: 10px; letter-spacing: .06em; }
   .table th + th, .table td + td { padding-left: 8px; }
+  .weeks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .weeks li { min-width: 0; }
+  .excluded { grid-template-columns: auto minmax(0, 1fr); }
+  .excludedAction { grid-column: 2; justify-self: start; }
   .recap, .closing { padding: 72px 24px; }
   .recapTitle, .closingTitle { font-size: clamp(30px, 7.7vw, 46px); line-height: 1.18; }
   .recapList { grid-template-columns: minmax(0, 1fr); row-gap: 32px; }
