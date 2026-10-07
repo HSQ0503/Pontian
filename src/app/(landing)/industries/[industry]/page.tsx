@@ -9,6 +9,7 @@ import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import { FrontierHeader } from "@/components/landing/frontier-header";
 import { industryVisuals } from "@/components/landing/industry-visuals";
 import { DesignEngineeringPage, designEngineeringMetadata } from "./design-engineering";
+import { RetailPage, retailMetadata } from "./retail";
 import { Reveal } from "@/components/landing/reveal";
 import frontier from "../../frontier.module.css";
 import styles from "./industry.module.css";
@@ -29,6 +30,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<"/industries/[industry]">): Promise<Metadata> {
   const { industry: slug } = await params;
   if (slug === "design-engineering") return designEngineeringMetadata;
+  if (slug === "retail") return retailMetadata;
   const industry = industries.find((item) => item.slug === slug);
   if (slug === "logistics") return logisticsMetadata;
   const content = industryPages[slug];
@@ -48,6 +50,7 @@ export async function generateMetadata({ params }: PageProps<"/industries/[indus
 export default async function IndustryPage({ params }: PageProps<"/industries/[industry]">) {
   const { industry: slug } = await params;
   if (slug === "design-engineering") return <DesignEngineeringPage />;
+  if (slug === "retail") return <RetailPage />;
   const index = industries.findIndex((item) => item.slug === slug);
   if (slug === "logistics") return <LogisticsPage index={index} />;
   const industry = industries[index];
