@@ -7,6 +7,7 @@ import { engagementSteps, industryPages } from "@/lib/industry-pages";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import { FrontierHeader } from "@/components/landing/frontier-header";
 import { industryVisuals } from "@/components/landing/industry-visuals";
+import { DesignEngineeringPage, designEngineeringMetadata } from "./design-engineering";
 import { Reveal } from "@/components/landing/reveal";
 import frontier from "../../frontier.module.css";
 import styles from "./industry.module.css";
@@ -26,6 +27,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/industries/[industry]">): Promise<Metadata> {
   const { industry: slug } = await params;
+  if (slug === "design-engineering") return designEngineeringMetadata;
   const industry = industries.find((item) => item.slug === slug);
   const content = industryPages[slug];
   if (!industry || (!content && slug !== "construction")) notFound();
@@ -43,6 +45,7 @@ export async function generateMetadata({ params }: PageProps<"/industries/[indus
 
 export default async function IndustryPage({ params }: PageProps<"/industries/[industry]">) {
   const { industry: slug } = await params;
+  if (slug === "design-engineering") return <DesignEngineeringPage />;
   const index = industries.findIndex((item) => item.slug === slug);
   const industry = industries[index];
   if (!industry) notFound();
