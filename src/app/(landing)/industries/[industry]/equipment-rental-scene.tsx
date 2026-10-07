@@ -468,7 +468,7 @@ function StandaloneBreaker({ position, rotation = 0, tone, ghost, onClick }: { p
       <group position={[1.75, 0, 0]}><Part geometry={block} color="#b8a98a" ghost={ghost} /></group>
       <group position={[0, 0.22 + BREAKER_PARTS.bracket.half, -ARM_Z]}>
         <Part geometry={parts.breakerBracket} color={C.steel} tone={tone} ghost={ghost} />
-        <Part geometry={parts.breakerBody} color={C.dark} tone={tone} ghost={ghost} />
+        <Part geometry={parts.breakerBody} color={C.dark} ghost={ghost} />
         <Part geometry={parts.breakerChisel} color={C.steel} ghost={ghost} />
       </group>
       {!ghost && <Shadow width={3.6} depth={1.6} position={[1.2, 0.012, 0]} opacity={0.3} />}
@@ -502,7 +502,7 @@ function Yard({ x, label }: { x: number; label?: boolean }) {
       {[-2.2, 2.6].map((z) => <Slab key={z} box={{ x: [-6, 6], y: [0.05, 0.06], z: [z - 0.04, z + 0.04] }} color="#c3c4c1" edges={false} />)}
       {YARD_POSTS.map((z) => <Slab key={z} box={{ x: [-6.55, -6.45], y: [0, 1.6], z: [z - 0.05, z + 0.05] }} color={C.steel} edges={false} />)}
       <Slab box={{ x: [-6.55, -6.45], y: [1.5, 1.58], z: [-5.6, 5.6] }} color={C.steel} edges={false} />
-      {label && <Tag lines={["Main rental yard"]} tone="ink" position={[-3, 3.8, -4.4]} />}
+      {label && <Tag lines={["Main rental yard"]} tone="ink" position={[4, 2.4, -4.6]} />}
     </group>
   );
 }
@@ -510,9 +510,8 @@ function Yard({ x, label }: { x: number; label?: boolean }) {
 const BENCHES: Box[] = [
   { x: [-9, 9], y: [0, 2.6], z: [-9.5, -5.8] },
   { x: [-9, 9], y: [2.6, 5.2], z: [-9.5, -7.6] },
-  { x: [6.4, 9], y: [0, 1.8], z: [-5.8, 2] },
 ];
-const ROCKS: [number, number, number, number][] = [[6.3, 0.35, -3.2, 0.75], [5.6, 0.25, -2.2, 0.5], [7.4, 0.3, -2.8, 0.6], [4.9, 0.2, -3.6, 0.42]];
+const ROCKS: [number, number, number, number][] = [[6.6, 0.32, 2.6, 0.62], [6.1, 0.24, 3.7, 0.48], [7.5, 0.36, 3.3, 0.72], [4.2, 0.3, -3.8, 0.6], [5.4, 0.36, -4.4, 0.75]];
 
 function Quarry({ x, label, pad }: { x: number; label?: boolean; pad?: "open" | "confirmed" }) {
   const rock = useMemo(() => new THREE.DodecahedronGeometry(1, 0), []);
@@ -580,12 +579,16 @@ function PlannedLoad({ transport }: { transport: boolean }) {
   );
 }
 
-type View = { position: [number, number, number]; target: [number, number, number] };
+type Frame = { position: [number, number, number]; target: [number, number, number] };
+// Wide establishing shots get a separate narrow-screen framing instead of
+// simply pulling the camera back until everything is too small to read.
+type View = Frame & { narrow?: Frame };
 
 function fit(view: View, aspect: number, origin: [number, number, number] = [0, 0, 0]) {
-  const target = new THREE.Vector3(...view.target).add(new THREE.Vector3(...origin));
-  const offset = new THREE.Vector3(...view.position).sub(new THREE.Vector3(...view.target));
-  if (aspect < 1.5) offset.multiplyScalar(Math.min(2.1, Math.pow(1.5 / aspect, 0.85)));
+  const frame = aspect < 1.5 && view.narrow ? view.narrow : view;
+  const target = new THREE.Vector3(...frame.target).add(new THREE.Vector3(...origin));
+  const offset = new THREE.Vector3(...frame.position).sub(new THREE.Vector3(...frame.target));
+  if (aspect < 1.5 && !view.narrow) offset.multiplyScalar(Math.min(2.1, Math.pow(1.5 / aspect, 0.85)));
   return { position: target.clone().add(offset), target };
 }
 
@@ -641,14 +644,14 @@ function SplitRig({ view, stacked }: { view: View; stacked: boolean }) {
 }
 
 const ORIGIN: [number, number, number] = [0, 0, 0];
-const EX027_MATCH_POSITION: [number, number, number] = [-3.5, 0, -8];
+const EX027_MATCH_POSITION: [number, number, number] = [10.5, 0, -7.5];
 
 const MATCH_VIEWS: Record<MatchFocus | "overview", View> = {
-  overview: { position: [15, 9.5, 17], target: [1.4, 1.2, -3.2] },
-  attachment: { position: [10.6, 3.6, 7.6], target: [6, 0.75, 1.4] },
+  overview: { position: [3.5, 9, 23], target: [6, 1.4, -3] },
+  attachment: { position: [14, 4.4, 10.5], target: [5.8, 0.7, 1.8] },
   capability: { position: [12, 6, 12], target: [3.2, 2.4, 0] },
   transport: { position: [5, 6.5, 19], target: [1.8, 1.5, 0] },
-  availability: { position: [15, 9.5, 17], target: [1.4, 1.2, -3.2] },
+  availability: { position: [3.5, 9, 23], target: [6, 1.4, -3] },
   inspection: { position: [9.5, 5, 10.5], target: [0.8, 1.6, 0] },
 };
 
@@ -693,7 +696,7 @@ function MatchScene({ focus, machine, documented, onPick }: Extract<SceneProps, 
 
 const DELIVERY = { yard: -19, transport: 0, quarry: 24 };
 const DELIVERY_VIEWS: Record<DeliveryFocus, View> = {
-  overview: { position: [3, 26, 42], target: [2.5, 0.5, -1] },
+  overview: { position: [3, 21, 41], target: [2.5, 2.2, -4], narrow: { position: [9, 10, 25], target: [1, 1.5, 0] } },
   machine: { position: [-10.5, 6.5, 13], target: [-18, 1.6, 0] },
   attachment: { position: [-10, 4, 10], target: [-14.2, 0.6, 3.2] },
   transport: { position: [8, 8, 18], target: [0.5, 1.6, 0] },
@@ -722,11 +725,11 @@ function DeliveryScene({ focus, transport, site, onPick }: Extract<SceneProps, {
   );
 }
 
-const RENTAL_YARD_X = -30;
+const RENTAL_YARD_X = -24;
 const RENTAL_VIEWS: Record<RentalFocus, View> = {
   ex014: { position: [12.5, 7, 14], target: [2.4, 1.6, -0.5] },
   ex027: { position: [RENTAL_YARD_X + 8, 6.5, 12.5], target: [RENTAL_YARD_X, 1.6, 0] },
-  both: { position: [-13, 21, 42], target: [-13, 1, -1] },
+  both: { position: [-11, 20, 50], target: [-11, 1.6, -2], narrow: { position: [16, 12, 30], target: [-12, 1, -3] } },
 };
 
 function RentalScene({ focus, conflict, onPick }: Extract<SceneProps, { kind: "rental" }>) {
@@ -734,22 +737,21 @@ function RentalScene({ focus, conflict, onPick }: Extract<SceneProps, { kind: "r
     <>
       <Rig view={RENTAL_VIEWS[focus]} />
       <Ground size={240} />
-      <Quarry x={0} label />
+      <Quarry x={0} />
       <Excavator id={EX014} pose={POSES.parked} tool="breaker" position={[-1, 0.03, 0]} rotation={-0.25} onArea={() => onPick("ex014")} />
-      <Tag lines={[EX014, "On rent"]} tone="ok" position={[-1.6, 3.8, 0]} />
-      {conflict && <Tag lines={["Next reservation", "Begins during extension"]} tone="alert" position={[-1.6, 5.4, 0]} />}
-      <Yard x={RENTAL_YARD_X} label />
+      <Tag lines={conflict ? [`${EX014} · On rent at the quarry`, "Next reservation begins during extension"] : [EX014, "On rent at the quarry"]} tone={conflict ? "alert" : "ok"} position={[-1.6, 3.8, 0]} />
+      <Yard x={RENTAL_YARD_X} />
       <Excavator id={EX027} pose={POSES.display} tool="bucket" position={[RENTAL_YARD_X - 1.5, 0.05, 0]} onArea={() => onPick("ex027")} />
       <Ring radius={5.2} tone="yellow" dashed position={[RENTAL_YARD_X + 0.1, 0, 0]} />
-      <Tag lines={[EX027, "Awaiting inspection"]} tone="flag" position={[RENTAL_YARD_X - 1.9, 3.8, 0]} />
+      <Tag lines={[EX027, "In the yard, awaiting inspection"]} tone="flag" position={[RENTAL_YARD_X - 1.9, 3.8, 0]} />
     </>
   );
 }
 
 const RETURN_VIEWS: Record<ReturnArea, View> = {
   overall: { position: [10.5, 5.4, 12], target: [2, 1.5, 0] },
-  sidePanel: { position: [1.6, 2.1, 6.2], target: [0.6, 1.55, 1.25] },
-  attachment: { position: [9.8, 2.8, 6.2], target: [5.4, 1.1, 0.2] },
+  sidePanel: { position: [2.4, 2.5, 8.4], target: [0.4, 1.45, 1.2] },
+  attachment: { position: [11.5, 3.8, 8.5], target: [5, 1.5, 0.2] },
   undercarriage: { position: [3.4, 1.3, 7.4], target: [0, 0.45, 1] },
   meter: { position: [3.6, 3.2, -5.6], target: [0.8, 2.1, -0.8] },
 };

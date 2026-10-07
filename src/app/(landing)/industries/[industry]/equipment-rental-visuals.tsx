@@ -202,11 +202,11 @@ function Drawing({ viewBox, children, ground = true }: { viewBox: string; childr
   );
 }
 
-function DrawingLabel({ x, y, children, tone = "plain" }: { x: number; y: number; children: string; tone?: "plain" | "flag" | "ok" | "alert" | "ink" }) {
+function DrawingLabel({ x, y, children, tone = "plain", size = 1 }: { x: number; y: number; children: string; tone?: "plain" | "flag" | "ok" | "alert" | "ink"; size?: number }) {
   const fills = { plain: ["#ffffff", "#17191a"], flag: ["#fed603", "#17191a"], ok: ["#007dfe", "#ffffff"], alert: ["#f51625", "#ffffff"], ink: ["#17191a", "#ffffff"] };
   const width = children.length * 0.205 + 0.5;
   return (
-    <g transform={`translate(${x} ${y}) scale(1 -1)`}>
+    <g transform={`translate(${x} ${y}) scale(${size} ${-size})`}>
       <rect x={-width / 2} y={-0.62} width={width} height={0.62} fill={fills[tone][0]} />
       <text x={0} y={-0.2} textAnchor="middle" fontSize={0.36} fontWeight={600} fill={fills[tone][1]}>{children}</text>
     </g>
@@ -324,7 +324,7 @@ function MatchFallback({ focus, machine, documented }: { focus: MatchFocus; mach
       <Elevation tool="bucket" x={13.5} highlight={highlight(EX027)} />
       <DrawingLabel x={1.2} y={5.6} tone="ok">EX-014 · Candidate match</DrawingLabel>
       <DrawingLabel x={8.6} y={1.8} tone={documented ? "plain" : "flag"}>{documented ? "AT-112 · Documented" : "AT-112 · To confirm"}</DrawingLabel>
-      <DrawingLabel x={15} y={5.6} tone="flag">EX-027 · Awaiting inspection</DrawingLabel>
+      <DrawingLabel x={14.7} y={5.6} tone="flag">EX-027 · Awaiting inspection</DrawingLabel>
     </Drawing>
   );
 }
@@ -367,9 +367,9 @@ export function MatchMachine() {
               <p className={styles.evidenceNote}>The rental desk would normally rebuild this into a brief by hand.</p>
             </div>
           )}
-          {(sequence.step === 1 || sequence.step === 3) && (
+          {sequence.step === 1 && (
             <div>
-              <p className={styles.sheetLabel}>{documented ? "Structured brief, updated" : "Structured brief"}</p>
+              <p className={styles.sheetLabel}>Structured brief</p>
               <ul className={styles.brief}>
                 {rows.map((row) => (
                   <li key={row.field}>
@@ -379,7 +379,7 @@ export function MatchMachine() {
                   </li>
                 ))}
               </ul>
-              {!documented && <p className={styles.flagLine}>Attachment requirements need confirmation.</p>}
+              <p className={styles.flagLine}>Attachment requirements need confirmation.</p>
             </div>
           )}
           {sequence.step === 2 && (
@@ -412,6 +412,16 @@ export function MatchMachine() {
           )}
           {sequence.step === 3 && (
             <div className={styles.check}>
+              <p className={styles.sheetLabel}>Brief updated</p>
+              <ul className={styles.brief}>
+                {rows.filter((row) => row.field === "Required attachment" || row.field === "Site conditions").map((row) => (
+                  <li key={row.field}>
+                    <span className={styles.briefField}>{row.field}</span>
+                    <span className={styles.briefValue}>{row.value}</span>
+                    <Status tone={row.tone}>{row.status}</Status>
+                  </li>
+                ))}
+              </ul>
               <p className={styles.sheetLabel}>Documented compatibility check</p>
               <ul>
                 <li><SourceTag source="customer" /><span>{BREAKER_TYPE} for breaking oversize rock. No customer-owned attachment.</span></li>
@@ -491,7 +501,7 @@ function deliveryChecks(transport: boolean, site: boolean): DeliveryCheck[] {
 
 function DeliveryFallback({ transport, site }: { transport: boolean; site: boolean }) {
   return (
-    <Drawing viewBox="-26 -5.8 61 7">
+    <Drawing viewBox="-26 -6.8 61 8">
       <Elevation tool="bucket" x={-23} />
       <Breaker x={-13.6} y={0} />
       <LowLoaderElevation x={0} y={0} ghost={!transport} />
@@ -501,9 +511,9 @@ function DeliveryFallback({ transport, site }: { transport: boolean; site: boole
         <polygon points="26,0 34,0 34,5 31,5 31,2.6 26,2.6" fill="#cfcabf" stroke="#262829" strokeWidth={1} vectorEffect="non-scaling-stroke" />
         <rect x={17} y={0} width={8.4} height={0.08} fill={site ? "#007dfe" : "#fed603"} />
       </g>
-      <DrawingLabel x={-18} y={5} tone="ink">Main rental yard</DrawingLabel>
-      <DrawingLabel x={1.5} y={5} tone={transport ? "ok" : "flag"}>{transport ? "TR-208 · Confirmed" : "TR-208 · To confirm"}</DrawingLabel>
-      <DrawingLabel x={25} y={5} tone={site ? "ok" : "flag"}>{site ? "Quarry · Confirmed" : "Quarry · To confirm"}</DrawingLabel>
+      <DrawingLabel x={-18} y={5.4} size={1.8} tone="ink">Main rental yard</DrawingLabel>
+      <DrawingLabel x={1.5} y={5.4} size={1.8} tone={transport ? "ok" : "flag"}>{transport ? "TR-208 · Confirmed" : "TR-208 · To confirm"}</DrawingLabel>
+      <DrawingLabel x={25} y={5.4} size={1.8} tone={site ? "ok" : "flag"}>{site ? "Quarry · Confirmed" : "Quarry · To confirm"}</DrawingLabel>
     </Drawing>
   );
 }
@@ -535,15 +545,16 @@ export function PrepareDelivery() {
           <li key={item.label} data-done={item.done}><strong>{item.label}</strong><span>{item.status}</span></li>
         ))}
       </ol>
-      <div className={styles.stage}>
+      <div className={styles.stage} data-wide="true">
         <MachineView
+          className={styles.wideView}
           scene={{ kind: "delivery", focus, transport, site, onPick: setFocus }}
           fallback={<DeliveryFallback transport={transport} site={site} />}
           label={`Illustrative handoff from the rental yard to the quarry. ${EX014} waits in the yard with ${BREAKER}. The planned low-loader load is ${transport ? "confirmed" : "still to confirm"}, and the quarry receiving area is ${site ? "confirmed" : "still to confirm"}.`}
         >
           <p className={styles.legend} aria-hidden="true"><span data-key="solid" />Recorded<span data-key="outline" />Planned or to confirm</p>
         </MachineView>
-        <div className={styles.panel}>
+        <div className={`${styles.panel} ${styles.checkPanel}`}>
           <p className={styles.sheetLabel}>Four checks before committing</p>
           <div className={styles.checks} role="group" aria-label="Delivery checks">
             {checks.map((check) => (
@@ -600,7 +611,8 @@ const RENTAL_CHECKS: AlternativeCheck[] = [
 function RentalFallback({ focus, conflict }: { focus: RentalFocus; conflict: boolean }) {
   return (
     <Drawing viewBox="-3 -6.4 26 7.4">
-      <polygon points="9.5,0 14,0 14,2.6 9.5,2.6" fill="#cfcabf" stroke="#262829" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+      <polygon points="-2.8,0 9.6,0 9.6,2.2 4.5,2.2 4.5,3.8 -2.8,3.8" fill="#e3dfd5" stroke="#b9baba" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+      <line x1={11.4} y1={0} x2={11.4} y2={5.8} stroke="#b9baba" strokeWidth={1} strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
       <Elevation tool="breaker" pose={POSES.parked} />
       <Elevation tool="bucket" x={16} highlight={focus === "ex027" ? { house: "yellow" } : {}} />
       <DrawingLabel x={1.5} y={5.6} tone="ok">EX-014 · On rent</DrawingLabel>
@@ -854,7 +866,7 @@ export function ReturnToService() {
             <li><span>Inspection outcome</span><span data-tone={stage === 2 ? "alert" : undefined}>{outcome}</span></li>
           </ul>
           {stage >= 2 && (
-            <div className={styles.hold}>
+            <div className={styles.hold} data-cleared={stage >= 3}>
               <button type="button" aria-expanded={showHold} onClick={() => setShowHold(!showHold)}>
                 <span><strong>Maintenance hold</strong> {stage === 2 ? "Maintenance required before release." : "Cleared by recorded maintenance."}</span>
                 <span className={styles.findingAction}>{showHold ? "Hide reason" : "Show reason"} <ArrowRight size={14} strokeWidth={1.5} aria-hidden="true" /></span>

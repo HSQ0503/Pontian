@@ -91,6 +91,10 @@
 .viewport { position: relative; overflow: hidden; aspect-ratio: 16 / 10; border-radius: 2px; background-color: #f5f5f2; background-image: linear-gradient(#0000000a 1px, transparent 1px), linear-gradient(90deg, #0000000a 1px, transparent 1px); background-size: 40px 40px; }
 .viewport canvas { display: block; }
 .split { aspect-ratio: 2.2 / 1; }
+.wideView { aspect-ratio: 2.4 / 1; }
+.checkPanel { grid-template-columns: minmax(0, 2.4fr) minmax(0, 1fr); align-items: start; }
+.checkPanel > .sheetLabel { grid-column: 1 / -1; margin: 0; }
+.checkPanel .checks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .splitStacked { aspect-ratio: 3 / 4; }
 .fallback { position: absolute; inset: 0; display: grid; place-items: center; padding: 18px; transition: opacity 300ms; }
 .fallback[data-hidden="true"] { opacity: 0; pointer-events: none; }
@@ -235,6 +239,9 @@
 .hold { border: 1px solid #f51625; border-radius: 2px; }
 .hold > button { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; width: 100%; padding: 12px 14px; text-align: left; font-size: 14px; color: #262829; cursor: pointer; }
 .hold strong { margin-right: 6px; color: #a3101c; }
+.hold[data-cleared="true"] { border-color: #d8d9d9; }
+.hold[data-cleared="true"] strong { color: #17191a; }
+.check > .brief { margin-bottom: 12px; }
 .holdDetail { display: grid; gap: 6px; padding: 0 14px 14px; font-size: 13px; line-height: 1.5; }
 .holdDetail p { margin: 0; }
 .findingAction { display: inline-flex; align-items: center; gap: 8px; padding: 5px 9px; background: #eee; color: #17191a; font-size: 13px; transition: background 180ms; }
@@ -294,7 +301,8 @@
   .record, .rentalChecks, .returnGrid, .compare { grid-template-columns: minmax(0, 1fr); }
   .handoff { grid-template-columns: minmax(0, 1fr); }
   .handoff li + li::before { content: none; }
-  .viewport { aspect-ratio: 4 / 3; }
+  .viewport, .wideView { aspect-ratio: 4 / 3; }
+  .checkPanel, .checkPanel .checks { grid-template-columns: minmax(0, 1fr); }
   .split { aspect-ratio: 4 / 3; }
   .splitStacked { aspect-ratio: 3 / 4; }
 }
