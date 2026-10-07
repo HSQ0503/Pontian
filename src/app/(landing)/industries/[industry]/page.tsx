@@ -11,6 +11,7 @@ import { industryVisuals } from "@/components/landing/industry-visuals";
 import { DesignEngineeringPage, designEngineeringMetadata } from "./design-engineering";
 import { RetailPage, retailMetadata } from "./retail";
 import { Reveal } from "@/components/landing/reveal";
+import { PropertyServicesPage, propertyServicesMetadata } from "./property-services";
 import frontier from "../../frontier.module.css";
 import styles from "./industry.module.css";
 import { ConstructionPage, constructionHeadline, constructionSummary } from "./construction";
@@ -31,6 +32,7 @@ export async function generateMetadata({ params }: PageProps<"/industries/[indus
   const { industry: slug } = await params;
   if (slug === "design-engineering") return designEngineeringMetadata;
   if (slug === "retail") return retailMetadata;
+  if (slug === "property-services") return propertyServicesMetadata;
   const industry = industries.find((item) => item.slug === slug);
   if (slug === "logistics") return logisticsMetadata;
   const content = industryPages[slug];
@@ -51,6 +53,7 @@ export default async function IndustryPage({ params }: PageProps<"/industries/[i
   const { industry: slug } = await params;
   if (slug === "design-engineering") return <DesignEngineeringPage />;
   if (slug === "retail") return <RetailPage />;
+  if (slug === "property-services") return <PropertyServicesPage />;
   const index = industries.findIndex((item) => item.slug === slug);
   if (slug === "logistics") return <LogisticsPage index={index} />;
   const industry = industries[index];
