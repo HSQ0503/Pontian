@@ -10,6 +10,7 @@ import { industryVisuals } from "@/components/landing/industry-visuals";
 import { Reveal } from "@/components/landing/reveal";
 import frontier from "../../frontier.module.css";
 import styles from "./industry.module.css";
+import { ConstructionPage, constructionHeadline, constructionSummary } from "./construction";
 
 const sections = [
   { id: "perspective", label: "Our perspective" },
@@ -27,9 +28,9 @@ export async function generateMetadata({ params }: PageProps<"/industries/[indus
   const { industry: slug } = await params;
   const industry = industries.find((item) => item.slug === slug);
   const content = industryPages[slug];
-  if (!industry || !content) notFound();
+  if (!industry || (!content && slug !== "construction")) notFound();
   const title = `Pontian for ${industry.name}`;
-  const description = `${content.promise} ${content.summary}`;
+  const description = content ? `${content.promise} ${content.summary}` : `${constructionHeadline} ${constructionSummary}`;
   const url = `/industries/${industry.slug}`;
   return {
     title: industry.name,
@@ -44,10 +45,12 @@ export default async function IndustryPage({ params }: PageProps<"/industries/[i
   const { industry: slug } = await params;
   const index = industries.findIndex((item) => item.slug === slug);
   const industry = industries[index];
-  const content = industryPages[slug];
-  if (!industry || !content) notFound();
-  const Visual = industryVisuals[slug];
+  if (!industry) notFound();
   const next = industries[(index + 1) % industries.length];
+  if (slug === "construction") return <ConstructionPage industry={industry} index={index} next={next} />;
+  const content = industryPages[slug];
+  if (!content) notFound();
+  const Visual = industryVisuals[slug];
   const engagement = [
     { title: "Starting point", text: content.engagement.start },
     { title: "What we need", text: content.engagement.information },

@@ -56,44 +56,6 @@ function Person({ initials, name, role }: { initials: string; name: string; role
   );
 }
 
-function ChangeRecord() {
-  const affected: { item: string; owner: string; tag: [TagTone, string] }[] = [
-    { item: "Mechanical room drawings", owner: "Design coordination", tag: ["ink", "Affected"] },
-    { item: "Pump order, not yet released", owner: "Procurement", tag: ["flag", "Needs review"] },
-    { item: "Thursday install, level 2", owner: "Site crew", tag: ["quiet", "Not affected"] },
-  ];
-  return (
-    <div role="img" aria-label="A change record linking a revised equipment requirement to affected drawings, an open order, and scheduled site work, with a project lead assigned.">
-      <Window title="Change 014" meta="Open">
-        <div className="space-y-4 px-5 pb-5 pt-4 text-[12px]">
-          <div className="rounded-[12px] bg-pt-paper px-3.5 py-3">
-            <p className="font-semibold">Revised equipment requirement, Rev C</p>
-            <p className="mt-0.5 text-pt-muted">Received from supplier this morning</p>
-          </div>
-          <div>
-            <Caption>Possibly affected</Caption>
-            <ul className="mt-2 divide-y divide-pt-line">
-              {affected.map(({ item, owner, tag }) => (
-                <li key={item} className="flex items-center justify-between gap-3 py-2.5">
-                  <span>
-                    <span className="block font-semibold">{item}</span>
-                    <span className="block text-[11px] text-pt-muted">{owner}</span>
-                  </span>
-                  <Tag tone={tag[0]}>{tag[1]}</Tag>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-pt-line pt-4">
-            <Person initials="PL" name="Project lead" role="Owns this change" />
-            <Stages stages={["Received", "Impact", "Assigned", "Closed"]} current={1} />
-          </div>
-        </div>
-      </Window>
-    </div>
-  );
-}
-
 function RevisionReview() {
   const fields = [
     { field: "Operating weight", before: "1,240 kg", after: "1,380 kg" },
@@ -338,7 +300,6 @@ function AssetRecord() {
 }
 
 export const industryVisuals: Record<string, () => ReactNode> = {
-  construction: ChangeRecord,
   "design-engineering": RevisionReview,
   logistics: ExceptionQueue,
   manufacturing: IssueRecord,
