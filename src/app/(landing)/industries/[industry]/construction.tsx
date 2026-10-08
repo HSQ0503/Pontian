@@ -32,7 +32,7 @@ const offerings: Offering[] = [
     moment: "Before committing",
     summary: "Check whether the bid covers the work.",
     headline: "Find what the bid missed.",
-    body: "A detail missing from a quote can become your cost later. We can build tools that compare drawings, specifications, and subcontractor quotes, bringing possible gaps to your estimator's attention before the bid goes out.",
+    body: "A detail missing from a quote can become your cost later. We can build tools that compare drawings, specifications, and subcontractor quotes, bringing possible gaps to your estimator’s attention before the bid goes out.",
     capabilities: ["Compare drawings and quotes", "Flag missing or conflicting scope", "Prepare questions for the estimator"],
     outcome: "Know what needs checking before you commit to a price.",
     Visual: BidCheck,
@@ -50,7 +50,7 @@ const offerings: Offering[] = [
   },
   {
     id: "check-whats-built",
-    label: "Check what's built",
+    label: "Check what’s built",
     moment: "During construction",
     summary: "Compare the available site evidence with the plan.",
     headline: "Compare the plan with the site.",
@@ -73,9 +73,9 @@ const offerings: Offering[] = [
 ];
 
 const startSteps = [
-  { title: "Choose one task", text: "A specific bid, change, site check, or schedule problem on one project." },
-  { title: "Map its information", text: "The drawings, quotes, orders, schedules, or captures the task depends on." },
-  { title: "Test it against today", text: "Run the workflow beside your current process and let your team judge the output." },
+  { title: "Choose one task", text: "One bid, change, site check, or schedule problem on a single project." },
+  { title: "Map its information", text: "The drawings, quotes, orders, schedules, or site captures it depends on." },
+  { title: "Test it against today", text: "Run the workflow beside your current process, and let your team judge the output." },
 ];
 
 export function ConstructionPage({ industry, index, next }: { industry: Industry; index: number; next: Industry }) {
@@ -85,12 +85,11 @@ export function ConstructionPage({ industry, index, next }: { industry: Industry
       <FrontierHeader />
       <main id="industry-content">
         <section className={styles.hero} aria-labelledby="industry-title">
-          <div className={base.photoFrame}>
-            <Image src={industry.image} alt={industry.alt} fill preload sizes="100vw" className={base.photo} style={industry.heroPosition ? { objectPosition: industry.heroPosition } : undefined} />
+          <div className={styles.heroPhoto}>
+            <Image src={industry.image} alt={industry.alt} fill preload sizes="(max-width: 700px) 100vw, 64vw" className={styles.heroImage} />
           </div>
-          <div className={base.shade} />
           <div className={styles.heroCopy}>
-            <Link href="/#industries" className={base.back}><ArrowLeft size={14} /> Industries / {String(index + 1).padStart(2, "0")} {industry.name}</Link>
+            <Link href="/#industries" className={`${base.back} ${styles.back}`}><ArrowLeft size={14} /> Industries / {String(index + 1).padStart(2, "0")} {industry.name}</Link>
             <h1 id="industry-title" className={styles.headline}>{constructionHeadline}</h1>
             <p className={styles.heroLead}>{constructionSummary}</p>
             <nav className={styles.heroNav} aria-label="What we can build">
@@ -131,7 +130,7 @@ export function ConstructionPage({ industry, index, next }: { industry: Industry
 
         <section className={styles.recap} aria-labelledby="recap-title">
           <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
-          <h2 id="recap-title" className={styles.recapTitle}>One way of working, from the first price to the final finishes.</h2>
+          <h2 id="recap-title" className={styles.recapTitle}>One way of working, from the bid to the final finishes.</h2>
           <ol className={styles.recapList}>
             {offerings.map((offering) => (
               <li key={offering.id}>
