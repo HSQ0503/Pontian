@@ -1,5 +1,4 @@
 import type { ComponentType } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import type { Industry } from "@/lib/industries";
@@ -7,6 +6,7 @@ import { FrontierHeader } from "@/components/landing/frontier-header";
 import frontier from "../../frontier.module.css";
 import base from "./industry.module.css";
 import styles from "./manufacturing.module.css";
+import { CellIllustration } from "./manufacturing-illustration";
 import { InspectProduct, InvestigateProblem, PlanProduction, TestChange } from "./manufacturing-visuals";
 
 export const manufacturingHeadline = "Help your factory understand problems and test better ways to work.";
@@ -44,7 +44,7 @@ const offerings: Offering[] = [
     label: "Plan the production",
     moment: "When orders change",
     summary: "Plan how work moves through the factory.",
-    knowledge: "Orders, materials, equipment, and setup requirements",
+    knowledge: "Orders, materials, equipment, and setups",
     headline: "Turn changing orders into a workable production plan.",
     body: "We can connect orders, materials, machine availability, and setup requirements to help your team compare production sequences. AI helps interpret the request; scheduling tools evaluate the constraints.",
     capabilities: ["Interpret production requests", "Account for materials and equipment", "Compare consequences before rescheduling"],
@@ -79,7 +79,7 @@ const offerings: Offering[] = [
 
 const roles = [
   { title: "AI", text: "Interprets documents, images, questions, and operating context." },
-  { title: "Scheduling and optimization tools", text: "Evaluate production sequences against the constraints." },
+  { title: "Scheduling tools", text: "Evaluate production sequences against the constraints." },
   { title: "Simulation", text: "Calculates modeled scenarios under stated assumptions." },
   { title: "Your team", text: "Evaluates findings and approves operational changes." },
 ];
@@ -98,14 +98,15 @@ export function ManufacturingPage({ industry, index, next }: { industry: Industr
       <FrontierHeader />
       <main id="industry-content">
         <section className={styles.hero} aria-labelledby="industry-title">
-          <div className={base.photoFrame}>
-            <Image src={industry.image} alt={industry.alt} fill preload sizes="100vw" className={base.photo} style={industry.heroPosition ? { objectPosition: industry.heroPosition } : undefined} />
-          </div>
-          <div className={base.shade} />
-          <div className={styles.heroCopy}>
-            <Link href="/#industries" className={base.back}><ArrowLeft size={14} /> Industries / {String(index + 1).padStart(2, "0")} {industry.name}</Link>
-            <h1 id="industry-title" className={styles.headline}>{manufacturingHeadline}</h1>
-            <p className={styles.heroLead}>{manufacturingSummary}</p>
+          <div className={styles.heroInner}>
+            <Link href="/#industries" className={styles.back}><ArrowLeft size={14} strokeWidth={1.5} /> Industries <span aria-hidden="true">/</span> {String(index + 1).padStart(2, "0")} {industry.name}</Link>
+            <div className={styles.heroGrid}>
+              <div className={styles.heroCopy}>
+                <h1 id="industry-title" className={styles.headline}>{manufacturingHeadline}</h1>
+                <p className={styles.heroLead}>{manufacturingSummary}</p>
+              </div>
+              <CellIllustration />
+            </div>
             <nav className={styles.heroNav} aria-label="What we can build">
               {offerings.map((offering, offeringIndex) => (
                 <a key={offering.id} href={`#${offering.id}`}>
@@ -121,76 +122,84 @@ export function ManufacturingPage({ industry, index, next }: { industry: Industr
 
         {offerings.map((offering, offeringIndex) => (
           <section key={offering.id} id={offering.id} className={styles.offering} aria-labelledby={`${offering.id}-title`}>
-            <div className={styles.offeringHead}>
-              <div>
-                <p className={styles.offeringLabel}>
-                  <span className={styles.offeringIndex}>{String(offeringIndex + 1).padStart(2, "0")}</span>
-                  {offering.label}
-                  <span className={styles.offeringMoment}>{offering.moment}</span>
-                </p>
-                <h2 id={`${offering.id}-title`} className={styles.offeringTitle}>{offering.headline}</h2>
+            <div className={styles.offeringInner}>
+              <div className={styles.offeringHead}>
+                <div>
+                  <p className={styles.offeringLabel}>
+                    <span className={styles.offeringIndex}>{String(offeringIndex + 1).padStart(2, "0")}</span>
+                    {offering.label}
+                    <span className={styles.offeringMoment}>{offering.moment}</span>
+                  </p>
+                  <h2 id={`${offering.id}-title`} className={styles.offeringTitle}>{offering.headline}</h2>
+                </div>
+                <div>
+                  <p className={styles.offeringBody}>{offering.body}</p>
+                  <ul className={styles.capabilities}>
+                    {offering.capabilities.map((capability) => <li key={capability}>{capability}</li>)}
+                  </ul>
+                </div>
               </div>
-              <div>
-                <p className={styles.offeringBody}>{offering.body}</p>
-                <ul className={styles.capabilities}>
-                  {offering.capabilities.map((capability) => <li key={capability}>{capability}</li>)}
-                </ul>
-              </div>
+              <offering.Visual />
+              <p className={styles.outcomeLine}>{offering.outcome}</p>
             </div>
-            <offering.Visual />
-            <p className={styles.outcomeLine}>{offering.outcome}</p>
           </section>
         ))}
 
         <section className={styles.recap} aria-labelledby="recap-title">
-          <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
-          <h2 id="recap-title" className={styles.recapTitle}>One production cell, followed from the product to the next improvement.</h2>
-          <ol className={styles.recapList}>
-            {offerings.map((offering) => (
-              <li key={offering.id}>
-                <span className={styles.recapMoment}>{offering.moment}</span>
-                <p>{offering.summary}</p>
-                <span className={styles.recapKnowledge}>Draws on: {offering.knowledge.toLowerCase()}</span>
-                <a href={`#${offering.id}`}>{offering.label} <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden="true" /></a>
-              </li>
-            ))}
-          </ol>
-          <p className={styles.shared}>The shared project knowledge supplies approved requirements, equipment context, and operating history across these workflows.</p>
-          <ul className={styles.roles}>
-            {roles.map((role) => <li key={role.title}><strong>{role.title}</strong><span>{role.text}</span></li>)}
-          </ul>
-        </section>
-
-        <section id="how-we-start" className={styles.start} aria-labelledby="how-we-start-title">
-          <div>
-            <p className={styles.startLabel}>How we start</p>
-            <h2 id="how-we-start-title" className={styles.startTitle}>One process. One question. A&nbsp;testable result.</h2>
-          </div>
-          <div>
-            <p className={styles.startBody}>We work with your operators and engineers to choose a focused problem, establish the necessary inputs, and test the workflow against representative examples before expanding it.</p>
-            <p className={styles.startLabel}>Possible starting scopes</p>
-            <ol className={styles.startSteps}>
-              {startingScopes.map((scope, scopeIndex) => (
-                <li key={scope}>
-                  <span>{String(scopeIndex + 1).padStart(2, "0")}</span>
-                  <p>{scope}</p>
+          <div className={styles.sectionInner}>
+            <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
+            <h2 id="recap-title" className={styles.recapTitle}>One production cell, from the product to the next improvement.</h2>
+            <ol className={styles.recapList}>
+              {offerings.map((offering) => (
+                <li key={offering.id}>
+                  <span className={styles.recapMoment}>{offering.moment}</span>
+                  <p>{offering.summary}</p>
+                  <span className={styles.recapKnowledge}>Draws on {offering.knowledge.toLowerCase()}.</span>
+                  <a href={`#${offering.id}`}>{offering.label} <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden="true" /></a>
                 </li>
               ))}
             </ol>
-            <p className={styles.startNote}>Your team helps define what a useful and reliable result looks like.</p>
+            <p className={styles.shared}>The shared project knowledge supplies approved requirements, equipment context, and operating history across these workflows.</p>
+            <ul className={styles.roles}>
+              {roles.map((role) => <li key={role.title}><strong>{role.title}</strong><span>{role.text}</span></li>)}
+            </ul>
+          </div>
+        </section>
+
+        <section id="how-we-start" className={styles.start} aria-labelledby="how-we-start-title">
+          <div className={styles.startInner}>
+            <div>
+              <p className={styles.startLabel}>How we start</p>
+              <h2 id="how-we-start-title" className={styles.startTitle}>One process. One question. A&nbsp;testable result.</h2>
+            </div>
+            <div>
+              <p className={styles.startBody}>We work with your operators and engineers to choose a focused problem, establish the necessary inputs, and test the workflow against representative examples before expanding it.</p>
+              <p className={styles.startLabel}>Possible starting scopes</p>
+              <ol className={styles.startSteps}>
+                {startingScopes.map((scope, scopeIndex) => (
+                  <li key={scope}>
+                    <span>{String(scopeIndex + 1).padStart(2, "0")}</span>
+                    <p>{scope}</p>
+                  </li>
+                ))}
+              </ol>
+              <p className={styles.startNote}>Your team helps define what a useful and reliable result looks like.</p>
+            </div>
           </div>
         </section>
 
         <section id="talk" className={styles.closing} aria-labelledby="talk-title">
-          <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
-          <h2 id="talk-title" className={styles.closingTitle}>What would you like your factory to understand better?</h2>
-          <p className={styles.closingBody}>A recurring defect, a difficult production decision, an equipment problem, or a proposed investment is a useful place to start.</p>
-          <Link href="/get-started" className={styles.closingButton}>Talk through a process <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
+          <div className={styles.sectionInner}>
+            <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
+            <h2 id="talk-title" className={styles.closingTitle}>What would you like your factory to understand better?</h2>
+            <p className={styles.closingBody}>A recurring defect, a difficult production decision, an equipment problem, or a proposed investment is a useful place to start.</p>
+            <Link href="/get-started" className={styles.closingButton}>Talk through a process <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
+          </div>
         </section>
       </main>
-      <footer className={base.footer}>
-        <Link href="/#industries"><ArrowLeft size={14} /> All industries</Link>
-        <Link href={`/industries/${next.slug}`}>Next: {next.name} <ArrowRight size={14} /></Link>
+      <footer className={styles.footer}>
+        <Link href="/#industries"><ArrowLeft size={14} strokeWidth={1.5} /> All industries</Link>
+        <Link href={`/industries/${next.slug}`}>Next: {next.name} <ArrowRight size={14} strokeWidth={1.5} /></Link>
       </footer>
     </div>
   );

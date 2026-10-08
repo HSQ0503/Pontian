@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useRef, type ReactNode, type RefObject } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { memo, useEffect, useId, useLayoutEffect, useRef, type ReactNode, type RefObject } from "react";
+import { Canvas, useFrame, useThree, type RootState } from "@react-three/fiber";
 import * as THREE from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { cellStatus, layout, runs, partPoses, type Configuration, type Point, type SimRun } from "./manufacturing-model";
 import styles from "./manufacturing.module.css";
 
 const H = layout.conveyorHeight;
 const BACKGROUND = "#eeeeec";
+
+/* Geometry helpers ------------------------------------------------------- */
 
 function roundedRect(width: number, depth: number, radius: number, path: THREE.Shape | THREE.Path = new THREE.Shape()) {
   const x = -width / 2;
@@ -24,8 +27,11 @@ function roundedRect(width: number, depth: number, radius: number, path: THREE.S
   return path;
 }
 
-function slab(width: number, depth: number, radius: number, thickness: number, bevel: number) {
-  const geometry = new THREE.ExtrudeGeometry(roundedRect(width, depth, radius) as THREE.Shape, { depth: thickness, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 2, curveSegments: 8 });
+// A rounded-corner block with bevelled edges, standing on y = 0.
+function slab(width: number, depth: number, radius: number, height: number, bevel: number) {
+  const geometry = new THREE.ExtrudeGeometry(roundedRect(width - bevel * 2, depth - bevel * 2, Math.max(radius - bevel, 0.001)) as THREE.Shape, {
+    depth: Math.max(height - bevel * 2, 0.0005), bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 3, curveSegments: 10,
+  });
   geometry.rotateX(-Math.PI / 2);
   geometry.translate(0, bevel, 0);
   return geometry;
@@ -34,111 +40,227 @@ function slab(width: number, depth: number, radius: number, thickness: number, b
 function band(width: number, depth: number, radius: number, thickness: number) {
   const shape = roundedRect(width + thickness, depth + thickness, radius + thickness / 2) as THREE.Shape;
   shape.holes.push(roundedRect(width, depth, radius, new THREE.Path()));
-  const geometry = new THREE.ShapeGeometry(shape, 8);
+  const geometry = new THREE.ShapeGeometry(shape, 10);
   geometry.rotateX(-Math.PI / 2);
   return geometry;
 }
 
-// H-20 housing: body, raised cover, cable boss, and four corner fasteners.
+const lathe = (profile: [number, number][], segments = 32) => new THREE.LatheGeometry(profile.map(([r, y]) => new THREE.Vector2(r, y)), segments);
+
+// Soft-edged rectangle used as a contact shadow under equipment.
+function contactTexture() {
+  if (typeof document === "undefined") return null;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 128;
+  const context = canvas.getContext("2d");
+  if (!context) return null;
+  context.filter = "blur(14px)";
+  context.fillStyle = "#000";
+  context.fillRect(30, 30, 68, 68);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+const CONTACT = contactTexture();
+
+/* Materials -------------------------------------------------------------- */
+
+const satin = (color: string, roughness = 0.5, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
+const material = {
+  housing: satin("#8a9399", 0.42),
+  cover: satin("#a4acb1", 0.4),
+  variantHousing: satin("#b3a88f", 0.44),
+  variantCover: satin("#c1b69e", 0.42),
+  gasket: satin("#1d2022", 0.75),
+  gland: satin("#25282b", 0.48),
+  port: satin("#0b0c0d", 0.9),
+  plate: satin("#dfe2e4", 0.32, 0.25),
+  print: satin("#62686d", 0.8),
+  seat: satin("#3e4347", 0.5, 0.2),
+  hole: satin("#0b0c0d", 0.95),
+  screw: satin("#d4d8db", 0.26, 0.95),
+  recess: satin("#2a2d30", 0.7),
+  ink: satin("#2b2e31", 0.55, 0.1),
+  aluminium: satin("#c5c9cc", 0.36, 0.7),
+  groove: satin("#7e8489", 0.6, 0.3),
+  zinc: satin("#bfc3c6", 0.3, 0.85),
+  top: satin("#dcdcd9", 0.72),
+  edge: satin("#3a3d40", 0.6),
+  rubber: satin("#1b1d1f", 0.9),
+  motor: satin("#7b8288", 0.42, 0.35),
+  gearbox: satin("#5d6469", 0.45, 0.35),
+  floor: satin("#e7e7e4", 0.96),
+  kraft: satin("#c6a77b", 0.9),
+  tape: satin("#dcc59c", 0.6),
+  timber: satin("#d3c8b2", 0.85),
+  screen: satin("#f4f4f2", 0.4),
+  poly: new THREE.MeshStandardMaterial({ color: "#dfe6ea", roughness: 0.12, metalness: 0, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide }),
+  diffuser: new THREE.MeshStandardMaterial({ color: "#ffffff", emissive: "#ffffff", emissiveIntensity: 0.35, roughness: 0.6 }),
+  proposed: satin("#007dfe", 0.45),
+  selected: satin("#f1d85c", 0.45, 0.15),
+  selectedDark: satin("#d9bd3a", 0.48, 0.2),
+  grille: satin("#3b4044", 0.6, 0.2),
+  marker: new THREE.MeshBasicMaterial({ color: "#fed603", side: THREE.DoubleSide, toneMapped: false }),
+  outline: new THREE.LineBasicMaterial({ color: "#17191a", transparent: true, opacity: 0.55 }),
+  floorTape: new THREE.MeshBasicMaterial({ color: "#ead25a", toneMapped: false }),
+  proposedTape: new THREE.MeshBasicMaterial({ color: "#4a9dfa", toneMapped: false }),
+  grid: new THREE.LineBasicMaterial({ color: "#d9d9d5", transparent: true, opacity: 0.7 }),
+};
+
+function Contact({ x, z, width, depth, opacity = 0.3, y = 0.002 }: { x: number; z: number; width: number; depth: number; opacity?: number; y?: number }) {
+  if (!CONTACT) return null;
+  return (
+    <mesh position={[x, y, z]} rotation={[-Math.PI / 2, 0, 0]} scale={[width * 1.9, depth * 1.9, 1]} renderOrder={1}>
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial map={CONTACT} color="#000" transparent opacity={opacity} depthWrite={false} toneMapped={false} />
+    </mesh>
+  );
+}
+
+/* Studio lighting -------------------------------------------------------- */
+
+function applyStudio({ gl, scene }: RootState) {
+  gl.toneMapping = THREE.NeutralToneMapping;
+  gl.toneMappingExposure = 1;
+  const generator = new THREE.PMREMGenerator(gl);
+  scene.environment = generator.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environmentIntensity = 0.5;
+  generator.dispose();
+}
+
+function Lights({ span, focus = [0, 0, 0] }: { span: number; focus?: [number, number, number] }) {
+  const key: [number, number, number] = [focus[0] - span * 0.55, focus[1] + span * 1.1, focus[2] + span * 0.75];
+  return (
+    <>
+      <hemisphereLight args={["#ffffff", "#d7d7d3", 0.5]} />
+      <directionalLight
+        position={key}
+        intensity={1.45}
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-radius={5}
+        shadow-intensity={0.5}
+        shadow-bias={-0.0002}
+        shadow-normalBias={0.015}
+        shadow-camera-left={-span}
+        shadow-camera-right={span}
+        shadow-camera-top={span}
+        shadow-camera-bottom={-span}
+        shadow-camera-near={0.1}
+        shadow-camera-far={span * 4}
+      />
+      <directionalLight position={[focus[0] + span * 0.9, focus[1] + span * 0.5, focus[2] + span * 0.4]} intensity={0.35} />
+      <directionalLight position={[focus[0] + span * 0.2, focus[1] + span * 0.6, focus[2] - span]} intensity={0.55} />
+    </>
+  );
+}
+
+/* H-20 housing ----------------------------------------------------------- */
+
 const HOUSING_TOP = 0.082;
 const COVER_TOP = HOUSING_TOP + 0.022;
 const FASTENER_SPOTS: Point[] = [[-0.135, 0.098], [0.135, 0.098], [0.135, -0.098], [-0.135, -0.098]];
 
 const geometry = {
-  body: slab(0.34, 0.26, 0.04, 0.07, 0.006),
-  cover: slab(0.2, 0.14, 0.03, 0.016, 0.003),
-  plate: slab(0.46, 0.38, 0.02, 0.006, 0.003),
-  boss: new THREE.CylinderGeometry(0.026, 0.028, 0.022, 28),
-  port: new THREE.CircleGeometry(0.013, 24).rotateX(-Math.PI / 2),
-  seat: new THREE.CircleGeometry(0.019, 24).rotateX(-Math.PI / 2),
+  body: slab(0.352, 0.272, 0.046, 0.082, 0.007),
+  cover: slab(0.2, 0.142, 0.03, 0.022, 0.005),
+  gasket: band(0.2, 0.142, 0.03, 0.007),
+  nut: new THREE.CylinderGeometry(0.03, 0.03, 0.012, 6).translate(0, 0.006, 0),
+  dome: lathe([[0, 0.022], [0.012, 0.021], [0.02, 0.016], [0.024, 0.008], [0.025, 0]], 28),
+  port: new THREE.CircleGeometry(0.009, 20).rotateX(-Math.PI / 2),
+  plate: slab(0.066, 0.034, 0.004, 0.0015, 0.0005),
+  print: new THREE.PlaneGeometry(0.044, 0.003).rotateX(-Math.PI / 2),
+  vent: new THREE.BoxGeometry(0.05, 0.005, 0.002),
+  seat: new THREE.CircleGeometry(0.0195, 28).rotateX(-Math.PI / 2),
   hole: new THREE.CircleGeometry(0.0085, 20).rotateX(-Math.PI / 2),
-  screw: new THREE.CylinderGeometry(0.0155, 0.0165, 0.008, 22),
-  slot: new THREE.BoxGeometry(0.021, 0.003, 0.0032),
-  ring: new THREE.RingGeometry(0.027, 0.034, 40).rotateX(-Math.PI / 2),
-  outline: band(0.36, 0.28, 0.045, 0.012),
-  roller: new THREE.CylinderGeometry(0.022, 0.022, 0.4, 10).rotateX(Math.PI / 2),
-  carton: new THREE.BoxGeometry(0.3, 0.18, 0.24),
-  focusBox: new THREE.BoxGeometry(0.36, 0.38, 0.62),
-  focusEdges: new THREE.EdgesGeometry(new THREE.BoxGeometry(0.36, 0.38, 0.62)),
+  washer: new THREE.CylinderGeometry(0.0185, 0.0185, 0.0015, 28).translate(0, 0.00075, 0),
+  screw: lathe([[0, 0.0085], [0.008, 0.0082], [0.0128, 0.0068], [0.0158, 0.0035], [0.0162, 0]], 28).translate(0, 0.0015, 0),
+  recess: new THREE.BoxGeometry(0.014, 0.0012, 0.0028),
+  ring: new THREE.RingGeometry(0.027, 0.034, 48).rotateX(-Math.PI / 2),
+  outline: band(0.37, 0.29, 0.05, 0.012),
+  roller: new THREE.CylinderGeometry(0.024, 0.024, 0.39, 16).rotateX(Math.PI / 2),
+  bracket: new THREE.BoxGeometry(0.012, 0.05, 0.012),
+  carton: slab(0.3, 0.24, 0.006, 0.18, 0.003),
+  cartonTape: new THREE.BoxGeometry(0.3, 0.002, 0.05),
+  inspectionPlate: slab(0.46, 0.38, 0.024, 0.012, 0.004),
 };
 
-const standard = (color: string, roughness = 0.6, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
-const material = {
-  body: standard("#8e979d", 0.55, 0.05),
-  cover: standard("#99a2a8", 0.5, 0.05),
-  variantBody: standard("#b2a78f", 0.55, 0.05),
-  variantCover: standard("#bbb099", 0.5, 0.05),
-  boss: standard("#33373a", 0.5),
-  port: standard("#121314", 0.8),
-  seat: standard("#5f656a", 0.5, 0.3),
-  hole: standard("#0e0f10", 0.9),
-  screw: standard("#c3c7ca", 0.3, 0.7),
-  slot: standard("#2a2c2e", 0.6),
-  ink: standard("#262829", 0.55, 0.2),
-  frame: standard("#3a3d40", 0.5, 0.3),
-  steel: standard("#a3a8ab", 0.45, 0.4),
-  surface: standard("#d8d9d9", 0.7),
-  bench: standard("#c9cacb", 0.6),
-  white: standard("#f8f8f6", 0.6),
-  roller: standard("#b7bbbe", 0.35, 0.6),
-  motor: standard("#6b7176", 0.45, 0.35),
-  floor: standard("#e2e2df", 0.95),
-  kraft: standard("#c9b089", 0.85),
-  blue: standard("#007dfe", 0.45),
-  yellow: standard("#fed603", 0.5),
-  light: new THREE.MeshStandardMaterial({ color: "#ffffff", emissive: "#ffffff", emissiveIntensity: 0.9 }),
-  marker: new THREE.MeshBasicMaterial({ color: "#fed603", side: THREE.DoubleSide }),
-  expected: new THREE.MeshBasicMaterial({ color: "#007dfe", side: THREE.DoubleSide }),
-  focus: new THREE.MeshBasicMaterial({ color: "#fed603", transparent: true, opacity: 0.14, depthWrite: false }),
-  focusEdge: new THREE.LineBasicMaterial({ color: "#d9b400" }),
-  tape: new THREE.MeshBasicMaterial({ color: "#fed603" }),
-  proposedTape: new THREE.MeshBasicMaterial({ color: "#007dfe" }),
-};
-
-type HousingProps = { variant?: boolean; fasteners?: number; missing?: number; detail?: "high" | "low"; ring?: { index: number; tone: "marker" | "expected" }; outline?: "marker" | "expected" };
+type HousingProps = { variant?: boolean; fasteners?: number; missing?: number; detail?: "high" | "low"; ring?: number; outline?: boolean };
 
 export function Housing({ variant = false, fasteners = 4, missing, detail = "low", ring, outline }: HousingProps) {
+  const high = detail === "high";
   return (
     <group>
-      <mesh geometry={geometry.body} material={variant ? material.variantBody : material.body} castShadow receiveShadow />
-      <mesh geometry={geometry.cover} material={variant ? material.variantCover : material.cover} position={[0, HOUSING_TOP - 0.003, 0]} castShadow />
-      <mesh geometry={geometry.boss} material={material.boss} position={[0, COVER_TOP + 0.011, 0]} castShadow />
-      <mesh geometry={geometry.port} material={material.port} position={[0, COVER_TOP + 0.0225, 0]} />
+      <mesh geometry={geometry.body} material={variant ? material.variantHousing : material.housing} castShadow receiveShadow />
+      <mesh geometry={geometry.gasket} material={material.gasket} position={[0, HOUSING_TOP + 0.0004, 0]} />
+      <mesh geometry={geometry.cover} material={variant ? material.variantCover : material.cover} position={[0, HOUSING_TOP, 0]} castShadow receiveShadow />
+      <group position={[-0.042, COVER_TOP, 0]}>
+        <mesh geometry={geometry.nut} material={material.gland} castShadow />
+        <mesh geometry={geometry.dome} material={material.gland} position={[0, 0.012, 0]} castShadow />
+        <mesh geometry={geometry.port} material={material.port} position={[0, 0.0345, 0]} />
+      </group>
+      {high && (
+        <group position={[0.05, COVER_TOP, 0]}>
+          <mesh geometry={geometry.plate} material={material.plate} />
+          <mesh geometry={geometry.print} material={material.print} position={[0, 0.0016, -0.007]} />
+          <mesh geometry={geometry.print} material={material.print} position={[-0.006, 0.0016, 0.002]} scale={[0.72, 1, 1]} />
+          <mesh geometry={geometry.print} material={material.print} position={[-0.01, 0.0016, 0.01]} scale={[0.55, 1, 1]} />
+        </group>
+      )}
+      {high && [0.03, 0.042, 0.054].map((y) => <mesh key={y} geometry={geometry.vent} material={material.gasket} position={[-0.09, y, 0.1361]} />)}
       {FASTENER_SPOTS.map(([x, z], index) => (
         <group key={index} position={[x, HOUSING_TOP, z]}>
-          <mesh geometry={geometry.seat} material={material.seat} position={[0, 0.0005, 0]} />
-          <mesh geometry={geometry.hole} material={material.hole} position={[0, 0.0009, 0]} />
+          <mesh geometry={geometry.seat} material={material.seat} position={[0, 0.0004, 0]} />
+          <mesh geometry={geometry.hole} material={material.hole} position={[0, 0.0007, 0]} />
           <group name={`fastener-${index}`} visible={index < fasteners && index !== missing}>
-            <mesh geometry={geometry.screw} material={material.screw} position={[0, 0.004, 0]} castShadow />
-            {detail === "high" && (
+            <mesh geometry={geometry.washer} material={material.screw} />
+            <mesh geometry={geometry.screw} material={material.screw} castShadow />
+            {high && (
               <>
-                <mesh geometry={geometry.slot} material={material.slot} position={[0, 0.0081, 0]} rotation={[0, Math.PI / 4, 0]} />
-                <mesh geometry={geometry.slot} material={material.slot} position={[0, 0.0081, 0]} rotation={[0, -Math.PI / 4, 0]} />
+                <mesh geometry={geometry.recess} material={material.recess} position={[0, 0.0099, 0]} />
+                <mesh geometry={geometry.recess} material={material.recess} position={[0, 0.0099, 0]} rotation={[0, Math.PI / 2, 0]} />
               </>
             )}
           </group>
         </group>
       ))}
-      {ring && <mesh geometry={geometry.ring} material={material[ring.tone]} position={[FASTENER_SPOTS[ring.index][0], HOUSING_TOP + 0.014, FASTENER_SPOTS[ring.index][1]]} />}
-      {outline && <mesh geometry={geometry.outline} material={material[outline]} position={[0, 0.003, 0]} />}
+      {ring !== undefined && <mesh geometry={geometry.ring} material={material.marker} position={[FASTENER_SPOTS[ring][0], HOUSING_TOP + 0.016, FASTENER_SPOTS[ring][1]]} />}
+      {outline && <mesh geometry={geometry.outline} material={material.marker} position={[0, 0.002, 0]} />}
     </group>
   );
 }
 
-type SceneLabel = { id: string; at: [number, number, number]; text: ReactNode; detail?: ReactNode; tone?: "default" | "accent" | "proposed" | "alert" | "quiet"; place?: "above" | "below"; minor?: boolean };
+/* HTML labels with leader lines ----------------------------------------- */
+
+type Tone = "default" | "accent" | "proposed" | "alert" | "quiet";
+type SceneLabel = { id: string; at: [number, number, number]; text: ReactNode; detail?: ReactNode; tone?: Tone; place?: "above" | "below"; leader?: number; minor?: boolean; side?: "left" | "right" };
+
 const scratch = new THREE.Vector3();
 
-// Labels are HTML for legibility; each frame moves them to their projected anchor.
+// Each frame moves the label's anchor dot to its projected point; the chip
+// slides sideways to stay inside the canvas while the leader keeps its anchor.
 function LabelProjector({ labels, layer }: { labels: SceneLabel[]; layer: string }) {
   useFrame(({ camera, size }) => {
     for (const label of labels) {
       const element = document.getElementById(`${layer}-${label.id}`);
       if (!element) continue;
       scratch.set(...label.at).project(camera);
-      const half = element.offsetWidth / 2;
-      const x = Math.min(Math.max(((scratch.x + 1) / 2) * size.width, half + 4), size.width - half - 4);
+      const x = ((scratch.x + 1) / 2) * size.width;
       const y = ((1 - scratch.y) / 2) * size.height;
-      element.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, ${label.place === "below" ? "8px" : "calc(-100% - 8px)"})`;
+      const chip = element.firstElementChild as HTMLElement | null;
+      const half = (chip?.offsetWidth ?? 0) / 2;
+      const shift = Math.min(Math.max(x, half + 6), size.width - half - 6) - x;
+      // In tall frames the cell runs top to bottom, so chips sit beside it.
+      const portrait = size.width < size.height * 0.95 && label.side !== undefined;
+      const leader = portrait ? 18 : label.leader ?? 22;
+      const above = (label.place ?? "above") === "above";
+      const flip = above ? y - leader - (chip?.offsetHeight ?? 0) < 4 : y + leader + (chip?.offsetHeight ?? 0) > size.height - 4;
+      const width = chip?.offsetWidth ?? 0;
+      const side = label.side === "left" ? (x - leader - width < 4 ? "right" : "left") : x + leader + width > size.width - 4 ? "left" : "right";
+      element.dataset.place = portrait ? side : above !== flip ? "above" : "below";
+      element.style.setProperty("--shift", `${portrait ? 0 : shift.toFixed(1)}px`);
+      element.style.setProperty("--leader", `${leader}px`);
+      element.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
       element.style.visibility = scratch.z < 1 && x > 0 && x < size.width && y > 0 && y < size.height ? "visible" : "hidden";
     }
   });
@@ -149,15 +271,12 @@ function LabelLayer({ labels, layer }: { labels: SceneLabel[]; layer: string }) 
   return (
     <div className={styles.sceneLabels} aria-hidden="true">
       {labels.map((label) => (
-        <span
-          key={label.id}
-          id={`${layer}-${label.id}`}
-          className={`${styles.sceneLabel} ${label.minor ? styles.sceneLabelMinor : ""}`}
-          data-tone={label.tone ?? "default"}
-          data-place={label.place ?? "above"}
-        >
-          <strong>{label.text}</strong>
-          {label.detail && <span>{label.detail}</span>}
+        <span key={label.id} id={`${layer}-${label.id}`} className={`${styles.sceneLabel} ${label.minor ? styles.sceneLabelMinor : ""}`} data-tone={label.tone ?? "default"}>
+          <span className={styles.chip}>
+            <strong>{label.text}</strong>
+            {label.detail && <span>{label.detail}</span>}
+          </span>
+          <i className={styles.leader} />
         </span>
       ))}
     </div>
@@ -173,7 +292,7 @@ function Invalidate({ signal }: { signal: string }) {
 /* Inspection close-up ---------------------------------------------------- */
 
 export type SampleId = "reference" | "missing" | "variation";
-export const MISSING_INDEX = 2;
+const MISSING_INDEX = 2;
 
 function FitOrthographic({ width, height }: { width: number; height: number }) {
   useFrame(({ camera, size }) => {
@@ -187,16 +306,26 @@ function FitOrthographic({ width, height }: { width: number; height: number }) {
 }
 
 function productLabels(sample: SampleId, showFinding: boolean, referenceX: number, sampleX: number) {
-  const labels: SceneLabel[] = [{ id: "reference", at: [referenceX, 0, 0.2], text: "Approved reference", detail: "Required: four fasteners", place: "below", tone: "quiet" }];
+  const labels: SceneLabel[] = [{ id: "reference", at: [referenceX, 0, 0.2], text: "Approved reference", detail: "Required: four fasteners", place: "below", leader: 10, tone: "quiet" }];
   if (sample === "reference") {
-    FASTENER_SPOTS.forEach(([x, z], index) => labels.push({ id: `n${index}`, at: [x + Math.sign(x) * 0.05, HOUSING_TOP, z + Math.sign(z) * 0.035], text: String(index + 1), tone: "quiet" }));
+    FASTENER_SPOTS.forEach(([x, z], index) => labels.push({ id: `n${index}`, at: [x, HOUSING_TOP + 0.012, z], text: String(index + 1), tone: "quiet", leader: 18, place: z > 0 ? "below" : "above" }));
     return labels;
   }
-  labels.push({ id: "sample", at: [sampleX, 0, 0.2], text: "Inspection sample", detail: sample === "variation" ? "Allowed variation" : "Same viewpoint and orientation", place: "below", tone: sample === "variation" ? "proposed" : "accent" });
+  labels.push({ id: "sample", at: [sampleX, 0, 0.2], text: "Inspection sample", detail: sample === "variation" ? "Allowed variation" : undefined, place: "below", leader: 10, tone: "quiet" });
   const [x, z] = FASTENER_SPOTS[MISSING_INDEX];
-  if (sample === "missing" && showFinding) labels.push({ id: "expected", at: [sampleX + x, HOUSING_TOP + 0.02, z], text: "Fastener 3 expected here", tone: "accent" });
-  if (sample === "variation" && showFinding) labels.push({ id: "shade", at: [sampleX, COVER_TOP + 0.03, -0.12], text: "Shade within approved range", tone: "proposed" });
+  if (sample === "missing" && showFinding) labels.push({ id: "expected", at: [sampleX + x, HOUSING_TOP + 0.016, z], text: "Fastener 3 expected here", tone: "accent", leader: 26 });
+  if (sample === "variation" && showFinding) labels.push({ id: "shade", at: [sampleX, COVER_TOP, -0.13], text: "Shade within the approved range", tone: "accent", leader: 26 });
   return labels;
+}
+
+function InspectionStation({ x, children }: { x: number; children: ReactNode }) {
+  return (
+    <group position={[x, 0, 0]}>
+      <mesh geometry={geometry.inspectionPlate} material={material.screen} position={[0, -0.012, 0]} receiveShadow castShadow />
+      <Contact x={0} z={0} width={0.4} depth={0.32} opacity={0.22} y={-0.0115} />
+      {children}
+    </group>
+  );
 }
 
 export function ProductCanvas({ sample, showFinding, onReady }: { sample: SampleId; showFinding: boolean; onReady?: () => void }) {
@@ -209,39 +338,34 @@ export function ProductCanvas({ sample, showFinding, onReady }: { sample: Sample
     <div className={styles.sceneCanvas}>
       <Canvas
         orthographic
-        flat
         shadows="percentage"
         dpr={[1, 2]}
         frameloop="demand"
-        camera={{ position: [0, 1.3, 1.05], zoom: 600, near: 0.01, far: 10 }}
-        onCreated={({ camera }) => { camera.lookAt(0, 0.02, 0.01); onReady?.(); }}
+        camera={{ position: [0, 1.25, 1.1], zoom: 600, near: 0.01, far: 10 }}
+        gl={{ antialias: true }}
+        onCreated={(state) => { applyStudio(state); state.camera.lookAt(0, 0.03, 0.02); onReady?.(); }}
       >
         <color attach="background" args={[BACKGROUND]} />
-        <hemisphereLight args={["#ffffff", "#d9d9d4", 1.5]} />
-        <directionalLight position={[-0.8, 2.2, 1.2]} intensity={2.1} castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-1} shadow-camera-right={1} shadow-camera-top={1} shadow-camera-bottom={-1} />
+        <Lights span={0.8} />
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.0125, 0]} receiveShadow>
-          <planeGeometry args={[4, 4]} />
+          <planeGeometry args={[6, 6]} />
           <meshStandardMaterial color={BACKGROUND} roughness={1} />
         </mesh>
-        <mesh geometry={geometry.plate} material={material.white} position={[referenceX, -0.012, 0]} receiveShadow />
-        <group position={[referenceX, 0, 0]}>
-          <Housing detail="high" ring={sample === "missing" && showFinding ? { index: MISSING_INDEX, tone: "expected" } : undefined} outline={sample === "variation" && showFinding ? "expected" : undefined} />
-        </group>
+        <InspectionStation x={referenceX}>
+          <Housing detail="high" ring={sample === "missing" && showFinding ? MISSING_INDEX : undefined} outline={sample === "variation" && showFinding} />
+        </InspectionStation>
         {pair && (
-          <>
-            <mesh geometry={geometry.plate} material={material.white} position={[sampleX, -0.012, 0]} receiveShadow />
-            <group position={[sampleX, 0, 0]}>
-              <Housing
-                detail="high"
-                variant={sample === "variation"}
-                missing={sample === "missing" ? MISSING_INDEX : undefined}
-                ring={sample === "missing" && showFinding ? { index: MISSING_INDEX, tone: "marker" } : undefined}
-                outline={sample === "variation" && showFinding ? "marker" : undefined}
-              />
-            </group>
-          </>
+          <InspectionStation x={sampleX}>
+            <Housing
+              detail="high"
+              variant={sample === "variation"}
+              missing={sample === "missing" ? MISSING_INDEX : undefined}
+              ring={sample === "missing" && showFinding ? MISSING_INDEX : undefined}
+              outline={sample === "variation" && showFinding}
+            />
+          </InspectionStation>
         )}
-        <FitOrthographic width={pair ? 1.12 : 0.7} height={0.62} />
+        <FitOrthographic width={pair ? 1.06 : 0.66} height={0.6} />
         <LabelProjector labels={labels} layer={layer} />
         <Invalidate signal={`${sample}-${showFinding}`} />
       </Canvas>
@@ -250,169 +374,332 @@ export function ProductCanvas({ sample, showFinding, onReady }: { sample: Sample
   );
 }
 
-/* Production cell -------------------------------------------------------- */
+/* Production cell: shared structural parts ------------------------------- */
 
-function Conveyor({ from, to, accent = false }: { from: Point; to: Point; accent?: boolean }) {
+function Box({ size, position, mat, rotation, cast = true }: { size: [number, number, number]; position: [number, number, number]; mat: THREE.Material; rotation?: [number, number, number]; cast?: boolean }) {
+  return (
+    <mesh position={position} rotation={rotation} material={mat} castShadow={cast} receiveShadow>
+      <boxGeometry args={size} />
+    </mesh>
+  );
+}
+
+// Slotted aluminium extrusion: a square profile with a darker groove on each visible face.
+function Extrusion({ from, to, size = 0.04 }: { from: [number, number, number]; to: [number, number, number]; size?: number }) {
+  const start = new THREE.Vector3(...from);
+  const end = new THREE.Vector3(...to);
+  const length = start.distanceTo(end);
+  const middle = start.clone().add(end).multiplyScalar(0.5);
+  const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), end.clone().sub(start).normalize());
+  return (
+    <group position={middle} quaternion={quaternion}>
+      <mesh material={material.aluminium} castShadow receiveShadow><boxGeometry args={[size, length, size]} /></mesh>
+      <mesh material={material.groove} position={[0, 0, size / 2 + 0.0005]}><boxGeometry args={[size * 0.22, length * 0.98, 0.001]} /></mesh>
+      <mesh material={material.groove} position={[size / 2 + 0.0005, 0, 0]}><boxGeometry args={[0.001, length * 0.98, size * 0.22]} /></mesh>
+      <mesh material={material.groove} position={[-size / 2 - 0.0005, 0, 0]}><boxGeometry args={[0.001, length * 0.98, size * 0.22]} /></mesh>
+      <mesh material={material.groove} position={[0, 0, -size / 2 - 0.0005]}><boxGeometry args={[size * 0.22, length * 0.98, 0.001]} /></mesh>
+    </group>
+  );
+}
+
+function Foot({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      <mesh material={material.rubber} position={[0, 0.006, 0]} receiveShadow><cylinderGeometry args={[0.032, 0.035, 0.012, 20]} /></mesh>
+      <mesh material={material.zinc} position={[0, 0.022, 0]}><cylinderGeometry args={[0.008, 0.008, 0.022, 10]} /></mesh>
+    </group>
+  );
+}
+
+// A workbench on an extrusion frame with a phenolic top and a lower shelf.
+function Bench({ x, z, width, depth, top = H - 0.006 }: { x: number; z: number; width: number; depth: number; top?: number }) {
+  const legs: [number, number][] = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+  const lx = width / 2 - 0.04;
+  const lz = depth / 2 - 0.04;
+  return (
+    <group position={[x, 0, z]}>
+      <mesh geometry={slab(width, depth, 0.012, 0.028, 0.004)} material={material.top} position={[0, top - 0.028, 0]} castShadow receiveShadow />
+      <Box size={[width - 0.02, 0.006, 0.003]} position={[0, top - 0.014, depth / 2 + 0.0005]} mat={material.edge} cast={false} />
+      {legs.map(([sx, sz]) => (
+        <group key={`${sx}${sz}`}>
+          <Extrusion from={[sx * lx, 0.034, sz * lz]} to={[sx * lx, top - 0.028, sz * lz]} />
+          <Foot x={sx * lx} z={sz * lz} />
+        </group>
+      ))}
+      <Extrusion from={[-lx, top - 0.05, lz]} to={[lx, top - 0.05, lz]} />
+      <Extrusion from={[-lx, top - 0.05, -lz]} to={[lx, top - 0.05, -lz]} />
+      <Extrusion from={[-lx, 0.16, lz]} to={[lx, 0.16, lz]} />
+      <Extrusion from={[-lx, 0.16, -lz]} to={[lx, 0.16, -lz]} />
+      <mesh geometry={slab(width - 0.12, depth - 0.1, 0.008, 0.016, 0.003)} material={material.top} position={[0, 0.18, 0]} castShadow receiveShadow />
+      <Contact x={0} z={0} width={width} depth={depth} opacity={0.26} />
+    </group>
+  );
+}
+
+/* Conveyor -------------------------------------------------------------- */
+
+const Conveyor = memo(function Conveyor({ from, to, accent = false, guides = true }: { from: Point; to: Point; accent?: boolean; guides?: boolean }) {
   const [ax, az] = from;
   const [bx, bz] = to;
   const length = Math.hypot(bx - ax, bz - az);
   const angle = Math.atan2(-(bz - az), bx - ax);
-  const count = Math.max(1, Math.floor(length / 0.11));
+  const count = Math.max(1, Math.floor(length / 0.1));
+  const brackets = Math.max(2, Math.round(length / 0.7) + 1);
   const rollers = useRef<THREE.InstancedMesh>(null);
+  const posts = useRef<THREE.InstancedMesh>(null);
   useLayoutEffect(() => {
-    const mesh = rollers.current;
-    if (!mesh) return;
     const matrix = new THREE.Matrix4();
-    for (let index = 0; index < count; index++) {
-      matrix.makeTranslation(-length / 2 + ((index + 0.5) * length) / count, 0, 0);
-      mesh.setMatrixAt(index, matrix);
+    const rollerMesh = rollers.current;
+    if (rollerMesh) {
+      for (let index = 0; index < count; index++) rollerMesh.setMatrixAt(index, matrix.makeTranslation(-length / 2 + ((index + 0.5) * length) / count, 0, 0));
+      rollerMesh.instanceMatrix.needsUpdate = true;
     }
-    mesh.instanceMatrix.needsUpdate = true;
-  }, [count, length]);
-  const legs = Math.max(2, Math.round(length / 1.4) + 1);
-  const legPositions = Array.from({ length: legs }, (_, index) => -length / 2 + 0.08 + (index * (length - 0.16)) / (legs - 1));
+    const postMesh = posts.current;
+    if (postMesh) {
+      for (let index = 0; index < brackets * 2; index++) {
+        const along = -length / 2 + 0.06 + (Math.floor(index / 2) * (length - 0.12)) / (brackets - 1);
+        postMesh.setMatrixAt(index, matrix.makeTranslation(along, 0.047, index % 2 ? 0.205 : -0.205));
+      }
+      postMesh.instanceMatrix.needsUpdate = true;
+    }
+  }, [count, length, brackets]);
+  const legs = Math.max(2, Math.round(length / 1.5) + 1);
+  const legPositions = Array.from({ length: legs }, (_, index) => -length / 2 + 0.1 + (index * (length - 0.2)) / (legs - 1));
+  const frame = accent ? material.proposed : material.ink;
   return (
-    <group position={[(ax + bx) / 2, H - 0.025, (az + bz) / 2]} rotation={[0, angle, 0]}>
-      <instancedMesh ref={rollers} args={[geometry.roller, material.roller, count]} receiveShadow />
-      {[-0.215, 0.215].map((z) => (
-        <mesh key={z} position={[0, 0.006, z]} material={accent ? material.blue : material.frame} castShadow receiveShadow>
-          <boxGeometry args={[length, 0.07, 0.03]} />
-        </mesh>
+    <group position={[(ax + bx) / 2, H - 0.026, (az + bz) / 2]} rotation={[0, angle, 0]}>
+      <instancedMesh ref={rollers} args={[geometry.roller, material.zinc, count]} castShadow receiveShadow />
+      {[-1, 1].map((side) => (
+        <group key={side} position={[0, 0, side * 0.213]}>
+          <Box size={[length, 0.085, 0.006]} position={[0, -0.005, side * 0.006]} mat={frame} />
+          <Box size={[length, 0.006, 0.026]} position={[0, 0.035, -side * 0.006]} mat={frame} />
+          <Box size={[length, 0.006, 0.026]} position={[0, -0.045, -side * 0.006]} mat={frame} />
+        </group>
       ))}
-      {legPositions.map((x) => [-0.19, 0.19].map((z) => (
-        <mesh key={`${x}-${z}`} position={[x, -(H - 0.025) / 2, z]} material={material.frame} castShadow>
-          <boxGeometry args={[0.04, H - 0.06, 0.04]} />
-        </mesh>
-      )))}
+      {guides && (
+        <>
+          <instancedMesh ref={posts} args={[geometry.bracket, material.zinc, brackets * 2]} castShadow />
+          {[-0.205, 0.205].map((z) => (
+            <mesh key={z} position={[0, 0.07, z]} rotation={[0, 0, Math.PI / 2]} material={material.aluminium} castShadow>
+              <cylinderGeometry args={[0.007, 0.007, length - 0.04, 10]} />
+            </mesh>
+          ))}
+        </>
+      )}
+      {legPositions.map((x) => (
+        <group key={x} position={[x, -(H - 0.026), 0]}>
+          {[-0.19, 0.19].map((z) => (
+            <group key={z}>
+              <Box size={[0.04, H - 0.09, 0.04]} position={[0, (H - 0.09) / 2 + 0.034, z]} mat={material.ink} />
+              <Foot x={0} z={z} />
+            </group>
+          ))}
+          <Box size={[0.03, 0.03, 0.38]} position={[0, 0.2, 0]} mat={material.ink} />
+        </group>
+      ))}
+      <Contact x={0} z={0} width={length} depth={0.42} opacity={0.18} y={-(H - 0.026) + 0.002} />
     </group>
   );
-}
+});
 
 function TransferUnit({ at }: { at: Point }) {
   return (
     <group position={[at[0], 0, at[1]]}>
-      <mesh position={[0, H - 0.03, 0]} material={material.frame} castShadow receiveShadow><boxGeometry args={[0.5, 0.05, 0.5]} /></mesh>
-      <mesh position={[0, H - 0.0035, 0]} material={material.blue}><boxGeometry args={[0.4, 0.002, 0.05]} /></mesh>
-      <mesh position={[0, H - 0.0035, 0]} material={material.blue}><boxGeometry args={[0.05, 0.002, 0.4]} /></mesh>
-      <mesh position={[0, (H - 0.055) / 2, 0]} material={material.frame}><boxGeometry args={[0.08, H - 0.055, 0.08]} /></mesh>
+      <mesh geometry={slab(0.5, 0.5, 0.02, 0.06, 0.006)} material={material.ink} position={[0, H - 0.066, 0]} castShadow receiveShadow />
+      {[-0.12, 0, 0.12].map((offset) => <Box key={offset} size={[0.44, 0.006, 0.03]} position={[0, H - 0.003, offset]} mat={material.proposed} />)}
+      <Box size={[0.07, H - 0.1, 0.07]} position={[0, (H - 0.1) / 2 + 0.034, 0]} mat={material.ink} />
+      <Foot x={0} z={0} />
+      <Contact x={0} z={0} width={0.5} depth={0.5} opacity={0.2} />
     </group>
   );
 }
 
-function Leg({ x, z, height }: { x: number; z: number; height: number }) {
-  return <mesh position={[x, height / 2, z]} material={material.frame} castShadow><boxGeometry args={[0.05, height, 0.05]} /></mesh>;
+/* Stations ---------------------------------------------------------------- */
+
+function Cable({ points, radius = 0.006 }: { points: [number, number, number][]; radius?: number }) {
+  const curve = new THREE.CatmullRomCurve3(points.map((point) => new THREE.Vector3(...point)));
+  return <mesh material={material.rubber} castShadow><tubeGeometry args={[curve, 48, radius, 8, false]} /></mesh>;
 }
 
-function AssemblyStation() {
+const AssemblyStation = memo(function AssemblyStation() {
   const [x] = layout.fixture;
-  const post: Point = [x - 0.42, -0.4];
+  const benchX = x - 0.075;
+  const post: [number, number] = [x - 0.48, -0.38];
   return (
     <group>
-      <mesh position={[x - 0.075, H - 0.031, 0]} material={material.bench} castShadow receiveShadow><boxGeometry args={[1.05, 0.05, 0.95]} /></mesh>
-      {[[-0.55, -0.4], [0.4, -0.4], [-0.55, 0.4], [0.4, 0.4]].map(([dx, dz]) => <Leg key={`${dx}${dz}`} x={x + dx} z={dz} height={H - 0.056} />)}
-      <mesh position={[x, H - 0.003, 0]} material={material.ink} receiveShadow><boxGeometry args={[0.42, 0.006, 0.34]} /></mesh>
-      <mesh position={[x, H + 0.004, -0.17]} material={material.blue}><boxGeometry args={[0.42, 0.014, 0.02]} /></mesh>
-      <mesh position={[x - 0.42, H + 0.044, 0.3]} material={material.frame} castShadow><boxGeometry args={[0.32, 0.1, 0.24]} /></mesh>
-      <group position={[x - 0.42, H + 0.02, 0.3]} scale={0.6}><Housing fasteners={0} /></group>
-      <mesh position={[x - 0.42, H + 0.024, -0.26]} material={material.surface} castShadow><boxGeometry args={[0.24, 0.06, 0.18]} /></mesh>
-      <mesh position={[post[0], 1.4, post[1]]} material={material.frame} castShadow><boxGeometry args={[0.06, 1.2, 0.06]} /></mesh>
-      <mesh position={[(post[0] + x) / 2, 1.98, post[1] / 2]} rotation={[0, Math.atan2(x - post[0], -post[1]), 0]} material={material.frame} castShadow><boxGeometry args={[0.04, 0.04, Math.hypot(x - post[0], post[1])]} /></mesh>
-      <mesh position={[x, 1.73, 0]} material={material.steel}><cylinderGeometry args={[0.004, 0.004, 0.5, 6]} /></mesh>
-      <mesh position={[x, 1.38, 0]} material={material.blue} castShadow><cylinderGeometry args={[0.03, 0.03, 0.2, 14]} /></mesh>
-      <mesh position={[x, 1.24, 0]} material={material.steel}><cylinderGeometry args={[0.006, 0.006, 0.08, 6]} /></mesh>
+      <Bench x={benchX} z={0} width={1.05} depth={0.95} />
+      <mesh geometry={slab(0.44, 0.34, 0.01, 0.012, 0.003)} material={material.ink} position={[x, H - 0.012, 0]} receiveShadow castShadow />
+      {[[-0.2, -0.155], [0.2, -0.155], [-0.2, 0.155], [0.2, 0.155]].map(([dx, dz]) => (
+        <mesh key={`${dx}${dz}`} material={material.zinc} position={[x + dx, H + 0.012, dz]} castShadow><cylinderGeometry args={[0.007, 0.009, 0.024, 12]} /></mesh>
+      ))}
+      <group position={[x, H, -0.215]}>
+        <Box size={[0.07, 0.03, 0.04]} position={[0, 0.015, 0]} mat={material.ink} />
+        <Box size={[0.02, 0.012, 0.14]} position={[0, 0.05, 0.03]} rotation={[0.45, 0, 0]} mat={material.zinc} />
+        <mesh material={material.rubber} position={[0, 0.082, 0.085]} rotation={[0.45, 0, 0]} castShadow><cylinderGeometry args={[0.012, 0.012, 0.05, 12]} /></mesh>
+      </group>
+      <group position={[x - 0.43, H, 0.27]}>
+        {[[0, 0.005, 0, 0.3, 0.01, 0.24], [0, 0.06, 0.12, 0.3, 0.12, 0.008], [0, 0.06, -0.12, 0.3, 0.12, 0.008], [0.15, 0.06, 0, 0.008, 0.12, 0.24], [-0.15, 0.06, 0, 0.008, 0.12, 0.24]].map(([px, py, pz, sx, sy, sz]) => (
+          <Box key={`${px}${py}${pz}`} size={[sx, sy, sz]} position={[px, py, pz]} mat={material.ink} />
+        ))}
+        <group position={[0, 0.012, 0]} scale={0.62}><Housing fasteners={0} /></group>
+        <group position={[0.02, 0.07, 0.02]} rotation={[0.35, 0.2, 0]} scale={0.62}><Housing fasteners={0} /></group>
+      </group>
+      <group position={[x - 0.43, H, -0.27]}>
+        <mesh geometry={slab(0.22, 0.16, 0.012, 0.05, 0.004)} material={material.ink} castShadow />
+        <Box size={[0.12, 0.004, 0.08]} position={[0, 0.051, 0.01]} mat={material.zinc} cast={false} />
+      </group>
+      <Extrusion from={[post[0], H, post[1]]} to={[post[0], 2.05, post[1]]} />
+      <Extrusion from={[post[0], 2.0, post[1]]} to={[x, 2.0, 0]} size={0.034} />
+      <mesh material={material.ink} position={[x, 1.93, 0]} castShadow><cylinderGeometry args={[0.032, 0.032, 0.09, 20]} /></mesh>
+      <mesh material={material.zinc} position={[x, 1.68, 0]}><cylinderGeometry args={[0.0025, 0.0025, 0.42, 6]} /></mesh>
+      <group position={[x, 1.33, 0]}>
+        <mesh geometry={lathe([[0, 0.17], [0.022, 0.168], [0.026, 0.15], [0.026, 0.06], [0.02, 0.05], [0.018, 0.0], [0, 0]], 24)} material={material.ink} castShadow />
+        <mesh material={material.zinc} position={[0, -0.03, 0]}><cylinderGeometry args={[0.004, 0.006, 0.06, 8]} /></mesh>
+      </group>
+      <group position={[post[0] + 0.025, 1.46, post[1] + 0.03]} rotation={[0, 0.55, 0]}>
+        <Box size={[0.3, 0.2, 0.018]} position={[0.15, 0, 0]} mat={material.ink} />
+        <Box size={[0.27, 0.17, 0.002]} position={[0.15, 0, 0.0095]} mat={material.screen} cast={false} />
+        {[0.05, 0.02, -0.01, -0.04].map((y, index) => <Box key={y} size={[index === 0 ? 0.16 : 0.2 - index * 0.03, 0.008, 0.001]} position={[0.1 + (index === 0 ? -0.01 : 0), y, 0.011]} mat={material.print} cast={false} />)}
+      </group>
+      <Cable points={[[x, 1.88, 0], [x - 0.1, 1.95, -0.1], [post[0] + 0.02, 1.9, post[1] + 0.03], [post[0] + 0.03, 1.2, post[1] + 0.03], [post[0] + 0.03, H + 0.02, post[1] + 0.03]]} radius={0.005} />
     </group>
   );
-}
+});
 
 function InspectionBooth({ at, proposed = false }: { at: Point; proposed?: boolean }) {
   const [x, z] = at;
   const top = 1.95;
-  const accent = proposed ? material.blue : material.ink;
+  const corners: [number, number][] = [[-0.68, -0.42], [0.68, -0.42], [-0.68, 0.42], [0.68, 0.42]];
   return (
     <group position={[x, 0, z]}>
-      {[[-0.68, -0.42], [0.68, -0.42], [-0.68, 0.42], [0.68, 0.42]].map(([dx, dz]) => <Leg key={`${dx}${dz}`} x={dx} z={dz} height={top} />)}
-      {[-0.42, 0.42].map((dz) => <mesh key={dz} position={[0, top, dz]} material={accent} castShadow><boxGeometry args={[1.41, 0.05, 0.05]} /></mesh>)}
-      {[-0.68, 0.68].map((dx) => <mesh key={dx} position={[dx, top, 0]} material={accent} castShadow><boxGeometry args={[0.05, 0.05, 0.89]} /></mesh>)}
-      <mesh position={[0, top - 0.02, 0]} material={material.frame}><boxGeometry args={[0.05, 0.04, 0.84]} /></mesh>
-      <mesh position={[0, top - 0.12, 0]} material={material.ink} castShadow><boxGeometry args={[0.15, 0.16, 0.13]} /></mesh>
-      <mesh position={[0, top - 0.23, 0]} material={material.frame}><cylinderGeometry args={[0.04, 0.045, 0.07, 18]} /></mesh>
-      {[-0.28, 0.28].map((dz) => (
-        <group key={dz} position={[0, 1.45, dz]} rotation={[dz > 0 ? 0.5 : -0.5, 0, 0]}>
-          <mesh material={material.frame}><boxGeometry args={[0.8, 0.05, 0.07]} /></mesh>
-          <mesh position={[0, -0.026, 0]} material={material.light}><boxGeometry args={[0.76, 0.004, 0.05]} /></mesh>
+      {corners.map(([dx, dz]) => (
+        <group key={`${dx}${dz}`}>
+          <Extrusion from={[dx, 0.012, dz]} to={[dx, top, dz]} />
+          <Box size={[0.1, 0.012, 0.1]} position={[dx, 0.006, dz]} mat={material.ink} />
         </group>
       ))}
-      {[-0.68, 0.68].map((dx) => <mesh key={dx} position={[dx, 1.45, 0]} material={material.frame}><boxGeometry args={[0.04, 0.04, 0.84]} /></mesh>)}
+      {[-0.42, 0.42].map((dz) => <Extrusion key={dz} from={[-0.68, top, dz]} to={[0.68, top, dz]} />)}
+      {[-0.68, 0.68].map((dx) => <Extrusion key={dx} from={[dx, top, -0.42]} to={[dx, top, 0.42]} />)}
+      {[-0.68, 0.68].map((dx) => <Extrusion key={dx} from={[dx, 1.02, -0.42]} to={[dx, 1.02, 0.42]} size={0.034} />)}
+      <Extrusion from={[0, top - 0.035, -0.42]} to={[0, top - 0.035, 0.42]} size={0.034} />
+      {proposed && [-0.42, 0.42].map((dz) => <Box key={dz} size={[1.3, 0.012, 0.042]} position={[0, top + 0.026, dz]} mat={material.proposed} cast={false} />)}
+      <mesh position={[0, 1.48, -0.42]} material={material.poly}><planeGeometry args={[1.32, 0.9]} /></mesh>
+      {[-0.68, 0.68].map((dx) => <mesh key={dx} position={[dx, 1.48, 0]} rotation={[0, Math.PI / 2, 0]} material={material.poly}><planeGeometry args={[0.8, 0.9]} /></mesh>)}
+      <group position={[0, top - 0.06, 0]}>
+        <mesh geometry={slab(0.1, 0.09, 0.012, 0.158, 0.006)} material={material.ink} position={[0, -0.15, 0]} castShadow />
+        <mesh geometry={lathe([[0.034, 0], [0.034, 0.05], [0.03, 0.06], [0.0, 0.06]], 28)} material={material.ink} position={[0, -0.15, 0]} rotation={[Math.PI, 0, 0]} castShadow />
+        <mesh material={material.ink} position={[0, -0.164, 0]} castShadow><cylinderGeometry args={[0.14, 0.14, 0.008, 40]} /></mesh>
+        <mesh material={material.port} position={[0, -0.27, 0]} rotation={[Math.PI / 2, 0, 0]}><circleGeometry args={[0.022, 24]} /></mesh>
+        {[0, (Math.PI * 2) / 3, (Math.PI * 4) / 3].map((angle) => (
+          <mesh key={angle} material={material.zinc} position={[Math.cos(angle) * 0.13, -0.257, Math.sin(angle) * 0.13]}><cylinderGeometry args={[0.004, 0.004, 0.186, 6]} /></mesh>
+        ))}
+        <mesh material={material.ink} position={[0, -0.35, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow><torusGeometry args={[0.13, 0.016, 12, 48]} /></mesh>
+        <mesh material={material.diffuser} position={[0, -0.366, 0]} rotation={[Math.PI / 2, 0, 0]}><ringGeometry args={[0.1, 0.145, 48]} /></mesh>
+      </group>
+      <Cable points={[[0.05, top - 0.14, 0], [0.3, top - 0.02, 0.05], [0.66, top - 0.06, 0.4], [0.66, 1.2, 0.4], [0.66, 0.1, 0.4]]} radius={0.005} />
+      <Contact x={0} z={0} width={1.45} depth={0.95} opacity={0.12} />
     </group>
   );
 }
 
-function PackagingStation({ run, clock }: { run: SimRun; clock: RefObject<number> }) {
+const PackagingStation = memo(function PackagingStation({ run, clock }: { run: SimRun; clock: RefObject<number> }) {
   const cartons = useRef<THREE.InstancedMesh>(null);
+  const tapes = useRef<THREE.InstancedMesh>(null);
   useLayoutEffect(() => {
-    const mesh = cartons.current;
-    if (!mesh) return;
     const matrix = new THREE.Matrix4();
     for (let index = 0; index < 36; index++) {
       const layer = Math.floor(index / 9);
       const column = index % 3;
       const row = Math.floor(index / 3) % 3;
-      matrix.makeTranslation((column - 1) * 0.32, 0.21 + layer * 0.185, (row - 1) * 0.26);
-      mesh.setMatrixAt(index, matrix);
+      const position: [number, number, number] = [(column - 1) * 0.31, 0.118 + layer * 0.182, (row - 1) * 0.25];
+      cartons.current?.setMatrixAt(index, matrix.makeTranslation(...position));
+      tapes.current?.setMatrixAt(index, matrix.makeTranslation(position[0], position[1] + 0.181, position[2]));
     }
-    mesh.instanceMatrix.needsUpdate = true;
+    if (cartons.current) cartons.current.instanceMatrix.needsUpdate = true;
+    if (tapes.current) tapes.current.instanceMatrix.needsUpdate = true;
   }, []);
   useFrame(() => {
-    if (cartons.current) cartons.current.count = Math.min(36, run.parts.filter((part) => part.packEnd <= clock.current).length);
+    const count = Math.min(36, run.parts.filter((part) => part.packEnd <= clock.current).length);
+    if (cartons.current) cartons.current.count = count;
+    if (tapes.current) tapes.current.count = count;
   });
   const [cx] = layout.carton;
+  const flap = (key: string, position: [number, number, number], rotation: [number, number, number], size: [number, number, number]) => <Box key={key} size={size} position={position} rotation={rotation} mat={material.kraft} />;
   return (
     <group>
-      <mesh position={[5.4, H - 0.033, 0]} material={material.bench} castShadow receiveShadow><boxGeometry args={[0.9, 0.05, 0.95]} /></mesh>
-      {[[-0.4, -0.4], [0.4, -0.4], [-0.4, 0.4], [0.4, 0.4]].map(([dx, dz]) => <Leg key={`${dx}${dz}`} x={5.4 + dx} z={dz} height={H - 0.058} />)}
-      <group position={[cx, H - 0.008, 0]}>
-        <mesh position={[0, 0.004, 0]} material={material.kraft} receiveShadow><boxGeometry args={[0.42, 0.008, 0.34]} /></mesh>
-        {[[0, 0.17, 0.42, 0.008], [0, -0.17, 0.42, 0.008], [0.21, 0, 0.008, 0.34], [-0.21, 0, 0.008, 0.34]].map(([dx, dz, w, d]) => (
-          <mesh key={`${dx}${dz}`} position={[dx, 0.08, dz]} material={material.kraft} castShadow><boxGeometry args={[w, 0.16, d]} /></mesh>
+      <Bench x={5.4} z={0} width={0.9} depth={0.95} />
+      <group position={[cx, H, 0]}>
+        <Box size={[0.42, 0.006, 0.34]} position={[0, 0.003, 0]} mat={material.kraft} />
+        {[[0, 0.17, 0.42, 0.006], [0, -0.17, 0.42, 0.006], [0.21, 0, 0.006, 0.34]].map(([dx, dz, w, d]) => (
+          <Box key={`${dx}${dz}`} size={[w, 0.17, d]} position={[dx, 0.085, dz]} mat={material.kraft} />
         ))}
+        {flap("f1", [0, 0.2, 0.215], [-0.75, 0, 0], [0.42, 0.006, 0.11])}
+        {flap("f2", [0, 0.2, -0.215], [0.75, 0, 0], [0.42, 0.006, 0.11])}
+        {flap("f3", [0.25, 0.19, 0], [0, 0, 0.9], [0.1, 0.006, 0.34])}
+        {flap("f4", [-0.295, 0.004, 0], [0, 0, 0], [0.17, 0.006, 0.34])}
       </group>
-      <mesh position={[5.62, H + 0.042, -0.32]} material={material.kraft} castShadow><boxGeometry args={[0.36, 0.1, 0.24]} /></mesh>
+      <group position={[5.66, H, -0.33]}>
+        <Box size={[0.36, 0.05, 0.24]} position={[0, 0.025, 0]} mat={material.kraft} />
+        <Box size={[0.36, 0.002, 0.004]} position={[0, 0.051, 0.04]} mat={material.tape} cast={false} />
+        <mesh material={material.ink} position={[-0.02, 0.09, 0.02]} castShadow><boxGeometry args={[0.12, 0.03, 0.05]} /></mesh>
+        <mesh material={material.tape} position={[-0.02, 0.12, 0.02]} rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.035, 0.035, 0.045, 24]} /></mesh>
+      </group>
       <group position={[5.45, 0, 1.25]}>
-        <mesh position={[0, 0.06, 0]} material={material.surface} castShadow receiveShadow><boxGeometry args={[1.0, 0.12, 0.82]} /></mesh>
+        {[-0.45, 0, 0.45].map((dx) => [-0.35, 0, 0.35].map((dz) => <Box key={`${dx}${dz}`} size={[0.1, 0.085, 0.1]} position={[dx, 0.055, dz]} mat={material.timber} />))}
+        {[-0.35, 0, 0.35].map((dz) => <Box key={dz} size={[1.0, 0.012, 0.1]} position={[0, 0.006, dz]} mat={material.timber} />)}
+        {[-0.35, -0.175, 0, 0.175, 0.35].map((dz) => <Box key={dz} size={[1.0, 0.02, 0.1]} position={[0, 0.107, dz]} mat={material.timber} />)}
         <instancedMesh ref={cartons} args={[geometry.carton, material.kraft, 36]} castShadow receiveShadow />
+        <instancedMesh ref={tapes} args={[geometry.cartonTape, material.tape, 36]} />
+        <Contact x={0} z={0} width={1.0} depth={0.82} opacity={0.3} />
       </group>
     </group>
   );
-}
+});
 
-function ConveyorDrive({ focused }: { focused: boolean }) {
-  const [x, z] = layout.drive;
+function ConveyorDrive({ selected }: { selected: boolean }) {
+  const [x] = layout.drive;
+  const body = selected ? material.selected : material.motor;
+  const housing = selected ? material.selectedDark : material.gearbox;
+  const gearbox = slab(0.2, 0.2, 0.035, 0.15, 0.01);
+  const fins: [number, number][] = [[0, 0], [0.084, 0]];
+  for (let step = 0; step < 11; step++) fins.push([0.084, 0.02 + step * 0.024], [0.093, 0.024 + step * 0.024], [0.093, 0.032 + step * 0.024], [0.084, 0.036 + step * 0.024]);
+  fins.push([0.084, 0.3], [0, 0.3]);
   return (
-    <group position={[x, 0.6, z]}>
-      <mesh material={material.ink} castShadow><boxGeometry args={[0.2, 0.2, 0.16]} /></mesh>
-      <mesh position={[0, 0.05, -0.1]} rotation={[Math.PI / 2, 0, 0]} material={material.steel}><cylinderGeometry args={[0.02, 0.02, 0.1, 10]} /></mesh>
-      <group position={[0, 0, 0.24]} rotation={[Math.PI / 2, 0, 0]}>
-        <mesh material={material.motor} castShadow><cylinderGeometry args={[0.085, 0.085, 0.3, 24]} /></mesh>
-        {[-0.09, -0.03, 0.03, 0.09].map((offset) => <mesh key={offset} position={[0, offset, 0]} material={material.motor}><cylinderGeometry args={[0.093, 0.093, 0.012, 24]} /></mesh>)}
-        <mesh position={[0, 0.17, 0]} material={material.frame}><cylinderGeometry args={[0.08, 0.08, 0.04, 24]} /></mesh>
+    <group position={[x, H - 0.13, 0.222]}>
+      <mesh geometry={slab(0.3, 0.26, 0.02, 0.012, 0.003)} material={material.ink} rotation={[Math.PI / 2, 0, 0]} castShadow />
+      {[[-0.12, 0.1], [0.12, 0.1], [-0.12, -0.1], [0.12, -0.1]].map(([bx, by]) => (
+        <mesh key={`${bx}${by}`} material={material.zinc} position={[bx, by, 0.016]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.009, 0.009, 0.008, 6]} /></mesh>
+      ))}
+      <mesh geometry={gearbox} material={housing} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.012]} castShadow receiveShadow />
+      <group position={[0, -0.01, 0.162]} rotation={[Math.PI / 2, 0, 0]}>
+        <mesh geometry={lathe(fins, 40)} material={body} castShadow receiveShadow />
+        <mesh geometry={lathe([[0.088, 0], [0.09, 0.03], [0.082, 0.06], [0.05, 0.075], [0, 0.078]], 40)} material={housing} position={[0, 0.3, 0]} castShadow />
+        {[0.022, 0.034, 0.046, 0.058, 0.07].map((radius) => <mesh key={radius} material={material.grille} position={[0, 0.3785, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[radius - 0.0022, radius, 48]} /></mesh>)}
+        <mesh material={material.grille} position={[0, 0.379, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[0.012, 24]} /></mesh>
       </group>
-      <mesh position={[0, 0.115, 0.2]} material={material.ink} castShadow><boxGeometry args={[0.1, 0.05, 0.1]} /></mesh>
-      <mesh position={[0.075, 0.03, 0.09]} material={material.yellow}><cylinderGeometry args={[0.014, 0.014, 0.02, 12]} /></mesh>
-      {focused && (
-        <group position={[0, 0.02, 0.17]}>
-          <mesh geometry={geometry.focusBox} material={material.focus} />
-          <lineSegments geometry={geometry.focusEdges} material={material.focusEdge} />
-        </group>
+      <group position={[0, 0.08, 0.3]}>
+        <mesh geometry={slab(0.11, 0.12, 0.012, 0.055, 0.005)} material={housing} castShadow />
+        <mesh material={material.rubber} position={[0.075, 0.03, 0]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.012, 0.014, 0.03, 12]} /></mesh>
+      </group>
+      <mesh geometry={slab(0.07, 0.045, 0.004, 0.002, 0.0006)} material={material.plate} position={[0.1, 0, 0.087]} rotation={[0, 0, -Math.PI / 2]} />
+      <mesh material={material.ink} position={[0.106, 0.05, 0.04]} rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[0.015, 0.015, 0.012, 16]} /></mesh>
+      <Cable points={[[0.09, 0.11, 0.3], [0.2, 0.1, 0.31], [0.24, 0, 0.3], [0.25, -0.3, 0.26], [0.26, -0.6, 0.22], [0.36, -0.664, 0.18]]} />
+      <Cable points={[[0.112, 0.05, 0.04], [0.14, 0.07, 0.12], [0.12, 0.1, 0.24], [0.055, 0.105, 0.27]]} radius={0.003} />
+      {selected && (
+        <>
+          <lineSegments material={material.outline} position={[0, 0, 0.012]} rotation={[Math.PI / 2, 0, 0]}><edgesGeometry args={[gearbox, 30]} /></lineSegments>
+          <lineSegments material={material.outline} position={[0, -0.01, 0.162]} rotation={[Math.PI / 2, 0, 0]}><edgesGeometry args={[new THREE.CylinderGeometry(0.093, 0.093, 0.3, 40, 1, true).translate(0, 0.15, 0), 30]} /></lineSegments>
+        </>
       )}
     </group>
   );
 }
 
-function FloorStrip({ from, to, tone }: { from: Point; to: Point; tone: THREE.Material }) {
+function FloorStrip({ from, to, tone, width = 0.04 }: { from: Point; to: Point; tone: THREE.Material; width?: number }) {
   const length = Math.hypot(to[0] - from[0], to[1] - from[1]);
   return (
-    <mesh position={[(from[0] + to[0]) / 2, 0.003, (from[1] + to[1]) / 2]} rotation={[-Math.PI / 2, 0, -Math.atan2(to[1] - from[1], to[0] - from[0])]} material={tone}>
-      <planeGeometry args={[length, 0.05]} />
+    <mesh position={[(from[0] + to[0]) / 2, 0.0015, (from[1] + to[1]) / 2]} rotation={[-Math.PI / 2, 0, -Math.atan2(to[1] - from[1], to[0] - from[0])]} material={tone}>
+      <planeGeometry args={[length, width]} />
     </mesh>
   );
 }
@@ -420,7 +707,7 @@ function FloorStrip({ from, to, tone }: { from: Point; to: Point; tone: THREE.Ma
 const CELL_BOUNDARY: Point[] = [[-6.15, 1.95], [6.15, 1.95], [6.15, -3.0], [-6.15, -3.0]];
 const PROPOSED_FOOTPRINT: Point[] = [[-0.75, -1.72], [0.75, -1.72], [0.75, -2.68], [-0.75, -2.68]];
 
-function dashes(outline: Point[], dash = 0.1, gap = 0.1) {
+function dashes(outline: Point[], dash = 0.12, gap = 0.1) {
   const segments: [Point, Point][] = [];
   outline.forEach((start, side) => {
     const end = outline[(side + 1) % outline.length];
@@ -435,16 +722,55 @@ function dashes(outline: Point[], dash = 0.1, gap = 0.1) {
 }
 const FOOTPRINT_DASHES = dashes(PROPOSED_FOOTPRINT);
 
-function FloorMarkings({ proposed }: { proposed: boolean }) {
+function gridGeometry(size: number, step: number) {
+  const points: number[] = [];
+  for (let value = -size; value <= size; value += step) points.push(value, 0, -size, value, 0, size, -size, 0, value, size, 0, value);
+  return new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
+}
+const GRID = gridGeometry(16, 1);
+
+const Floor = memo(function Floor({ proposed }: { proposed: boolean }) {
   return (
     <group>
-      {CELL_BOUNDARY.map((corner, index) => <FloorStrip key={index} from={corner} to={CELL_BOUNDARY[(index + 1) % 4]} tone={material.tape} />)}
-      {!proposed && FOOTPRINT_DASHES.map(([from, to], index) => <FloorStrip key={`d${index}`} from={from} to={to} tone={material.proposedTape} />)}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -0.5]} material={material.floor} receiveShadow>
+        <planeGeometry args={[60, 40]} />
+      </mesh>
+      <lineSegments geometry={GRID} material={material.grid} position={[0, 0.0008, -0.5]} />
+      {CELL_BOUNDARY.map((corner, index) => <FloorStrip key={index} from={corner} to={CELL_BOUNDARY[(index + 1) % 4]} tone={material.floorTape} width={0.032} />)}
+      {!proposed && FOOTPRINT_DASHES.map(([from, to], index) => <FloorStrip key={`d${index}`} from={from} to={to} tone={material.proposedTape} width={0.035} />)}
     </group>
   );
-}
+});
 
-function SimulatedParts({ run, clock }: { run: SimRun; clock: RefObject<number> }) {
+const CellEquipment = memo(function CellEquipment({ proposed, selectDrive }: { proposed: boolean; selectDrive: boolean }) {
+  return (
+    <>
+      <Floor proposed={proposed} />
+      <AssemblyStation />
+      {proposed ? (
+        <>
+          <Conveyor from={[-4.85, 0]} to={[layout.head[0] - 0.25, 0]} />
+          <Conveyor from={[layout.head[0] + 0.25, 0]} to={[layout.merge[0] - 0.25, 0]} />
+          <Conveyor from={[layout.merge[0] + 0.25, 0]} to={[4.85, 0]} />
+          <TransferUnit at={layout.head} />
+          <TransferUnit at={layout.merge} />
+          <TransferUnit at={layout.divert} />
+          <TransferUnit at={layout.rejoin} />
+          <Conveyor from={[layout.head[0], -0.25]} to={[layout.divert[0], layout.divert[1] + 0.25]} accent />
+          <Conveyor from={[layout.divert[0] + 0.25, layout.divert[1]]} to={[layout.rejoin[0] - 0.25, layout.rejoin[1]]} accent />
+          <Conveyor from={[layout.rejoin[0], layout.rejoin[1] + 0.25]} to={[layout.merge[0], -0.25]} accent />
+          <InspectionBooth at={layout.booth.I2.center} proposed />
+        </>
+      ) : (
+        <Conveyor from={[-4.85, 0]} to={[4.85, 0]} />
+      )}
+      <InspectionBooth at={layout.booth.I1.center} />
+      <ConveyorDrive selected={selectDrive} />
+    </>
+  );
+});
+
+const SimulatedParts = memo(function SimulatedParts({ run, clock }: { run: SimRun; clock: RefObject<number> }) {
   const groups = useRef<(THREE.Group | null)[]>([]);
   useFrame(() => {
     const poses = partPoses(run, clock.current);
@@ -468,15 +794,18 @@ function SimulatedParts({ run, clock }: { run: SimRun; clock: RefObject<number> 
       ))}
     </>
   );
-}
+});
+
+/* Camera ----------------------------------------------------------------- */
 
 export type CellView = "cell" | "drive";
 type ViewPreset = { target: [number, number, number]; direction: [number, number, number]; bounds: [[number, number, number], [number, number, number]] };
 
-const views: Record<CellView | "cellPortrait", ViewPreset> = {
-  cell: { target: [0, 0.6, -0.5], direction: [-0.2, 1.35, 1], bounds: [[-6.0, 0, -2.75], [6.0, 1.95, 1.7]] },
-  cellPortrait: { target: [0, 0.6, -0.5], direction: [0.62, 2.3, 0.12], bounds: [[-6.0, 0, -2.75], [6.0, 1.95, 1.7]] },
-  drive: { target: [4.55, 0.7, 0.3], direction: [0.85, 0.5, 1], bounds: [[3.95, 0.3, -0.3], [5.15, 1.05, 0.9]] },
+const views: Record<CellView | "cellPortrait" | "drivePortrait", ViewPreset> = {
+  cell: { target: [0, 0.6, -0.45], direction: [-0.08, 1.3, 1], bounds: [[-5.95, 0, -2.7], [5.95, 1.95, 1.68]] },
+  cellPortrait: { target: [0, 0.6, -0.5], direction: [0.6, 2.3, 0], bounds: [[-6.0, 0, -2.75], [6.0, 1.95, 1.7]] },
+  drive: { target: [4.5, 0.62, 0.38], direction: [0.62, 0.42, 1], bounds: [[4.05, 0.32, 0.0], [4.95, 0.98, 0.85]] },
+  drivePortrait: { target: [4.5, 0.62, 0.38], direction: [0.62, 0.55, 1], bounds: [[4.15, 0.32, 0.05], [4.85, 0.95, 0.8]] },
 };
 
 function fitCamera(preset: ViewPreset, fov: number, aspect: number) {
@@ -494,32 +823,47 @@ function fitCamera(preset: ViewPreset, fov: number, aspect: number) {
   for (const x of [min[0], max[0]]) for (const y of [min[1], max[1]]) for (const z of [min[2], max[2]]) {
     const relative = new THREE.Vector3(x, y, z).sub(target);
     const depth = relative.dot(direction);
-    distance = Math.max(distance, depth + (Math.abs(relative.dot(right)) * 1.02) / horizontal, depth + (Math.abs(relative.dot(up)) * 1.05) / vertical);
+    distance = Math.max(distance, depth + (Math.abs(relative.dot(right)) * 1.03) / horizontal, depth + (Math.abs(relative.dot(up)) * 1.06) / vertical);
   }
   return { position: target.clone().add(direction.multiplyScalar(distance)), target };
 }
 
+const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+const TRANSITION_MS = 1100;
+
+// Moves between framed viewpoints with an eased tween; resizes re-fit instantly.
 function CameraRig({ view, instant }: { view: CellView; instant: boolean }) {
-  const current = useRef<{ target: THREE.Vector3; position: THREE.Vector3 } | null>(null);
-  useFrame(({ camera, size, invalidate }, delta) => {
+  const pose = useRef<{ target: THREE.Vector3; position: THREE.Vector3 } | null>(null);
+  const tween = useRef<{ view: CellView; start: number; from: { target: THREE.Vector3; position: THREE.Vector3 } } | null>(null);
+  useFrame(({ camera, size, invalidate }) => {
     if (!(camera instanceof THREE.PerspectiveCamera)) return;
     const aspect = size.width / size.height;
-    const preset = view === "cell" && aspect < 0.95 ? views.cellPortrait : views[view];
+    const portrait = aspect < 0.95;
+    const preset = view === "cell" ? (portrait ? views.cellPortrait : views.cell) : portrait ? views.drivePortrait : views.drive;
     const goal = fitCamera(preset, camera.fov, aspect);
-    if (!current.current || instant) current.current = { target: goal.target.clone(), position: goal.position.clone() };
-    const state = current.current;
-    const blend = 1 - Math.exp(-Math.min(delta, 0.1) * 3.2);
-    state.position.lerp(goal.position, blend);
-    state.target.lerp(goal.target, blend);
-    if (state.position.distanceTo(goal.position) < 0.005) {
-      state.position.copy(goal.position);
-      state.target.copy(goal.target);
-    } else invalidate();
-    camera.position.copy(state.position);
-    camera.lookAt(state.target);
+    const now = performance.now();
+    if (!pose.current) pose.current = { target: goal.target.clone(), position: goal.position.clone() };
+    else if (!instant && (!tween.current || tween.current.view !== view) && pose.current.position.distanceTo(goal.position) > 0.05) {
+      tween.current = { view, start: now, from: { target: pose.current.target.clone(), position: pose.current.position.clone() } };
+    }
+    const active = tween.current && tween.current.view === view ? tween.current : null;
+    const progress = active && !instant ? Math.min(1, (now - active.start) / TRANSITION_MS) : 1;
+    if (active && progress < 1) {
+      const amount = ease(progress);
+      pose.current.position.lerpVectors(active.from.position, goal.position, amount);
+      pose.current.target.lerpVectors(active.from.target, goal.target, amount);
+      invalidate();
+    } else {
+      pose.current.position.copy(goal.position);
+      pose.current.target.copy(goal.target);
+    }
+    camera.position.copy(pose.current.position);
+    camera.lookAt(pose.current.target);
   });
   return null;
 }
+
+/* Cell canvas ------------------------------------------------------------- */
 
 export type CellCanvasProps = {
   configuration: Configuration;
@@ -533,77 +877,49 @@ export type CellCanvasProps = {
   onReady?: () => void;
 };
 
-function cellLabels(configuration: Configuration, time: number, showStatus: boolean, focusDrive: boolean): SceneLabel[] {
+function cellLabels(configuration: Configuration, time: number, showStatus: boolean, focusDrive: boolean, view: CellView): SceneLabel[] {
+  if (view === "drive") {
+    return [
+      { id: "CD1", at: [layout.drive[0] + 0.112, 0.72, 0.262], text: "CD-1 conveyor drive", detail: "Temperature sensor on the gearbox", tone: "accent", leader: 34 },
+      { id: "P1", at: [5.4, H + 0.2, -0.05], text: "P1 Packaging", tone: "quiet", leader: 20 },
+    ];
+  }
   const status = cellStatus(runs[configuration], time);
   const proposed = configuration === "proposed";
   const blocked = status.assembly === "blocked";
   const labels: SceneLabel[] = [
-    { id: "A1", at: [layout.fixture[0], 2.15, 0], text: "A1 Assembly", detail: showStatus ? (blocked ? "Holding a part, no space" : "Assembling") : undefined, tone: showStatus && blocked ? "alert" : "default" },
-    { id: "queue", at: [-2.6, 1.0, 0.05], text: `${status.waitingForInspection} waiting`, detail: "before inspection", tone: status.waitingForInspection >= 2 ? "accent" : "quiet" },
-    { id: "I1", at: [0, 2.08, 0], text: "I1 Inspection", detail: showStatus ? (status.inspection.I1 === "inspecting" ? "Inspecting" : "Waiting for parts") : undefined },
-    proposed
-      ? { id: "I2", at: [0, 2.08, -2.2], text: "I2 Inspection, proposed", detail: showStatus ? (status.inspection.I2 === "inspecting" ? "Inspecting" : "Waiting for parts") : undefined, tone: "proposed" }
-      : { id: "I2", at: [0, 0.05, -2.7], text: "Space for proposed I2", tone: "quiet", minor: true },
-    { id: "P1", at: [5.4, 1.12, -0.1], text: "P1 Packaging", detail: showStatus ? `${status.packaged} packaged` : undefined },
-    { id: "CD1", at: [layout.drive[0], focusDrive ? 0.86 : 0.5, layout.drive[1] + 0.3], text: "CD-1 Conveyor drive", tone: focusDrive ? "accent" : "quiet", minor: !focusDrive, place: focusDrive ? "above" : "below" },
+    { id: "A1", at: [layout.fixture[0], 1.0, 0], text: "A1 Assembly", detail: showStatus ? (blocked ? "Holding a part: no space" : "Assembling") : undefined, tone: showStatus && blocked ? "alert" : "default", leader: 40, side: "right" },
+    { id: "I1", at: [0, 1.0, 0], text: "I1 Inspection", detail: showStatus ? (status.inspection.I1 === "inspecting" ? "Inspecting" : "Waiting for parts") : undefined, leader: 30, side: proposed ? "left" : "right" },
+    { id: "P1", at: [5.35, 1.0, -0.05], text: "P1 Packaging", detail: showStatus ? `${status.packaged} packaged` : undefined, leader: 24, side: "right" },
+    { id: "CD1", at: [layout.drive[0], 0.66, 0.6], text: "CD-1 drive", tone: focusDrive ? "accent" : "quiet", place: "below", leader: 18, minor: !focusDrive, side: "left" },
   ];
-  return showStatus ? labels : labels.filter((label) => label.id !== "queue" && label.id !== "I2");
+  if (showStatus) {
+    labels.push({ id: "queue", at: [-2.55, H + 0.12, 0], text: `${status.waitingForInspection} waiting`, detail: "before inspection", tone: status.waitingForInspection >= 2 ? "accent" : "quiet", place: "below", leader: 26, side: "left" });
+    labels.push(proposed
+      ? { id: "I2", at: [0, 2.0, -2.2], text: "I2 Inspection, proposed", detail: status.inspection.I2 === "inspecting" ? "Inspecting" : "Waiting for parts", tone: "proposed", leader: 14, side: "right" }
+      : { id: "I2", at: [0, 0.02, -2.68], text: "Space for proposed I2", tone: "quiet", leader: 10, minor: true });
+  }
+  return labels;
 }
 
 export function CellCanvas({ configuration, clock, time, animating, view, instant, focusDrive = false, showStatus = false, onReady }: CellCanvasProps) {
   const layer = useId();
   const run = runs[configuration];
-  const proposed = configuration === "proposed";
-  const labels = cellLabels(configuration, time, showStatus, focusDrive);
+  const labels = cellLabels(configuration, time, showStatus, focusDrive, view);
   return (
     <div className={styles.sceneCanvas}>
       <Canvas
-        flat
         shadows="percentage"
         dpr={[1, 2]}
         frameloop={animating ? "always" : "demand"}
-        camera={{ fov: 30, near: 0.1, far: 80, position: [-4, 9, 12] }}
-        onCreated={() => onReady?.()}
+        camera={{ fov: 28, near: 0.1, far: 80, position: [-4, 9, 12] }}
+        gl={{ antialias: true, powerPreference: "high-performance" }}
+        onCreated={(state) => { applyStudio(state); onReady?.(); }}
       >
         <color attach="background" args={[BACKGROUND]} />
-        <hemisphereLight args={["#ffffff", "#d6d6d1", 1.45]} />
-        <directionalLight
-          position={[-3.5, 9, 6]}
-          intensity={1.9}
-          castShadow
-          shadow-mapSize={[2048, 2048]}
-          shadow-camera-left={-8}
-          shadow-camera-right={8}
-          shadow-camera-top={6}
-          shadow-camera-bottom={-6}
-          shadow-bias={-0.0004}
-        />
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -0.5]} material={material.floor} receiveShadow>
-          <planeGeometry args={[40, 30]} />
-        </mesh>
-        <gridHelper args={[40, 80, "#d2d2ce", "#d2d2ce"]} position={[0, 0.001, -0.5]} />
-        <FloorMarkings proposed={proposed} />
-        <AssemblyStation />
-        {proposed ? (
-          <>
-            <Conveyor from={[-4.85, 0]} to={[layout.head[0] - 0.25, 0]} />
-            <Conveyor from={[layout.head[0] + 0.25, 0]} to={[layout.merge[0] - 0.25, 0]} />
-            <Conveyor from={[layout.merge[0] + 0.25, 0]} to={[4.85, 0]} />
-            <TransferUnit at={layout.head} />
-            <TransferUnit at={layout.merge} />
-            <TransferUnit at={layout.divert} />
-            <TransferUnit at={layout.rejoin} />
-            <Conveyor from={[layout.head[0], -0.25]} to={[layout.divert[0], layout.divert[1] + 0.25]} accent />
-            <Conveyor from={[layout.divert[0] + 0.25, layout.divert[1]]} to={[layout.rejoin[0] - 0.25, layout.rejoin[1]]} accent />
-            <Conveyor from={[layout.rejoin[0], layout.rejoin[1] + 0.25]} to={[layout.merge[0], -0.25]} accent />
-            <InspectionBooth at={layout.booth.I2.center} proposed />
-          </>
-        ) : (
-          <Conveyor from={[-4.85, 0]} to={[4.85, 0]} />
-        )}
-        <InspectionBooth at={layout.booth.I1.center} />
+        <Lights span={7.5} focus={[0, 0, -0.5]} />
+        <CellEquipment proposed={configuration === "proposed"} selectDrive={focusDrive} />
         <PackagingStation run={run} clock={clock} />
-        <ConveyorDrive focused={focusDrive} />
         <SimulatedParts run={run} clock={clock} />
         <CameraRig view={view} instant={instant} />
         <LabelProjector labels={labels} layer={layer} />
