@@ -18,6 +18,9 @@ const BOOM_WIDTHS = [0.6, 0.84, 0.46];
 const STICK_LINE: Vec[] = [[-0.62, 0.12], [0, 0], [2.85, 0]];
 const STICK_WIDTHS = [0.5, 0.52, 0.32];
 const BOOM_TIP: Vec = [5.6, 0];
+// Lugs sit on the boom's lower and upper faces, where the cylinders attach.
+export const BOOM_CYLINDER_LUG: Vec = [2.0, 0.28];
+export const STICK_CYLINDER_BASE: Vec = [2.3, 1.27];
 const STICK_TIP: Vec = [2.85, 0];
 
 // Solved so the tool rests on the ground (or on dunnage when loaded) and the
@@ -122,9 +125,9 @@ export function armFrame(pose: Pose): ArmFrame {
     toolPivot,
     toolAngle,
     cylinders: {
-      boom: [BOOM_ANCHOR, onBoom([2.1, -0.36])],
-      stick: [onBoom([2.3, 0.5]), onStick([-0.6, 0.2])],
-      tool: [onStick([0.25, 0.3]), onStick([2.55, 0.3])],
+      boom: [BOOM_ANCHOR, onBoom(BOOM_CYLINDER_LUG)],
+      stick: [onBoom(STICK_CYLINDER_BASE), onStick([-0.6, 0.2])],
+      tool: [onStick([0.25, 0.36]), onStick([2.55, 0.3])],
     },
   };
 }
@@ -139,6 +142,19 @@ export function toolOutline(tool: Tool, frame: ArmFrame): Vec[] {
       ];
   return local.map((point) => add(frame.toolPivot, rotate(point, frame.toolAngle)));
 }
+
+export function onBoom(frame: ArmFrame, point: Vec): Vec {
+  return add(BOOM_PIVOT, rotate(point, frame.boomAngle));
+}
+
+export function onStick(frame: ArmFrame, point: Vec): Vec {
+  return add(frame.stickPivot, rotate(point, frame.stickAngle));
+}
+
+// Points riding just above the upper face of the boom and the outer face of
+// the stick, used to route hydraulic hoses without passing through steel.
+export const BOOM_HOSE_PATH: Vec[] = beamOutline(BOOM_LINE, BOOM_WIDTHS.map((width) => width + 0.12)).slice(0, BOOM_LINE.length);
+export const STICK_HOSE_PATH: Vec[] = beamOutline(STICK_LINE, STICK_WIDTHS.map((width) => width + 0.1)).slice(0, STICK_LINE.length);
 
 export function placeOnArm(outline: Vec[], pivot: Vec, angle: number): Vec[] {
   return outline.map((point) => add(pivot, rotate(point, angle)));
