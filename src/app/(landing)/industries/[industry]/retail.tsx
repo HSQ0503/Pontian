@@ -42,11 +42,11 @@ const offerings: Offering[] = [
     id: "know-the-customer",
     label: "Know the customer",
     moment: "Before the conversation",
-    summary: "The salesperson understands Maya's history.",
+    summary: "The salesperson understands Maya’s history.",
     headline: "Give your salesperson the context before the conversation.",
-    body: "We can bring a customer's recent purchases, recorded preferences, and relevant service history into a concise briefing, then suggest useful products or experiences with a clear reason behind each recommendation.",
+    body: "We can bring a customer’s recent purchases, recorded preferences, and relevant service history into a concise briefing, then suggest useful products or experiences with a clear reason behind each recommendation.",
     capabilities: ["See recent purchases and recorded preferences", "Suggest relevant products and upgrades", "Introduce a suitable next experience"],
-    note: "A custom workflow we would develop and validate with your team. It uses authorized customer records and appropriate staff access. It never infers personal traits, and never suggests an item just because its margin is higher.",
+    note: "A custom workflow, developed and validated with your team. It works from authorized customer records and appropriate staff access, never infers personal traits, and never suggests an item for its margin alone.",
     outcome: "Help the conversation start with something the customer actually cares about.",
     Visual: KnowTheCustomer,
   },
@@ -58,7 +58,7 @@ const offerings: Offering[] = [
     headline: "Ask a business question. Follow the evidence.",
     body: "We build AI-assisted analysis that helps owners investigate sales, product margins, discounts, and customer behavior across locations, then identify practical questions and actions for their managers.",
     capabilities: ["Compare locations consistently", "Investigate the underlying transactions", "Turn findings into a focused next step"],
-    note: "Builds on our work in transaction analysis and product performance. Sales, product gross margin, and business profit are kept distinct, and a difference in what sold is not treated as proof of why.",
+    note: "Builds on our work in transaction analysis and product performance. Sales, product gross margin, and business profit stay distinct, and what sold is never treated as proof of why.",
     outcome: "Understand what deserves attention, not just what changed.",
     Visual: UnderstandTheBusiness,
   },
@@ -70,7 +70,7 @@ const offerings: Offering[] = [
     headline: "Recognize when a thoughtful follow-up could help.",
     body: "We can use purchase and service patterns to identify a relevant reason to reconnect, check for more recent activity, and prepare a message for your team to review.",
     capabilities: ["Recognize repeat-purchase patterns", "Check whether follow-up is still relevant", "Prepare a personal message for review"],
-    note: "A custom workflow we would develop and validate with your team. It respects consent, channel preferences, and contact frequency, and nothing is sent without review.",
+    note: "A custom workflow, developed and validated with your team. It respects consent, channel preferences, and contact frequency. Nothing is sent without review.",
     outcome: "Give customers a useful reason to return.",
     Visual: PlanTheNextVisit,
   },
@@ -82,7 +82,7 @@ const offerings: Offering[] = [
     headline: "Put stock where it is more likely to sell.",
     body: "We can combine sales patterns with current inventory, incoming orders, and supplier lead times to help your team review replenishment and store-transfer decisions.",
     capabilities: ["Forecast demand by product and location", "Compare stock with expected needs", "Prepare replenishment or transfer proposals"],
-    note: "A proposed extension that needs suitable stock and supplier data, and validation before anyone relies on it. Forecasts are estimates and are always shown apart from recorded counts.",
+    note: "A proposed extension that needs reliable stock and supplier data and validation before anyone relies on it. Forecasts are estimates, always shown apart from recorded counts.",
     outcome: "Make the stock decision with its assumptions in view.",
     Visual: StockForDemand,
   },
@@ -107,11 +107,12 @@ export function RetailPage() {
       <main id="industry-content">
         <section className={styles.hero} aria-labelledby="industry-title">
           <div className={base.photoFrame}>
-            <Image src={industry.image} alt={industry.alt} fill preload sizes="100vw" className={base.photo} style={industry.heroPosition ? { objectPosition: industry.heroPosition } : undefined} />
+            <Image src={industry.image} alt={industry.alt} fill preload sizes="100vw" className={styles.heroPhoto} />
           </div>
-          <div className={base.shade} />
+          <div className={styles.heroTexture} aria-hidden="true" />
+          <div className={styles.heroShade} aria-hidden="true" />
           <div className={styles.heroCopy}>
-            <Link href="/#industries" className={base.back}><ArrowLeft size={14} /> Industries / {String(index + 1).padStart(2, "0")} {industry.name}</Link>
+            <Link href="/#industries" className={styles.back}><ArrowLeft size={14} /> Industries / {String(index + 1).padStart(2, "0")} {industry.name}</Link>
             <h1 id="industry-title" className={styles.headline}>{headline}</h1>
             <p className={styles.heroLead}>{summary}</p>
             <nav className={styles.heroNav} aria-label="What we can build">
@@ -153,7 +154,7 @@ export function RetailPage() {
 
         <section className={styles.recap} aria-labelledby="recap-title">
           <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
-          <h2 id="recap-title" className={styles.recapTitle}>One retailer&apos;s records, turned into useful work.</h2>
+          <h2 id="recap-title" className={styles.recapTitle}>One retailer’s records, turned into useful work.</h2>
           <p className={styles.recapLead}>The same fictional coffee retailer, the same customer, and the same products run through every example on this page.</p>
           <ol className={styles.recapList}>
             {offerings.map((offering) => (
@@ -183,10 +184,10 @@ export function RetailPage() {
               ))}
               <li data-additional="true">
                 <span>+</span>
-                <p>Inventory planning, as an additional scope once the required stock and supplier information is available.</p>
+                <p>Inventory planning, added once the required stock and supplier information is available.</p>
               </li>
             </ol>
-            <p className={styles.startNote}>Our retail work so far covers transaction analysis, customer histories, product performance, and AI-assisted business analysis. Personalized selling, follow-up workflows, and inventory planning are custom capabilities we would develop and validate with you.</p>
+            <p className={styles.startNote}>Our retail work to date covers transaction analysis, customer histories, product performance, and AI-assisted business analysis. Personalized selling, follow-up workflows, and inventory planning are custom capabilities we would develop and validate with you.</p>
           </div>
         </section>
 
@@ -197,7 +198,7 @@ export function RetailPage() {
           <Link href="/get-started" className={styles.closingButton}>Talk through your retail operation <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
         </section>
       </main>
-      <footer className={base.footer}>
+      <footer className={`${base.footer} ${styles.footer}`}>
         <Link href="/#industries"><ArrowLeft size={14} /> All industries</Link>
         <Link href={`/industries/${next.slug}`}>Next: {next.name} <ArrowRight size={14} /></Link>
       </footer>
