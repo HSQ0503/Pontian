@@ -484,11 +484,11 @@ function CellSketch({ configuration, time, focusDrive }: { configuration: Config
       <rect x={px(4.95)} y={pz(0.84)} width={1.0 * scale} height={0.82 * scale} fill="#d3c8b2" stroke="#262829" />
       <rect x={px(layout.drive[0] - 0.12)} y={pz(0.24)} width={0.24 * scale} height={0.5 * scale} fill={focusDrive ? "#fed603" : "#7b8288"} stroke="#262829" strokeWidth={focusDrive ? 2.5 : 1} />
       {poses.map((pose) => <rect key={pose.id} x={px(pose.x) - 8.5} y={pz(pose.z) - 6.5} width={17} height={13} rx={3} fill="#8a9399" stroke="#262829" />)}
-      <text x={px(-5.4)} y={pz(-0.7)} textAnchor="middle" className={styles.sketchText}>{cell.assembly} Assembly</text>
+      <text x={px(-5.9)} y={pz(-0.7)} textAnchor="start" className={styles.sketchText}>{cell.assembly} Assembly</text>
       <text x={px(0)} y={pz(-0.66)} textAnchor="middle" className={styles.sketchText}>{cell.inspection} Inspection</text>
       {proposed && <text x={px(0)} y={pz(-2.86)} textAnchor="middle" className={styles.sketchText}>{cell.proposedInspection} Inspection, proposed</text>}
-      <text x={px(5.4)} y={pz(-0.7)} textAnchor="middle" className={styles.sketchText}>{cell.packaging} Packaging</text>
-      <text x={px(layout.drive[0])} y={pz(1.08)} textAnchor="middle" className={styles.sketchText}>{cell.drive}</text>
+      <text x={px(5.85)} y={pz(-0.7)} textAnchor="end" className={styles.sketchText}>{cell.packaging} Packaging</text>
+      <text x={px(layout.drive[0] - 0.2)} y={pz(0.62)} textAnchor="end" className={styles.sketchText}>{cell.drive}</text>
     </svg>
   );
 }
