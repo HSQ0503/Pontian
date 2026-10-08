@@ -1,34 +1,15 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type RefObject } from "react";
 import { Play, Square } from "lucide-react";
 import styles from "./logistics.module.css";
 import { Choice, Example } from "./logistics-visuals";
 import { formatKg, formatSize, loadStops, operation, places, plans, shipments, totalWeight, vehicles } from "./logistics-data";
-import { arrangements, blockersAt, CARGO, items, laneY, PALLET_BASE, placements, ROWS, rowX, transitionMoves, type ArrangementId, type Lane, type Point } from "./logistics-load-plan";
+import { arrangements, blockersAt, blockingKeys, CARGO, items, laneY, placements, ROWS, rowX, transitionMoves, viewLabels, type ArrangementId, type ViewId } from "./logistics-load-plan";
+import type { SceneChip } from "./logistics-load-scene";
 
-const PX_PER_M = 44;
-const CENTER: Point = { x: 5.6, y: 1.2 };
-
-const px = (metres: number) => metres * PX_PER_M;
-const toPx = (point: Point, z = 0) => `translate3d(${px(point.x - CENTER.x).toFixed(1)}px, ${px(point.y - CENTER.y).toFixed(1)}px, ${px(z).toFixed(1)}px)`;
-
-function Box({ length, width, height, z = 0, className, top }: { length: number; width: number; height: number; z?: number; className?: string; top?: ReactNode }) {
-  const style = { "--l": `${px(length)}px`, "--w": `${px(width)}px`, "--h": `${px(height)}px`, transform: `translateZ(${px(z)}px)` } as CSSProperties;
-  return (
-    <div className={`${styles.box} ${className ?? ""}`} style={style}>
-      <div className={`${styles.face} ${styles.faceNorth}`} />
-      <div className={`${styles.face} ${styles.faceWest}`} />
-      <div className={`${styles.face} ${styles.faceSouth}`} />
-      <div className={`${styles.face} ${styles.faceEast}`} />
-      <div className={`${styles.face} ${styles.faceTop}`}>{top}</div>
-    </div>
-  );
-}
-
-function Plane({ at, length, width, z = 0, className, children }: { at: Point; length: number; width: number; z?: number; className?: string; children?: ReactNode }) {
-  return <div className={`${styles.plane} ${className ?? ""}`} style={{ width: px(length), height: px(width), transform: toPx(at, z) }}>{children}</div>;
-}
+const LoadScene = dynamic(() => import("./logistics-load-scene"), { ssr: false });
 
 function subscribeToMotion(update: () => void) {
   const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -36,17 +17,74 @@ function subscribeToMotion(update: () => void) {
   return () => media.removeEventListener("change", update);
 }
 
-const views = {
-  angle: { yaw: 32, pitch: 58, label: "Three-quarter view" },
-  side: { yaw: 0, pitch: 64, label: "Side view" },
-  rear: { yaw: 90, pitch: 54, label: "From the rear door" },
-  top: { yaw: 0, pitch: 0, label: "From above" },
-};
-type ViewId = keyof typeof views;
+let webglSupport: boolean | undefined;
+function detectWebGL() {
+  if (webglSupport === undefined) {
+    try {
+      const canvas = document.createElement("canvas");
+      webglSupport = Boolean(canvas.getContext("webgl2") ?? canvas.getContext("webgl"));
+    } catch {
+      webglSupport = false;
+    }
+  }
+  return webglSupport;
+}
+const noSubscription = () => () => undefined;
 
-const stopColor: Record<number, string> = { 1: "#f51625", 2: "#fed603", 3: "#007dfe" };
+function useInView(target: RefObject<HTMLElement | null>, rootMargin: string, once = false) {
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const element = target.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      setInView(entry.isIntersecting);
+      if (once && entry.isIntersecting) observer.disconnect();
+    }, { rootMargin });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [target, rootMargin, once]);
+  return inView;
+}
+
 const stepLabels = ["At the depot", ...loadStops.map(({ stop, shipment }) => `Stop ${stop} · ${places[shipments[shipment].to].name}`)];
-const worldTransform = (zoom: number, pitch: number, yaw: number) => `scale(${zoom.toFixed(3)}) rotateX(${pitch.toFixed(1)}deg) rotateZ(${yaw.toFixed(1)}deg)`;
+const loadTone: Record<string, string> = { "KV-2041": "#e6e4df", "KV-2042": "#c9b28c", "KV-2043": "#a3a6a9" };
+
+// Plan view of the same state, drawn from the same placements as the 3D
+// scene. It renders first, and stays when WebGL is unavailable.
+function LoadPlanView({ arrangement, step, selected, onSelect }: { arrangement: ArrangementId; step: number; selected: string; onSelect: (shipment: string) => void }) {
+  const scale = 56;
+  const minX = -2.5;
+  const minY = -2.9;
+  const toX = (x: number) => (x - minX) * scale;
+  const toY = (y: number) => (y - minY) * scale;
+  const rest = placements(arrangement, step);
+  const stop = items.find((item) => item.shipment === selected)?.stop ?? 1;
+  const blocking = new Set(blockingKeys(arrangement, stop));
+  return (
+    <svg viewBox={`0 0 ${(14.6 * scale).toFixed(0)} ${(8.3 * scale).toFixed(0)}`} className={styles.planView} role="img" aria-label="Plan view of Vehicle B’s cargo floor and the dock behind it.">
+      <rect x={toX(CARGO.length + 0.12)} y={toY(-2.8)} width={5.48 * scale} height={(CARGO.width + 5.6) * scale} className={styles.planDock} />
+      <rect x={toX(-2.25)} y={toY(-0.04)} width={2.1 * scale} height={(CARGO.width + 0.08) * scale} className={styles.planCab} />
+      <rect x={toX(0)} y={toY(0)} width={CARGO.length * scale} height={CARGO.width * scale} className={styles.planBody} />
+      {Array.from({ length: ROWS * 2 }, (_, index) => {
+        const lane = (index % 2) as 0 | 1;
+        return <rect key={index} x={toX(rowX(Math.floor(index / 2)))} y={toY(laneY[lane])} width={1.2 * scale} height={scale} className={styles.planSlot} />;
+      })}
+      <text x={toX(-1.2)} y={toY(CARGO.width / 2) + 6} textAnchor="middle" className={styles.planText}>Cab</text>
+      <text x={toX(CARGO.length + 2.9)} y={toY(CARGO.width + 2.2)} textAnchor="middle" className={styles.planText}>Dock</text>
+      {items.map((item) => {
+        const point = rest[item.key];
+        if (point.gone) return null;
+        const isSelected = item.shipment === selected;
+        return (
+          <g key={item.key} onClick={() => onSelect(item.shipment)} className={styles.planPallet} data-selected={isSelected || undefined} data-blocking={blocking.has(item.key) || undefined} style={{ "--tone": loadTone[item.shipment] } as CSSProperties}>
+            <rect x={toX(point.x)} y={toY(point.y)} width={1.2 * scale} height={scale} rx={4} />
+            <text x={toX(point.x + 0.6)} y={toY(point.y + 0.5) + 8} textAnchor="middle">{item.stop}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
 
 export function LoadPlan() {
   const [arrangement, setArrangement] = useState<ArrangementId>("initial");
@@ -54,70 +92,18 @@ export function LoadPlan() {
   const [selected, setSelected] = useState("KV-2041");
   const [view, setView] = useState<ViewId | null>("angle");
   const [playing, setPlaying] = useState(false);
+  const [ready, setReady] = useState(false);
   const reducedMotion = useSyncExternalStore(subscribeToMotion, () => window.matchMedia("(prefers-reduced-motion: reduce)").matches, () => false);
-  const viewport = useRef<HTMLDivElement>(null);
-  const world = useRef<HTMLDivElement>(null);
-  const cargo = useRef<HTMLDivElement>(null);
-  const camera = useRef({ yaw: views.angle.yaw, pitch: views.angle.pitch, zoom: 1 });
-  const drag = useRef<{ x: number; y: number; yaw: number; pitch: number; moved: boolean } | null>(null);
-  const dragged = useRef(false);
-  const itemElements = useRef(new Map<string, HTMLDivElement>());
-  const running = useRef<Animation[]>([]);
-  const previous = useRef({ arrangement, step });
+  const webgl = useSyncExternalStore(noSubscription, detectWebGL, () => false);
+  const frame = useRef<HTMLDivElement>(null);
+  // Fetch the 3D scene once the example nears the viewport, and render only while it is on screen.
+  const mounted = useInView(frame, "600px 0px", true);
+  const visible = useInView(frame, "0px");
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  const applyCamera = () => {
-    const { yaw, pitch, zoom } = camera.current;
-    if (world.current) world.current.style.transform = worldTransform(zoom, pitch, yaw);
-  };
-
-  useEffect(() => {
-    const element = viewport.current;
-    if (!element) return;
-    const observer = new ResizeObserver(([entry]) => {
-      camera.current.zoom = Math.max(0.45, Math.min(1.2, entry.contentRect.width / 640));
-      applyCamera();
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  useLayoutEffect(() => {
-    const before = previous.current;
-    previous.current = { arrangement, step };
-    running.current.forEach((animation) => animation.cancel());
-    running.current = [];
-    if (reducedMotion) return;
-    if (before.arrangement !== arrangement) {
-      // Fade faces, not the container: opacity on a preserve-3d parent flattens the scene.
-      cargo.current?.querySelectorAll<HTMLElement>(`.${styles.pallet}:not([data-gone]) .${styles.face}`).forEach((face) => {
-        running.current.push(face.animate([{ opacity: 0.1 }, { opacity: 1 }], { duration: 320, easing: "ease-out" }));
-      });
-      return;
-    }
-    if (step !== before.step + 1) return;
-    for (const track of transitionMoves(arrangement, step).tracks) {
-      const element = itemElements.current.get(track.key);
-      if (!element) continue;
-      const last = track.frames[track.frames.length - 1];
-      const duration = Math.max(last.at, track.fade?.to ?? 0);
-      const frames: Keyframe[] = [{ transform: toPx(track.frames[0].point), offset: 0 }];
-      track.frames.forEach((frame) => frames.push({ transform: toPx(frame.point), offset: frame.at / duration, easing: "ease-in-out" }));
-      frames.push({ transform: toPx(last.point), offset: 1 });
-      running.current.push(element.animate(frames, { duration }));
-      if (track.fade) {
-        const fadeStart = track.fade.from / duration;
-        element.querySelectorAll<HTMLElement>(`.${styles.face}`).forEach((face) => {
-          running.current.push(face.animate([{ opacity: 1, offset: 0 }, { opacity: 1, offset: fadeStart }, { opacity: 0, offset: 1 }], { duration }));
-        });
-      }
-    }
-  }, [arrangement, step, reducedMotion]);
-
   const stopPlaying = () => { clearTimeout(timer.current); setPlaying(false); };
-
   const play = () => {
     clearTimeout(timer.current);
     setPlaying(true);
@@ -127,56 +113,11 @@ export function LoadPlan() {
       setStep(next);
       timer.current = setTimeout(() => advance(next + 1), transitionMoves(arrangement, next).total + 1200);
     };
-    timer.current = setTimeout(() => advance(1), 500);
+    timer.current = setTimeout(() => advance(1), 600);
   };
-
   const chooseStep = (next: number) => { stopPlaying(); setStep(next); };
   const chooseArrangement = (next: ArrangementId) => { stopPlaying(); setArrangement(next); };
 
-  const setCamera = (id: ViewId) => {
-    const from = world.current?.style.transform;
-    camera.current = { ...camera.current, yaw: views[id].yaw, pitch: views[id].pitch };
-    setView(id);
-    applyCamera();
-    if (!reducedMotion && from && world.current) {
-      world.current.animate([{ transform: from }, { transform: world.current.style.transform }], { duration: 420, easing: "cubic-bezier(.22,1,.36,1)" });
-    }
-  };
-
-  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    dragged.current = false;
-    drag.current = { x: event.clientX, y: event.clientY, yaw: camera.current.yaw, pitch: camera.current.pitch, moved: false };
-  };
-  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const start = drag.current;
-    if (!start) return;
-    const dx = event.clientX - start.x;
-    const dy = event.clientY - start.y;
-    if (!start.moved && Math.hypot(dx, dy) < 5) return;
-    if (!start.moved) {
-      start.moved = true;
-      dragged.current = true;
-      event.currentTarget.setPointerCapture(event.pointerId);
-      setView(null);
-    }
-    camera.current.yaw = start.yaw + dx * 0.35;
-    if (event.pointerType !== "touch") camera.current.pitch = Math.max(0, Math.min(76, start.pitch - dy * 0.3));
-    applyCamera();
-  };
-  const onPointerEnd = () => { drag.current = null; };
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const turns: Record<string, [number, number]> = { ArrowLeft: [-10, 0], ArrowRight: [10, 0], ArrowUp: [0, 5], ArrowDown: [0, -5] };
-    const turn = turns[event.key];
-    if (!turn) return;
-    event.preventDefault();
-    camera.current.yaw += turn[0];
-    camera.current.pitch = Math.max(0, Math.min(76, camera.current.pitch + turn[1]));
-    setView(null);
-    applyCamera();
-  };
-  const pick = (shipment: string) => { if (!dragged.current) setSelected(shipment); };
-
-  const positions = placements(arrangement, step);
   const slots = arrangements[arrangement];
   const blockers = step > 0 ? blockersAt(arrangement, step) : 0;
   const stepShipment = step > 0 ? loadStops[step - 1].shipment : null;
@@ -192,15 +133,23 @@ export function LoadPlan() {
   const selectedStop = loadStops.find((entry) => entry.shipment === selected)?.stop ?? 1;
   const selectedRows = [...new Set(items.filter((item) => item.shipment === selected).map((item) => slots[item.key].row + 1))].sort((a, b) => a - b);
   const selectedBlockers = blockersAt(arrangement, selectedStop);
+  const delivered = step >= selectedStop;
   const loadWeight = loadStops.reduce((sum, entry) => sum + totalWeight(shipments[entry.shipment]), 0);
+  const chip: SceneChip | null = delivered ? null : {
+    title: `${selected} · Stop ${selectedStop}`,
+    detail: selectedBlockers > 0 ? `Blocked by ${selectedBlockers} pallets for later stops` : "Clear path to the door",
+    tone: selectedBlockers > 0 ? "alert" : "ok",
+  };
+  const live = mounted && webgl;
 
   return (
     <Example
       title={`Vehicle B loading plan · ${operation.name} (fictional)`}
-      note="Illustration only, not a certified loading plan."
+      note="Illustration only, not a certified loading plan"
       outcome={{
-        start: <p><strong>Seven pallets for three stops,</strong> with their dimensions, weights, stacking rules, and delivery order, and Vehicle B&apos;s cargo space.</p>,
-        finding: <p><strong>The first delivery is loaded behind later deliveries.</strong> The proposed arrangement keeps it by the door: <strong>a loading sequence to review.</strong></p>,
+        start: <p><strong>Seven pallets for three stops,</strong> with dimensions, weights, stacking rules, and delivery order.</p>,
+        findingLabel: "Result for review",
+        finding: <p>The first delivery is loaded behind later deliveries. The proposed arrangement keeps it by the door: <strong>a loading sequence to review.</strong></p>,
         next: <p><strong>Warehouse team checks the plan before loading,</strong> including weight distribution and securement, which this illustration does not assess.</p>,
       }}
     >
@@ -215,78 +164,39 @@ export function LoadPlan() {
       />
       <div className={styles.loadGrid}>
         <div className={styles.sceneSheet}>
-          <div
-            ref={viewport}
-            className={styles.viewport}
-            role="group"
-            aria-roledescription="3D cargo view"
-            aria-label={`Vehicle B's cargo space, ${arrangement} arrangement. Drag or use the arrow keys to rotate.`}
-            aria-describedby="load-caption"
-            tabIndex={0}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerEnd}
-            onPointerCancel={onPointerEnd}
-            onKeyDown={onKeyDown}
-          >
-            <div ref={world} className={styles.world} style={{ transform: worldTransform(1, views.angle.pitch, views.angle.yaw) }}>
-              <Plane at={{ x: -2.6, y: -2.3 }} length={15.4} width={6.4} z={-0.03} className={styles.ground} />
-              <Plane at={{ x: CARGO.length + 1.4, y: 0.05 }} length={4.1} width={2.35} z={-0.02} className={styles.stagingZone}><span>Space behind the truck</span></Plane>
-              <Plane at={{ x: 0, y: 0 }} length={CARGO.length} width={CARGO.width} className={styles.floor}>
-                {Array.from({ length: ROWS * 2 }, (_, index) => {
-                  const lane = (index % 2) as Lane;
-                  return <span key={index} className={styles.floorSlot} style={{ left: px(rowX(Math.floor(index / 2))), top: px(laneY[lane]), width: px(1.2), height: px(1) }} />;
-                })}
-              </Plane>
-              <div className={styles.anchor} style={{ transform: toPx({ x: 0, y: 0 }) }}>
-                <div className={`${styles.wall} ${styles.wallBulkhead}`} style={{ width: px(CARGO.height), height: px(CARGO.width) }} />
-                <div className={`${styles.wall} ${styles.wallSide}`} style={{ width: px(CARGO.length), height: px(CARGO.height) }} />
-                <div className={`${styles.wall} ${styles.wallSide}`} style={{ width: px(CARGO.length), height: px(CARGO.height), transform: `translateY(${px(CARGO.width)}px) rotateX(90deg)` }} />
-                <div className={`${styles.wall} ${styles.door}`} style={{ width: px(CARGO.height), height: px(CARGO.width), transform: `translateX(${px(CARGO.length)}px) rotateY(-90deg)` }} />
-              </div>
-              <div className={styles.anchor} style={{ transform: toPx({ x: -1.75, y: 0.1 }) }}>
-                <Box length={1.6} width={2.25} height={2.6} className={styles.cab} top={<span>Cab</span>} />
-              </div>
-              <Plane at={{ x: CARGO.length - 1.2, y: CARGO.width + 0.25 }} length={1.6} width={0.5} className={styles.groundLabel}><span>Rear door</span></Plane>
-              <Plane at={{ x: 0, y: CARGO.width + 0.25 }} length={2.4} width={0.5} className={styles.groundLabel}><span>Front of the load</span></Plane>
-              <div ref={cargo} className={styles.cargo}>
-                {items.map((item) => {
-                  const position = positions[item.key];
-                  const shipment = shipments[item.shipment];
-                  return (
-                    <div
-                      key={item.key}
-                      ref={(element) => { if (element) itemElements.current.set(item.key, element); else itemElements.current.delete(item.key); }}
-                      className={styles.pallet}
-                      data-gone={position.gone || undefined}
-                      data-selected={selected === item.shipment || undefined}
-                      style={{ transform: toPx(position), "--c": stopColor[item.stop], "--t": item.stop === 2 ? "#17191a" : "#fff" } as CSSProperties}
-                      onClick={() => pick(item.shipment)}
-                    >
-                      <Box length={shipment.pallet.length} width={shipment.pallet.width} height={PALLET_BASE} className={styles.palletBase} />
-                      <Box length={shipment.pallet.length} width={shipment.pallet.width} height={shipment.pallet.height - PALLET_BASE} z={PALLET_BASE} className={styles.palletLoad} top={<span>{item.shipment}<i>Stop {item.stop}</i></span>} />
-                    </div>
-                  );
-                })}
-              </div>
+          <div ref={frame} className={styles.viewport} data-live={(live && ready) || undefined}>
+            <div className={styles.planLayer} aria-hidden={live && ready ? true : undefined}>
+              <LoadPlanView arrangement={arrangement} step={step} selected={selected} onSelect={setSelected} />
+              {!webgl && mounted && <p className={styles.planNote}>Plan view. The 3D view needs WebGL.</p>}
             </div>
-            <p className={styles.sceneHint} aria-hidden="true">Drag to rotate</p>
-            <ul className={styles.sceneLegend} aria-label="Pallet colours">
-              {loadStops.map(({ stop }) => <li key={stop} style={{ "--c": stopColor[stop] } as CSSProperties}>Stop {stop}</li>)}
-            </ul>
+            {live && (
+              <LoadScene
+                arrangement={arrangement}
+                step={step}
+                selected={selected}
+                view={view}
+                active={visible}
+                reducedMotion={reducedMotion}
+                chip={chip}
+                label={`Vehicle B’s cargo space, ${arrangement} arrangement. Drag or use the arrow keys to turn the view.`}
+                onSelect={setSelected}
+                onFreeView={() => setView(null)}
+                onReady={() => setReady(true)}
+              />
+            )}
           </div>
-          <div role="group" aria-label="Camera" className={styles.cameraButtons}>
-            {(Object.keys(views) as ViewId[]).map((id) => (
-              <button key={id} type="button" aria-pressed={view === id} onClick={() => setCamera(id)}>{views[id].label}</button>
-            ))}
+          <div className={styles.sceneControls}>
+            <div role="group" aria-label="Camera" className={styles.cameraButtons} data-disabled={!(live && ready) || undefined}>
+              {(Object.keys(viewLabels) as ViewId[]).map((id) => (
+                <button key={id} type="button" aria-pressed={view === id} disabled={!(live && ready)} onClick={() => setView(id)}>{viewLabels[id]}</button>
+              ))}
+            </div>
+            {live && ready && <span className={styles.sceneHint}>Drag to turn</span>}
           </div>
           <div className={styles.sequence}>
             <div role="group" aria-label="Delivery sequence" className={styles.stepButtons}>
               {stepLabels.map((label, index) => (
-                <button key={label} type="button" aria-pressed={step === index} onClick={() => chooseStep(index)}>
-                  <span className={styles.stepDot} style={{ "--c": index === 0 ? "#17191a" : stopColor[index] } as CSSProperties} />
-                  {label}
-                </button>
+                <button key={label} type="button" aria-pressed={step === index} onClick={() => chooseStep(index)}>{label}</button>
               ))}
             </div>
             {!reducedMotion && (
@@ -303,23 +213,23 @@ export function LoadPlan() {
             <p className={styles.columnTitle}>Cargo for Vehicle B</p>
             <div role="group" aria-label="Select a shipment" className={styles.manifest}>
               {loadStops.map(({ stop, shipment: id }) => (
-                <button key={id} type="button" aria-pressed={selected === id} onClick={() => setSelected(id)} style={{ "--c": stopColor[stop] } as CSSProperties}>
-                  <span className={styles.manifestId}>{id}<span>Stop {stop} · {places[shipments[id].to].name}</span></span>
-                  <span className={styles.manifestCount}>{shipments[id].pallets} pallets</span>
+                <button key={id} type="button" aria-pressed={selected === id} onClick={() => setSelected(id)}>
+                  <span className={styles.manifestStop}>{stop}</span>
+                  <span className={styles.manifestId}>{id}<span>{places[shipments[id].to].name} · {shipments[id].pallets} pallets</span></span>
                 </button>
               ))}
             </div>
             <dl className={styles.facts} aria-live="polite">
-              <div><dt>Delivery stop</dt><dd>Stop {selectedStop}, {places[selectedShipment.to].name}, window {selectedShipment.deliveryWindow[0]}–{selectedShipment.deliveryWindow[1]}</dd></div>
+              <div><dt>Delivery stop</dt><dd>Stop {selectedStop}, {places[selectedShipment.to].name}, {selectedShipment.deliveryWindow[0]}–{selectedShipment.deliveryWindow[1]}</dd></div>
               <div><dt>Dimensions</dt><dd>{formatSize(selectedShipment)} per pallet</dd></div>
-              <div><dt>Weight</dt><dd>{formatKg(selectedShipment.pallet.weightKg)} per pallet, {formatKg(totalWeight(selectedShipment))} in total</dd></div>
+              <div><dt>Weight</dt><dd>{formatKg(selectedShipment.pallet.weightKg)} per pallet, {formatKg(totalWeight(selectedShipment))} total</dd></div>
               <div><dt>Can be stacked?</dt><dd>{selectedShipment.stackable}</dd></div>
-              <div><dt>Position</dt><dd>{selectedRows.length > 1 ? "Rows" : "Row"} {selectedRows.join(" and ")} of {ROWS}, counted from the front</dd></div>
-              <div><dt>Reachable at its stop</dt><dd data-tone={selectedBlockers > 0 ? "alert" : "ok"}>{selectedBlockers > 0 ? `No. ${selectedBlockers} pallets for later stops are between it and the door.` : "Yes, without moving freight for later stops."}</dd></div>
+              <div><dt>Position</dt><dd>{selectedRows.length > 1 ? "Rows" : "Row"} {selectedRows.join(" and ")} of {ROWS}, from the front</dd></div>
+              <div><dt>Reachable at its stop</dt><dd data-tone={selectedBlockers > 0 ? "alert" : "ok"}>{selectedBlockers > 0 ? `No. ${selectedBlockers} pallets for later stops are in the way.` : "Yes, without moving later freight."}</dd></div>
             </dl>
           </div>
           <div className={styles.sheet}>
-            <p className={styles.columnTitle}>Pallets for later stops moved first</p>
+            <p className={styles.columnTitle}>Pallets moved to reach each delivery</p>
             <table className={styles.compareTable}>
               <thead><tr><th scope="col">Delivery</th><th scope="col">Initial</th><th scope="col">Proposed</th></tr></thead>
               <tbody>
@@ -333,10 +243,7 @@ export function LoadPlan() {
               </tbody>
             </table>
             <p className={styles.sameCargo}>
-              Same freight in both: {items.length} pallets, {formatKg(loadWeight)}, {items.length} of {vehicles.B.palletSpaces} floor spaces, nothing stacked. Cargo space {CARGO.length} × {CARGO.width} × {CARGO.height} m, rear door with tail-lift.
-            </p>
-            <p className={styles.sameCargo}>
-              Only KV-2042 may be stacked and the plan does not need it, so every pallet can be moved with a pallet jack. KV-2046 is collected at stop 4, after this freight is off; the most Vehicle B carries at once is {plans.requestOnB.maxOnBoard} pallets.
+              Same freight in both: {items.length} pallets, {formatKg(loadWeight)}, {items.length} of {vehicles.B.palletSpaces} floor spaces, nothing stacked. KV-2046 is collected at stop 4, once this freight is off; Vehicle B never carries more than {plans.requestOnB.maxOnBoard} pallets.
             </p>
           </div>
         </div>
