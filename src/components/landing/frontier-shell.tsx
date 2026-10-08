@@ -1,11 +1,17 @@
 import type { ReactNode } from "react";
-import { Manrope, Space_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
 
-const manrope = Manrope({ subsets: ["latin"], display: "swap" });
-const headline = Space_Grotesk({
-  subsets: ["latin"],
+const manrope = localFont({
+  src: "../../fonts/manrope.woff2",
+  weight: "200 800",
+  display: "swap",
+  fallback: ["sans-serif"],
+});
+const headline = localFont({
+  src: "../../fonts/space-grotesk-400.woff2",
   weight: "400",
   display: "swap",
+  fallback: ["sans-serif"],
   variable: "--font-frontier-headline",
 });
 

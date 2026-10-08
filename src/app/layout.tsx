@@ -1,14 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Source_Serif_4 } from "next/font/google";
+import localFont from "next/font/local";
 import { LocaleProvider } from "@/lib/i18n";
 import { site } from "@/lib/site";
 import "./globals.css";
 
-const bodySerif = Source_Serif_4({
+// Self-hosted: next/font/google build-time fetches intermittently break Turbopack builds (vercel/next.js#99114).
+const bodySerif = localFont({
+  src: [
+    { path: "../fonts/source-serif-4.woff2", weight: "300 600", style: "normal" },
+    { path: "../fonts/source-serif-4-italic.woff2", weight: "300 600", style: "italic" },
+  ],
   variable: "--font-body-serif",
-  subsets: ["latin", "latin-ext"],
-  weight: ["300", "400", "500", "600"],
-  style: ["normal", "italic"],
+  display: "swap",
+  fallback: ["serif"],
+  adjustFontFallback: "Times New Roman",
 });
 
 export const metadata: Metadata = {
