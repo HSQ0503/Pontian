@@ -28,7 +28,7 @@ import {
   type VehicleId,
 } from "./logistics-data";
 
-type Outcome = { start: ReactNode; finding: ReactNode; next: ReactNode };
+type Outcome = { start: ReactNode; finding: ReactNode; next: ReactNode; findingLabel?: "Finding for review" | "Result for review" };
 
 export function Example({ title, note, children, outcome }: { title: string; note: string; children: ReactNode; outcome: Outcome }) {
   return (
@@ -41,7 +41,7 @@ export function Example({ title, note, children, outcome }: { title: string; not
       <div className={styles.exampleBody}>{children}</div>
       <ol className={styles.outcome}>
         <li data-role="start"><span className={styles.outcomeLabel}>Situation</span>{outcome.start}</li>
-        <li data-role="finding"><span className={styles.outcomeLabel}>Result for review</span>{outcome.finding}</li>
+        <li data-role="finding"><span className={styles.outcomeLabel}>{outcome.findingLabel ?? "Finding for review"}</span>{outcome.finding}</li>
         <li data-role="next"><span className={styles.outcomeLabel}>Next step for your team</span>{outcome.next}</li>
       </ol>
     </figure>
@@ -85,7 +85,7 @@ function StopList({ route, isNew, moved, selected, onSelect, compact = false }: 
     <ol className={`${styles.stops} ${compact ? styles.stopsCompact : ""}`}>
       <li className={styles.stopEdge}>
         <span className={styles.stopTime}>{vehicle.departs}</span>
-        <span>Leaves {places.depot.name} with {route.loadedAtDepot} of {vehicle.palletSpaces} pallet spaces used</span>
+        <span>Leaves the depot with {route.loadedAtDepot} of {vehicle.palletSpaces} pallet spaces used</span>
       </li>
       {route.stops.map((stop, index) => {
         const shipment = shipments[stop.shipment];
@@ -97,17 +97,16 @@ function StopList({ route, isNew, moved, selected, onSelect, compact = false }: 
               <span className={styles.stopPlace}>{places[stop.place].name}</span>
               <span className={styles.stopTask}>{stop.action === "collect" ? "Collect" : "Deliver"} {stop.shipment} · {shipment.pallets} pallets</span>
               <span className={styles.stopTiming}>
-                Arrives {stop.arrive}{wait > 0 ? `, starts ${stop.start}` : ""} · window {stop.window[0]}–{stop.window[1]}
+                {stop.late ? `Arrives ${stop.arrive}, after the ${stop.window[1]} close` : `Arrives ${stop.arrive}${wait > 0 ? `, starts ${stop.start}` : ""} · window ${stop.window[0]}–${stop.window[1]}`}
               </span>
               {route.driverBreak?.stopIndex === index && (
                 <span className={styles.stopBreak}>
-                  Driver break {route.driverBreak.start}–{route.driverBreak.end}{route.driverBreak.during === "wait" ? ", while waiting for the window" : ", after this stop"}
+                  Driver break {route.driverBreak.start}–{route.driverBreak.end}{route.driverBreak.during === "wait" ? ", while waiting" : ""}
                 </span>
               )}
             </span>
             <span className={styles.stopStatus}>
-              {stop.late ? <span className={styles.tag} data-tone="alert">Misses window</span> : <span className={styles.tag} data-tone="ok">In window</span>}
-              {moved?.(stop.shipment) ? <span className={styles.tag} data-tone="flag">Moved from A</span> : isNew?.(stop.shipment) ? <span className={styles.tag} data-tone="flag">New</span> : null}
+              {stop.late ? <span className={styles.tag} data-tone="alert">Misses window</span> : moved?.(stop.shipment) ? <span className={styles.tag}>From Vehicle A</span> : isNew?.(stop.shipment) ? <span className={styles.tag}>New</span> : null}
             </span>
           </>
         );
@@ -121,7 +120,7 @@ function StopList({ route, isNew, moved, selected, onSelect, compact = false }: 
       })}
       <li className={styles.stopEdge} data-late={route.overShift || undefined}>
         <span className={styles.stopTime}>{route.returnsAt}</span>
-        <span>Back at the depot · driver available until {vehicle.driver[1]}</span>
+        <span>Back at the depot · driver until {vehicle.driver[1]}</span>
       </li>
     </ol>
   );
@@ -220,7 +219,7 @@ function ShipmentDetail({ id, routes }: { id: string; routes: Record<VehicleId, 
   const stopNumbers = route ? route.stops.flatMap((stop, index) => (stop.shipment === id ? [index + 1] : [])) : [];
   return (
     <div className={styles.detailCard} aria-live="polite">
-      <p className={styles.detailTitle}>{id}{shipment.isNew && <span className={styles.tag} data-tone="flag">New pickup request</span>}</p>
+      <p className={styles.detailTitle}>{id}{shipment.isNew && <span className={styles.tag}>New request</span>}</p>
       <dl className={styles.facts}>
         {shipment.collectionWindow && <div><dt>Collect from</dt><dd>{places[shipment.from].name}, {shipment.collectionWindow[0]}–{shipment.collectionWindow[1]}</dd></div>}
         <div><dt>Customer delivery window</dt><dd>{places[shipment.to].name}, {shipment.deliveryWindow[0]}–{shipment.deliveryWindow[1]}</dd></div>
@@ -234,11 +233,9 @@ function ShipmentDetail({ id, routes }: { id: string; routes: Record<VehicleId, 
 function VehicleFacts({ id, route }: { id: VehicleId; route: PlannedRoute }) {
   const vehicle = vehicles[id];
   return (
-    <dl className={styles.vehicleFacts}>
-      <div><dt>Vehicle capacity</dt><dd>{vehicle.palletSpaces} pallet spaces, {formatKg(vehicle.payloadKg)}</dd></div>
-      <div><dt>Driver availability</dt><dd>{vehicle.driver[0]}–{vehicle.driver[1]}</dd></div>
-      <div><dt>Most on board</dt><dd>{route.maxOnBoard} of {vehicle.palletSpaces} spaces</dd></div>
-    </dl>
+    <p className={styles.vehicleFacts}>
+      {vehicle.palletSpaces} pallet spaces · {formatKg(vehicle.payloadKg)} · driver {vehicle.driver[0]}–{vehicle.driver[1]} · up to {route.maxOnBoard} on board
+    </p>
   );
 }
 
@@ -262,30 +259,29 @@ export function DeliveryPlan() {
       id: "A" as const,
       verdict: "Conflicts with an existing delivery window.",
       tone: "alert",
-      detail: `Collecting first sends ${late.shipment} to ${places[late.place].name} at ${late.arrive}, ${lateBy} minutes after its window closes. Collecting after ${places[late.place].name} reaches ${places.glenway.name} at ${missedCollection?.arrive}, after the ${request.collectionWindow?.[1]} collection cutoff.`,
+      detail: `Collecting first brings ${late.shipment} to ${places[late.place].name} at ${late.arrive}, ${lateBy} minutes late. Collecting afterwards reaches ${places.glenway.name} at ${missedCollection?.arrive}, after the ${request.collectionWindow?.[1]} cutoff.`,
     },
     {
       id: "B" as const,
       verdict: "Fits the example schedule and available capacity.",
       tone: "ok",
-      detail: `After its three deliveries, Vehicle B collects at ${collectOnB?.arrive} and delivers at ${deliverOnB?.start}. Its existing stops keep their times, and it is back at ${plans.requestOnB.returnsAt}.`,
+      detail: `Collects at ${collectOnB?.arrive} and delivers at ${deliverOnB?.start}, after its three deliveries, which keep their times. Back at the depot at ${plans.requestOnB.returnsAt}.`,
     },
   ];
   return (
     <Example
-      title={`Tomorrow's deliveries · ${operation.name} (fictional)`}
-      note="Schematic map. Drive times are example values."
+      title={`Tomorrow’s deliveries · ${operation.name} (fictional)`}
+      note="Schematic map · example drive times"
       outcome={{
-        start: <p><strong>Tomorrow&apos;s deliveries</strong> on two vehicles, then a new pickup request: {request.pallets} pallets from {places.glenway.name} to {places.hollin.name}.</p>,
-        finding: <p><strong>Vehicle A</strong> conflicts with an existing delivery window. <strong>Vehicle B</strong> fits the example schedule and available capacity. <strong>Proposed assignment: Vehicle B.</strong></p>,
-        next: <p><strong>Dispatcher reviews the updated route</strong> before anything is sent to the driver.</p>,
+        start: <p><strong>Tomorrow’s deliveries</strong> on two vehicles, then a new request to move {request.pallets} pallets from {places.glenway.name} to {places.hollin.name}.</p>,
+        findingLabel: "Result for review",
+        finding: <p>Vehicle A conflicts with an existing delivery window. Vehicle B fits the schedule and capacity. <strong>Proposed assignment: Vehicle B.</strong></p>,
+        next: <p><strong>Dispatcher reviews the updated route.</strong> Nothing reaches the driver before that.</p>,
       }}
     >
       <div className={styles.requestStrip} data-active={view !== "plan" || undefined}>
-        <span className={styles.requestLead}>{view === "plan" ? "Next: a new pickup request arrives" : "A new pickup request arrives"}</span>
-        <span><strong>KV-2046</strong> · collect {request.pallets} pallets at {places.glenway.name}, {request.collectionWindow?.[0]}–{request.collectionWindow?.[1]}</span>
-        <span>deliver to {places.hollin.name}, {request.deliveryWindow[0]}–{request.deliveryWindow[1]}</span>
-        <span>{formatSize(request)} each, {formatKg(totalWeight(request))}</span>
+        <span className={styles.requestLead}>{view === "plan" ? "Next, a new pickup request arrives" : "A new pickup request arrives"}</span>
+        <span><strong>KV-2046</strong> · {request.pallets} pallets · collect at {places.glenway.name} {request.collectionWindow?.[0]}–{request.collectionWindow?.[1]} · deliver to {places.hollin.name} {request.deliveryWindow[0]}–{request.deliveryWindow[1]}</span>
       </div>
       <div className={styles.dispatchGrid}>
         <div className={styles.mapSheet}>
@@ -305,17 +301,10 @@ export function DeliveryPlan() {
           <ul className={styles.mapLegend} aria-label="Map key">
             <li data-key="A">Vehicle A</li>
             <li data-key="B">Vehicle B</li>
-            <li data-key="changed">Changed by the new request</li>
-            <li data-key="removed">Leg it replaces</li>
+            <li data-key="changed">Proposed change</li>
+            <li data-key="removed">Replaced leg</li>
             <li data-key="late">Misses a window</li>
           </ul>
-          <div className={styles.shipmentPicker} role="group" aria-label="Select a shipment">
-            {Object.values(shipments).map((shipment) => (
-              <button key={shipment.id} type="button" aria-pressed={selected === shipment.id} onClick={() => setSelected(shipment.id)}>
-                {shipment.id}<span>{places[shipment.to].name}</span>
-              </button>
-            ))}
-          </div>
           {selected && <ShipmentDetail id={selected} routes={routes} />}
         </div>
         <div className={styles.dispatchSide}>
@@ -339,7 +328,7 @@ export function DeliveryPlan() {
             <VehicleFacts id={vehicle} route={routes[vehicle]} />
             <StopList route={routes[vehicle]} isNew={(id) => id === "KV-2046"} selected={selected} onSelect={setSelected} />
           </div>
-          <p className={styles.rules}><Clock3 size={13} aria-hidden="true" /> Example rules: {serviceRule} {driverRule} {routeAssumptions}</p>
+          <p className={styles.rules}><Clock3 size={14} aria-hidden="true" /> Example rules: {serviceRule} {driverRule} {routeAssumptions}</p>
         </div>
       </div>
     </Example>
@@ -366,92 +355,63 @@ export function DisruptionRecovery() {
       status: "Delivery 1 can be reassigned.",
       tone: "ok",
       rows: [
-        ["Which shipment moves", `KV-2044, ${shipments["KV-2044"].pallets} pallets for ${places.elm.name}`],
-        ["Which vehicle takes it", `Vehicle B, as stop ${movedIndex + 1}, after ${places[before.place].name}`],
-        ["Does the window still fit", `Yes. It arrives at ${moved?.arrive}; the window is ${moved?.window[0]}–${moved?.window[1]}.`],
-        ["Effect on Vehicle B", `${plans.recoveryB.loadedAtDepot} of ${vehicleB.palletSpaces} spaces and ${formatKg(plans.recoveryB.weightAtDepot)} of ${formatKg(vehicleB.payloadKg)} at departure. ${keepsTimes ? "Its other stops keep their times" : "Some stop times change"}, and it is back at ${plans.recoveryB.returnsAt}.`],
-        ["What remains unresolved", "KV-2045 still needs a vehicle."],
+        ["Shipment that moves", `KV-2044 · ${shipments["KV-2044"].pallets} pallets for ${places.elm.name}`],
+        ["Vehicle that takes it", `Vehicle B, stop ${movedIndex + 1}, after ${places[before.place].name}`],
+        ["Delivery window", `Fits. Arrives ${moved?.arrive}; window ${moved?.window[0]}–${moved?.window[1]}.`],
+        ["Effect on Vehicle B", `${plans.recoveryB.loadedAtDepot} of ${vehicleB.palletSpaces} spaces and ${formatKg(plans.recoveryB.weightAtDepot)} of ${formatKg(vehicleB.payloadKg)} at departure. ${keepsTimes ? "Other stops keep their times" : "Some stop times change"}; back at ${plans.recoveryB.returnsAt}.`],
+        ["Still unresolved", "KV-2045 needs a vehicle."],
       ],
     },
     "KV-2045": {
       status: "Delivery 2 still needs another option.",
       tone: "alert",
       rows: [
-        ["Which shipment moves", `KV-2045, ${fairholt.pallets} pallets for ${places.fairholt.name}`],
-        ["Which vehicle takes it", `Not Vehicle B. It needs ${fairholt.pallets} pallet spaces; Vehicle B has ${freeAtDeparture} free at departure, and ${vehicleB.palletSpaces - plans.recoveryB.loadedAtDepot} after taking Delivery 1.`],
-        ["Does the window still fit", `No. ${places.fairholt.name} is ${fairholt.deliveryWindow[0]}–${fairholt.deliveryWindow[1]}, while Vehicle B is on its eastern stops. Going there first would bring ${firstLate.shipment} to ${places[firstLate.place].name} at ${firstLate.arrive}, after its ${firstLate.window[1]} window.`],
-        ["What remains unresolved", "Dispatch needs another option, such as another vehicle or carrier, or a new window agreed with the customer."],
+        ["Shipment that moves", `KV-2045 · ${fairholt.pallets} pallets for ${places.fairholt.name}`],
+        ["Vehicle that takes it", `Not Vehicle B. It needs ${fairholt.pallets} spaces; Vehicle B has ${freeAtDeparture} free, or ${vehicleB.palletSpaces - plans.recoveryB.loadedAtDepot} after taking Delivery 1.`],
+        ["Delivery window", `Does not fit. ${places.fairholt.name} is ${fairholt.deliveryWindow[0]}–${fairholt.deliveryWindow[1]}, while Vehicle B is on its eastern stops. Going there first brings ${firstLate.shipment} to ${places[firstLate.place].name} at ${firstLate.arrive}, after its ${firstLate.window[1]} close.`],
+        ["Still unresolved", "Another vehicle or carrier, or a new window agreed with the customer."],
       ],
     },
   };
   const explanation = explanations[option];
+  const deliveryState = (id: RecoveryOption) => mode === "original" ? { tone: "alert", label: "Affected" } : explanations[id].tone === "ok" ? { tone: "ok", label: "Reassigned" } : { tone: "alert", label: "Unresolved" };
   return (
     <Example
       title={`Vehicle A unavailable · ${operation.name} (fictional)`}
-      note="Starts from a recorded vehicle-status update."
+      note="Starts from a recorded vehicle-status update"
       outcome={{
-        start: <p><strong>Vehicle A is unavailable before departure.</strong> Its two deliveries are affected, and Vehicle B has some remaining capacity.</p>,
-        finding: <p><strong>A recovery plan with the remaining gap identified:</strong> Delivery 1 can be reassigned. Delivery 2 still needs another option.</p>,
-        next: <p><strong>Dispatcher confirms the reassignment and reviews the unresolved delivery.</strong> If confirmed, Vehicle B&apos;s loading plan is revised before it leaves.</p>,
+        start: <p><strong>Vehicle A is unavailable before departure.</strong> Its two deliveries are affected. Vehicle B has some remaining capacity.</p>,
+        findingLabel: "Result for review",
+        finding: <p><strong>A recovery plan with the remaining gap identified.</strong> Delivery 1 can be reassigned. Delivery 2 still needs another option.</p>,
+        next: <p><strong>Dispatcher confirms the reassignment and reviews the unresolved delivery.</strong> Vehicle B’s loading plan is then revised before it leaves.</p>,
       }}
     >
       <div className={styles.statusUpdate}>
         <span className={styles.statusTime}>06:30</span>
-        <span><strong>Vehicle-status update recorded by the workshop:</strong> Vehicle A is unavailable before departure.</span>
+        <span><strong>Workshop status update:</strong> Vehicle A is unavailable before departure.</span>
         <span className={styles.statusMeta}>Vehicle B leaves at {vehicleB.departs}</span>
       </div>
-      <div className={styles.sheetHead}>
-        <Choice
-          label="Plan to show"
-          value={mode}
-          onChange={setMode}
-          options={[{ value: "original", label: "Original plan" }, { value: "recovery", label: "Proposed partial recovery" }]}
-        />
-      </div>
+      <Choice
+        label="Plan to show"
+        value={mode}
+        onChange={setMode}
+        options={[{ value: "original", label: "Original plan" }, { value: "recovery", label: "Proposed partial recovery" }]}
+      />
       <div className={styles.recoveryGrid}>
-        <div className={styles.sheet} data-unavailable="true">
-          <p className={styles.laneTitle}>Vehicle A <span className={styles.tag} data-tone="alert">Unavailable</span></p>
-          {mode === "original" ? (
-            <ol className={styles.affected}>
-              {plans.baseA.stops.map((stop, index) => (
-                <li key={stop.shipment}>
-                  <span className={styles.affectedName}>Delivery {index + 1} · {stop.shipment}</span>
-                  <span>{places[stop.place].name} · {shipments[stop.shipment].pallets} pallets · window {stop.window[0]}–{stop.window[1]}</span>
-                  <span className={styles.tag} data-tone="alert">Affected</span>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <ol className={styles.affected}>
-              <li data-resolved="true">
-                <span className={styles.affectedName}>Delivery 1 · KV-2044</span>
-                <span>Proposed for Vehicle B, stop {movedIndex + 1}</span>
-                <span className={styles.tag} data-tone="ok">Reassigned</span>
-              </li>
-              <li>
-                <span className={styles.affectedName}>Delivery 2 · KV-2045</span>
-                <span>{places.fairholt.name} · {fairholt.pallets} pallets · window {fairholt.deliveryWindow[0]}–{fairholt.deliveryWindow[1]}</span>
-                <span className={styles.tag} data-tone="alert">Unresolved</span>
-              </li>
-            </ol>
-          )}
-          <p className={styles.capacityNote}>
-            Vehicle B has some remaining capacity: {freeAtDeparture} of {vehicleB.palletSpaces} pallet spaces free at departure, before any reassignment.
-          </p>
-        </div>
         <div className={styles.sheet}>
-          <p className={styles.laneTitle}>Vehicle B <span className={styles.laneMeta}>{mode === "original" ? "Original plan" : "With Delivery 1 added"}</span></p>
-          <StopList route={mode === "original" ? plans.requestOnB : plans.recoveryB} moved={(id) => mode === "recovery" && id === "KV-2044"} compact />
-        </div>
-        <div className={styles.options}>
-          <p className={styles.optionsTitle}>Recovery options</p>
-          <div role="group" aria-label="Select a recovery option" className={styles.optionList}>
-            {(Object.keys(explanations) as RecoveryOption[]).map((id, index) => (
-              <button key={id} type="button" aria-pressed={option === id} data-tone={explanations[id].tone} onClick={() => setOption(id)}>
-                <span>Delivery {index + 1} · {id} to Vehicle B</span>
-                <span className={styles.tag} data-tone={explanations[id].tone}>{explanations[id].tone === "ok" ? "Can be reassigned" : "Needs another option"}</span>
-              </button>
-            ))}
+          <p className={styles.laneTitle}>Vehicle A’s deliveries <span className={styles.laneMeta}>{freeAtDeparture} of {vehicleB.palletSpaces} spaces free on Vehicle B</span></p>
+          <div role="group" aria-label="Select an affected delivery" className={styles.optionList}>
+            {(Object.keys(explanations) as RecoveryOption[]).map((id, index) => {
+              const stop = stopOf(plans.baseA, id);
+              const state = deliveryState(id);
+              return (
+                <button key={id} type="button" aria-pressed={option === id} data-tone={state.tone} onClick={() => setOption(id)}>
+                  <span className={styles.optionName}>Delivery {index + 1} · {id}</span>
+                  <span className={styles.optionMeta}>{places[shipments[id].to].name} · {shipments[id].pallets} pallets · {stop?.window[0]}–{stop?.window[1]}</span>
+                  <span className={styles.tag} data-tone={state.tone}>{state.label}</span>
+                </button>
+              );
+            })}
           </div>
           <div className={styles.optionDetail} aria-live="polite">
             <p className={styles.optionStatus} data-tone={explanation.tone}>{explanation.status}</p>
@@ -465,11 +425,15 @@ export function DisruptionRecovery() {
           {draft && (
             <div className={styles.draft}>
               <p className={styles.draftLabel}>Draft update — awaiting approval</p>
-              <p className={styles.draftTo}>To the customer for KV-2045, {places.fairholt.name}</p>
+              <p className={styles.draftTo}>To the KV-2045 customer, {places.fairholt.name}</p>
               <p className={styles.draftText}>Your delivery schedule is being revised. We will confirm the updated arrival window.</p>
               <p className={styles.draftMeta}>Not sent. Dispatch edits or approves it first.</p>
             </div>
           )}
+        </div>
+        <div className={styles.sheet}>
+          <p className={styles.laneTitle}>Vehicle B <span className={styles.laneMeta}>{mode === "original" ? "Original plan" : "With Delivery 1 added"}</span></p>
+          <StopList route={mode === "original" ? plans.requestOnB : plans.recoveryB} moved={(id) => mode === "recovery" && id === "KV-2044"} compact />
         </div>
       </div>
     </Example>
@@ -518,11 +482,11 @@ export function QuotePreparation() {
   const [line, setLine] = useState<LineKey>("detour");
   const shipment = shipments["KV-2046"];
   const confirmed = stage >= 2;
-  const fields: { key: FieldKey; label: string; value: string; missing?: boolean; source: string }[] = [
-    { key: "pickup", label: "Pickup", value: places.glenway.name + ", Unit 4", source: "Request" },
-    { key: "delivery", label: "Delivery", value: places.hollin.name + ", Gate 2", source: "Request" },
-    { key: "timing", label: "Requested timing", value: `Collect tomorrow ${shipment.collectionWindow?.[0]}–${shipment.collectionWindow?.[1]}, deliver ${shipment.deliveryWindow[0]}–${shipment.deliveryWindow[1]}`, source: "Request, read as the standard morning and afternoon windows" },
-    { key: "cargo", label: "Cargo", value: `${shipment.pallets} pallets`, source: "Request" },
+  const fields: { key: FieldKey; label: string; value: string; missing?: boolean; source?: string }[] = [
+    { key: "pickup", label: "Pickup", value: places.glenway.name + ", Unit 4" },
+    { key: "delivery", label: "Delivery", value: places.hollin.name + ", Gate 2" },
+    { key: "timing", label: "Requested timing", value: `Collect tomorrow ${shipment.collectionWindow?.[0]}–${shipment.collectionWindow?.[1]}, deliver ${shipment.deliveryWindow[0]}–${shipment.deliveryWindow[1]}`, source: "Read as the standard morning and afternoon windows" },
+    { key: "cargo", label: "Cargo", value: `${shipment.pallets} pallets` },
     confirmed
       ? { key: "dimensions", label: "Dimensions", value: `${formatSize(shipment)} each, ${shipment.pallet.weightKg} kg each, not stackable`, source: `Customer reply, ${quoteRequest.replyReceived.toLowerCase()}` }
       : { key: "dimensions", label: "Dimensions", value: "Confirmation needed", missing: true, source: "Not stated in the request" },
@@ -543,10 +507,13 @@ export function QuotePreparation() {
   return (
     <Example
       title={`Request ${quoteRequest.reference} · ${operation.name} (fictional)`}
-      note="Example rate card, not market rates."
+      note="Example rate card, not market rates"
       outcome={{
         start: <p><strong>A short, unstructured request</strong> with the pickup, delivery, and timing, but no pallet dimensions.</p>,
-        finding: <p><strong>Confirm dimensions before selecting a vehicle.</strong> Once they are supplied: a draft quote with its assumptions.</p>,
+        findingLabel: stage === 3 ? "Result for review" : "Finding for review",
+        finding: stage === 3
+          ? <p><strong>A draft quote with its assumptions,</strong> built after the dimensions were confirmed.</p>
+          : <p><strong>Confirm dimensions before selecting a vehicle.</strong> The pallet size decides the rate and the vehicle.</p>,
         next: <p><strong>Commercial team reviews the price before sending.</strong> Nothing goes to the customer automatically.</p>,
       }}
     >
@@ -582,7 +549,7 @@ export function QuotePreparation() {
               <button key={item.key} type="button" aria-pressed={field === item.key} data-missing={item.missing || undefined} onClick={() => setField(item.key)}>
                 <span className={styles.fieldLabel}>{item.label}</span>
                 <span className={styles.fieldValue}>{item.value}</span>
-                <span className={styles.fieldSource}>{item.source}</span>
+                {item.source && <span className={styles.fieldSource}>{item.source}</span>}
               </button>
             ))}
           </div>
@@ -629,10 +596,10 @@ export function QuotePreparation() {
                 <li>{shipment.pallets} pallets, {formatSize(shipment)}, {shipment.pallet.weightKg} kg each, not stackable</li>
                 <li>Collect {shipment.collectionWindow?.[0]}–{shipment.collectionWindow?.[1]}, deliver {shipment.deliveryWindow[0]}–{shipment.deliveryWindow[1]} tomorrow</li>
                 <li>Tail-lift delivery, no forklift on site</li>
-                <li>Example carrier rate card; excludes tax and waiting time</li>
+                <li>Example carrier rate card, excluding tax and waiting time</li>
                 <li>Vehicle to be confirmed by dispatch</li>
               </ul>
-              <p className={styles.quoteStatus}>Draft · commercial team reviews before sending</p>
+              <p className={styles.quoteStatus}>Draft, not sent. Commercial team reviews it first.</p>
             </div>
           ) : (
             <p className={styles.onHold}>{confirmed ? "Ready to prepare from the pricing inputs." : "Not prepared while dimensions are missing."}</p>

@@ -47,7 +47,7 @@ const offerings: Offering[] = [
     body: "We can connect orders, delivery windows, vehicle capacity, and driver availability to prepare a dispatch plan your team can review. When another job arrives, see where it could fit and which commitments would be affected.",
     capabilities: ["Assign deliveries to suitable vehicles", "Account for capacity and delivery windows", "Review changes before dispatch"],
     outcome: "See how the day fits together before sending vehicles out.",
-    boundary: "Route planning depends on defined operating rules and suitable mapping or optimization technology. The shortest route is not always right for a particular truck, so vehicle restrictions, driver rules, and service times have to be part of those rules. This example uses fixed drive times, not live locations.",
+    boundary: "Route planning needs defined operating rules and suitable mapping or optimization technology. The shortest route is not always right for a given truck, so vehicle restrictions, driver rules, and service times belong in those rules. This example uses fixed drive times, not live locations.",
     Visual: DeliveryPlan,
   },
   {
@@ -58,7 +58,7 @@ const offerings: Offering[] = [
     body: "We can turn shipment dimensions, weights, stacking rules, and delivery order into a proposed loading plan, helping your team check both space and access before the truck leaves.",
     capabilities: ["Check how shipments fit", "Account for loading restrictions", "Plan around the unloading order"],
     outcome: "Give the loading team a plan they can inspect before moving freight.",
-    boundary: "A loading illustration is not a certified safe-loading plan. Production use needs accurate cargo and vehicle data, appropriate checks, and operational review, and fitting in the space does not establish weight distribution or load securement. This is a workflow we could develop with suitable optimization technology, not an existing Pontian packing engine.",
+    boundary: "This illustration is not a certified safe-loading plan. Production use needs accurate cargo and vehicle data, proper checks, and operational review, and a load that fits is not necessarily distributed or secured safely. It shows a workflow we could build with suitable optimization technology, not an existing Pontian packing engine.",
     Visual: LoadPlan,
   },
   {
@@ -69,8 +69,8 @@ const offerings: Offering[] = [
     body: "When a vehicle becomes unavailable or a delivery is delayed, we can help dispatch identify the affected shipments and compare recovery options using the information available.",
     capabilities: ["Identify affected deliveries", "Compare available recovery options", "Prepare revised assignments and customer updates"],
     outcome: "Give dispatch options and consequences in the same place.",
-    brokers: "For a broker, the alternatives are other carriers rather than your own vehicles. Finding the affected shipments and preparing reviewed customer updates work the same way.",
-    boundary: "The example starts from a recorded vehicle-status update. It does not predict breakdowns or track vehicles continuously, and it depends on reliable operational updates, current capacity, and defined rules.",
+    brokers: "For brokers, the alternatives are other carriers rather than your own vehicles. Finding affected shipments and preparing reviewed customer updates work the same way.",
+    boundary: "The example starts from a recorded vehicle-status update. It does not predict breakdowns or track vehicles continuously. It depends on reliable operational updates, current capacity, and defined rules.",
     Visual: DisruptionRecovery,
   },
   {
@@ -81,8 +81,8 @@ const offerings: Offering[] = [
     body: "We can extract shipment details from incoming requests, identify missing information, and prepare a quote using your approved pricing rules and available capacity.",
     capabilities: ["Extract the shipment requirements", "Flag information that needs confirmation", "Prepare a quote from approved pricing rules"],
     outcome: "Respond with a price your team can stand behind.",
-    brokers: "For a broker, reading the request and flagging missing details work the same way. Pricing would start from a carrier's cost and your approved margin rules, which is a separate calculation from the carrier rate card shown here.",
-    boundary: "The example applies a carrier's own example rate card. It does not use current market freight rates, which would need an appropriate data source, and it does not call the job profitable, because vehicle, driver, and fuel costs are not part of the calculation.",
+    brokers: "For brokers, reading the request and flagging missing details work the same way. Pricing starts from a carrier’s cost and your approved margin, a separate calculation from the carrier rate card shown here.",
+    boundary: "The example uses an illustrative carrier rate card, not current market rates, which would need a suitable data source. It does not call the job profitable: vehicle, driver, and fuel costs are not included.",
     Visual: QuotePreparation,
   },
 ];
@@ -90,10 +90,10 @@ const offerings: Offering[] = [
 const collectionStop = plans.requestOnB.stops.findIndex((stop) => stop.shipment === "KV-2046" && stop.action === "collect") + 1;
 
 const journey = [
-  { section: "prepare-the-quote", title: "A request becomes a quote.", text: "Request Q-0118 asks for two pallets to go from Glenway Works to Hollin Yard. Once the dimensions are confirmed, the commercial team reviews a draft quote." },
+  { section: "prepare-the-quote", title: "A request becomes a quote.", text: "Request Q-0118 asks to move two pallets from Glenway Works to Hollin Yard. Once the dimensions are confirmed, the commercial team reviews a draft quote." },
   { section: "plan-the-deliveries", title: "Accepted work enters a delivery plan.", text: `As shipment KV-2046, the job goes to Vehicle B as stops ${collectionStop} and ${collectionStop + 1}, after its existing deliveries.` },
-  { section: "plan-the-load", title: "The freight receives a loading plan.", text: `Vehicle B's first three deliveries are loaded so each comes off in order, leaving the truck empty for KV-2046 at stop ${collectionStop}.` },
-  { section: "handle-the-disruption", title: "Dispatch responds when conditions change.", text: "When Vehicle A is unavailable, Vehicle B takes KV-2044 and still keeps KV-2046's collection and delivery windows." },
+  { section: "plan-the-load", title: "The freight receives a loading plan.", text: `Vehicle B’s first three deliveries are loaded so each comes off in order, leaving the truck empty for KV-2046 at stop ${collectionStop}.` },
+  { section: "handle-the-disruption", title: "Dispatch responds when conditions change.", text: "When Vehicle A is unavailable, Vehicle B takes KV-2044 and still keeps KV-2046’s collection and delivery windows." },
 ];
 
 const startingScopes = [
@@ -113,11 +113,12 @@ export function LogisticsPage({ index }: { index: number }) {
       <main id="industry-content">
         <section className={styles.hero} aria-labelledby="industry-title">
           <div className={base.photoFrame}>
-            <Image src={industry.image} alt={industry.alt} fill preload sizes="100vw" className={base.photo} style={industry.heroPosition ? { objectPosition: industry.heroPosition } : undefined} />
+            <Image src={industry.image} alt={industry.alt} fill preload sizes="100vw" className={styles.heroPhoto} />
           </div>
           <div className={base.shade} />
+          <div className={styles.heroTexture} aria-hidden="true" />
           <div className={styles.heroCopy}>
-            <Link href="/#industries" className={base.back}><ArrowLeft size={14} /> Industries / {String(index + 1).padStart(2, "0")} {industry.name}</Link>
+            <Link href="/#industries" className={styles.back}><ArrowLeft size={14} /> Industries / {String(index + 1).padStart(2, "0")} {industry.name}</Link>
             <h1 id="industry-title" className={styles.headline}>{headline}</h1>
             <p className={styles.heroLead}>{summary}</p>
             <nav className={styles.heroNav} aria-label="What we can build">
@@ -135,13 +136,13 @@ export function LogisticsPage({ index }: { index: number }) {
 
         <section id="example-operation" className={styles.operation} aria-labelledby="operation-title">
           <div>
-            <p className={styles.sectionLabel}>The examples on this page</p>
+            <p className={styles.sectionLabel}>About the examples</p>
             <h2 id="operation-title" className={styles.operationTitle}>One fictional operation runs through every example.</h2>
             <p className={styles.operationBody}>
-              {operation.name} is an invented regional carrier with one depot and two vehicles. Shipment IDs, destinations, vehicle capacities, and cargo stay the same wherever a record appears again.
+              {operation.name} is an invented regional carrier with one depot and two vehicles. Shipment IDs, destinations, capacities, and cargo stay the same wherever a record reappears.
             </p>
             <p className={styles.operationAudience}>
-              Fleet operators run their own vehicles and drivers. Freight brokers arrange carriers to move freight. Each section says which of them it serves.
+              Fleet operators run their own vehicles and drivers. Freight brokers arrange carriers. Each section says which it serves.
             </p>
           </div>
           <ul className={styles.fleet} aria-label={`${operation.name} vehicles`}>
@@ -189,7 +190,7 @@ export function LogisticsPage({ index }: { index: number }) {
         <section id="one-shipment" className={styles.recap} aria-labelledby="recap-title">
           <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
           <h2 id="recap-title" className={styles.recapTitle}>One shipment, carried through the operation.</h2>
-          <p className={styles.recapBody}>The sections start with planning, but the same shipment information can carry through the whole process. Follow KV-2046 from the first message to the day it is delivered.</p>
+          <p className={styles.recapBody}>The sections start with planning, but the same shipment information carries through the whole process. Follow KV-2046 from the first message to delivery.</p>
           <ol className={styles.recapList}>
             {journey.map((step, stepIndex) => {
               const offering = offerings.find((item) => item.id === step.section);
@@ -229,7 +230,7 @@ export function LogisticsPage({ index }: { index: number }) {
           <Link href="/get-started" className={styles.closingButton}>Talk through your operation <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
         </section>
       </main>
-      <footer className={base.footer}>
+      <footer className={styles.footer}>
         <Link href="/#industries"><ArrowLeft size={14} /> All industries</Link>
         <Link href={`/industries/${next.slug}`}>Next: {next.name} <ArrowRight size={14} /></Link>
       </footer>
