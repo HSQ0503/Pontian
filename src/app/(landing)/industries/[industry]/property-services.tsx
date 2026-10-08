@@ -41,7 +41,7 @@ const offerings: Offering[] = [
     id: "scope-the-work",
     label: "Scope the work",
     moment: "At the walkthrough",
-    summary: "The owner's walkthrough becomes a reviewed estimate.",
+    summary: "The owner’s walkthrough becomes a reviewed estimate.",
     headline: "Turn a walkthrough into a clear plan for the job.",
     body: "We can bring together site photos, spoken notes, and your service catalog to prepare a draft scope and estimate, with exclusions and unanswered questions kept visible.",
     capabilities: ["Capture photos and spoken observations", "Prepare work items and exclusions", "Keep open questions out of the approved scope"],
@@ -52,11 +52,11 @@ const offerings: Offering[] = [
     id: "equip-the-crew",
     label: "Equip the crew",
     moment: "On the day of service",
-    summary: "The crew receives the accepted scope and the property's history.",
-    headline: "Give the crew the property's context.",
+    summary: "The crew receives the accepted scope and the property’s history.",
+    headline: "Give the crew the property’s context.",
     body: "We can connect the accepted estimate, property notes, previous visits, and reference photos so assigned crews can find useful answers without repeatedly calling the owner.",
     capabilities: ["See the approved work", "Find property-specific instructions", "Get answers with supporting records"],
-    outcome: "Keep routine job questions from depending on one person's memory.",
+    outcome: "Keep routine job questions from depending on one person’s memory.",
     Visual: EquipTheCrew,
   },
   {
@@ -75,7 +75,7 @@ const offerings: Offering[] = [
     label: "Plan the next visit",
     moment: "Before the next visit",
     summary: "The next visit starts with that knowledge already available.",
-    headline: "Carry the property's history into the next visit.",
+    headline: "Carry the property’s history into the next visit.",
     body: "We can connect agreed service intervals, previous work, customer preferences, and crew availability to help your team prepare the next visit and review how it fits into the schedule.",
     capabilities: ["Use agreed service intervals", "Consider travel and crew availability", "Bring previous instructions into the next job"],
     outcome: "Make repeat service easier to organize and deliver.",
@@ -100,12 +100,12 @@ export function PropertyServicesPage() {
       <FrontierHeader />
       <main id="industry-content">
         <section className={styles.hero} aria-labelledby="industry-title">
-          <div className={base.photoFrame}>
-            <Image src={industry.image} alt={industry.alt} fill preload sizes="100vw" className={base.photo} style={industry.heroPosition ? { objectPosition: industry.heroPosition } : undefined} />
+          <div className={styles.heroPhoto}>
+            <Image src={industry.image} alt={industry.alt} fill preload sizes="(max-width: 700px) 100vw, 60vw" className={styles.heroImage} />
           </div>
-          <div className={base.shade} />
+          <div className={styles.heroShade} />
           <div className={styles.heroCopy}>
-            <Link href="/#industries" className={base.back}><ArrowLeft size={14} /> Industries / {String(index + 1).padStart(2, "0")} {industry.name}</Link>
+            <Link href="/#industries" className={styles.back}><ArrowLeft size={14} /> Industries / {String(index + 1).padStart(2, "0")} {industry.name}</Link>
             <h1 id="industry-title" className={styles.headline}>{headline}</h1>
             <p className={styles.heroLead}>{summary}</p>
             <nav className={styles.heroNav} aria-label="What we can build">
@@ -194,7 +194,7 @@ export function PropertyServicesPage() {
           <Link href="/get-started" className={styles.closingButton}>Talk through your service operation <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
         </section>
       </main>
-      <footer className={base.footer}>
+      <footer className={styles.footer}>
         <Link href="/#industries"><ArrowLeft size={14} /> All industries</Link>
         <Link href={`/industries/${next.slug}`}>Next: {next.name} <ArrowRight size={14} /></Link>
       </footer>
