@@ -182,7 +182,7 @@ function Example({ title, chips, children, situation, output, next }: ExamplePro
       <div className={styles.exampleBody}>{children}</div>
       <ol className={styles.outcome}>
         <li data-role="situation"><span className={styles.outcomeLabel}>Situation</span>{situation}</li>
-        <li data-role="finding"><span className={styles.outcomeLabel}>Output for review</span>{output}</li>
+        <li data-role="finding"><span className={styles.outcomeLabel}>Result for review</span>{output}</li>
         <li data-role="next"><span className={styles.outcomeLabel}>Next step for your team</span>{next}</li>
       </ol>
       <p className={styles.exampleFoot}>Fictional machines, customer, and site. Not a client project, and no manufacturer is represented.</p>

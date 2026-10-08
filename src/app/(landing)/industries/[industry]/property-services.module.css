@@ -57,6 +57,9 @@
 .outcome p { margin: 0; }
 .outcome strong { font-weight: 600; color: #17191a; }
 .outcomeLabel { display: block; margin-bottom: 10px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #707273; }
+.boundary { padding: 14px clamp(18px, 2.2vw, 28px) 18px; border-top: 1px solid #d8d9d9; font-size: 13px; line-height: 1.55; color: #555758; }
+.boundary .outcomeLabel { margin-bottom: 6px; }
+.boundary p { margin: 0; }
 
 .column { display: grid; gap: 16px; align-content: start; min-width: 0; }
 .sheet { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 18px; border-radius: 2px; background: #fff; }

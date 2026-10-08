@@ -40,9 +40,9 @@ export function Example({ title, note, children, outcome }: { title: string; not
       </figcaption>
       <div className={styles.exampleBody}>{children}</div>
       <ol className={styles.outcome}>
-        <li data-role="start"><span className={styles.outcomeLabel}>What the team starts with</span>{outcome.start}</li>
-        <li data-role="finding"><span className={styles.outcomeLabel}>What the system helps work out</span>{outcome.finding}</li>
-        <li data-role="next"><span className={styles.outcomeLabel}>What someone reviews or does next</span>{outcome.next}</li>
+        <li data-role="start"><span className={styles.outcomeLabel}>Situation</span>{outcome.start}</li>
+        <li data-role="finding"><span className={styles.outcomeLabel}>Result for review</span>{outcome.finding}</li>
+        <li data-role="next"><span className={styles.outcomeLabel}>Next step for your team</span>{outcome.next}</li>
       </ol>
     </figure>
   );

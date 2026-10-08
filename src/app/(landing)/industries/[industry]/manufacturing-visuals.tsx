@@ -299,7 +299,7 @@ export function PlanProduction() {
     <Example
       title="Urgent order for tomorrow's shift, Cell 1"
       situation={<p>An urgent order for <strong>120 extended housings</strong> arrives for tomorrow&apos;s {formatClock(planning.shiftStart)} to {formatClock(planning.shiftEnd)} shift.</p>}
-      findingLabel="Recommendation for review"
+      findingLabel="Result for review"
       finding={<p><strong>Two sequences for the planner to compare.</strong> Neither is approved, and neither is automatically better.</p>}
       next={<p><strong>Review priorities and approve the schedule.</strong> Only the approved plan goes to the floor.</p>}
     >
@@ -688,7 +688,7 @@ export function TestChange() {
     <Example
       title={`Second inspection station, Cell 1`}
       situation={<p>Parts accumulate before inspection. {cell.inspection} is busy {percent(summaries.existing.inspectionBusy)} of the run and assembly holds finished parts {percent(summaries.existing.assemblyBlocked)} of the time.</p>}
-      findingLabel="Result under these assumptions"
+      findingLabel="Result for review"
       finding={bottleneckMoved
         ? <p><strong>Inspection can accept more work. Assembly now limits the line.</strong> {cell.assembly} is busy {percent(summaries.proposed.assemblyBusy)} of the run, while the inspection stations average {percent(summaries.proposed.inspectionBusy)}.</p>
         : <p><strong>The change does not move the limit.</strong> {stageName[summaries.proposed.limitingStage]} still sets the pace.</p>}

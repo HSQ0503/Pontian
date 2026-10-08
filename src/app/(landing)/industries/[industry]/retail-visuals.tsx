@@ -200,7 +200,7 @@ export function KnowTheCustomer() {
       situation={<p>Maya comes in. A staff member finds her loyalty account by name.</p>}
       finding={<p><strong>A short briefing:</strong> what she bought, what she told us, and three ways to help. Each suggestion shows its reason.</p>}
       next={<p>The salesperson decides what, if anything, to mention. Nothing is added to a basket.</p>}
-      findingLabel="What the salesperson sees"
+      findingLabel="Result for review"
     >
       <Sequence stages={["Look up", "History", "Briefing", "Suggestions"]} {...sequence} />
 
@@ -419,9 +419,7 @@ export function UnderstandTheBusiness() {
           <span className={styles.findingAction}>{open ? "Hide the categories" : "Show the categories behind it"} <ArrowRight size={14} strokeWidth={1.5} aria-hidden="true" /></span>
         </button>
       }
-      next={<p>Review product mix and merchandising with the store manager. <span className={styles.muted}>Next question: is equipment more prominent at Market Square because of its customers, its displays, or its range?</span></p>}
-      findingLabel="Supported finding"
-    >
+      next={<p>Review product mix and merchandising with the store manager. <span className={styles.muted}>Next question: is equipment more prominent at Market Square because of its customers, its displays, or its range?</span></p>}    >
       <div className={styles.questionRow}>
         <div>
           <p className={styles.sheetLabel}>The owner asks</p>
@@ -693,7 +691,7 @@ export function StockForDemand() {
       situation={<p>Harbor Street has {harbor.stock} bags against a forecast of about {forecastOf(harbor).expected}. Market Square has {market.stock} against about {forecastOf(market).expected}.</p>}
       finding={<p><strong>A transfer proposal for review:</strong> {TRANSFER} bags from Market Square to Harbor Street. Nothing has been moved or ordered.</p>}
       next={<p>Manager confirms quantities and timing.</p>}
-      findingLabel="Proposal for review"
+      findingLabel="Result for review"
     >
       <div className={styles.questionRow}>
         <div>

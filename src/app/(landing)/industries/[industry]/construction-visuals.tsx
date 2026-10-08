@@ -10,9 +10,10 @@ type ExampleProps = {
   situation: ReactNode;
   finding: ReactNode;
   next: ReactNode;
+  findingLabel?: string;
 };
 
-function Example({ title, children, situation, finding, next }: ExampleProps) {
+function Example({ title, children, situation, finding, next, findingLabel = "Finding for review" }: ExampleProps) {
   return (
     <figure className={styles.example}>
       <figcaption className={styles.exampleBar}>
@@ -23,7 +24,7 @@ function Example({ title, children, situation, finding, next }: ExampleProps) {
       <div className={styles.exampleBody}>{children}</div>
       <ol className={styles.outcome}>
         <li data-role="situation"><span className={styles.outcomeLabel}>Situation</span>{situation}</li>
-        <li data-role="finding"><span className={styles.outcomeLabel}>Finding for review</span>{finding}</li>
+        <li data-role="finding"><span className={styles.outcomeLabel}>{findingLabel}</span>{finding}</li>
         <li data-role="next"><span className={styles.outcomeLabel}>Next step for your team</span>{next}</li>
       </ol>
     </figure>
@@ -310,6 +311,7 @@ export function WayForward() {
     <Example
       title="Flooring delivery delayed"
       situation={<p>The flooring delivery is late, and the original sequence depends on it.</p>}
+      findingLabel="Result for review"
       finding={<p><strong>An alternative sequence to review.</strong> Option B depends on example assumptions the planner has not yet confirmed.</p>}
       next={<p>The planner checks feasibility before anything is rescheduled.</p>}
     >

@@ -10,9 +10,10 @@ type ExampleProps = {
   start: ReactNode;
   result: ReactNode;
   next: ReactNode;
+  resultLabel?: string;
 };
 
-function Example({ title, children, start, result, next }: ExampleProps) {
+function Example({ title, children, start, result, next, resultLabel = "Result for review" }: ExampleProps) {
   return (
     <figure className={styles.example}>
       <figcaption className={styles.exampleBar}>
@@ -22,8 +23,8 @@ function Example({ title, children, start, result, next }: ExampleProps) {
       </figcaption>
       <div className={styles.exampleBody}>{children}</div>
       <ol className={styles.outcome}>
-        <li data-role="start"><span className={styles.outcomeLabel}>Starts with</span>{start}</li>
-        <li data-role="result" aria-live="polite"><span className={styles.outcomeLabel}>Result for review</span>{result}</li>
+        <li data-role="start"><span className={styles.outcomeLabel}>Situation</span>{start}</li>
+        <li data-role="result" aria-live="polite"><span className={styles.outcomeLabel}>{resultLabel}</span>{result}</li>
         <li data-role="next"><span className={styles.outcomeLabel}>Next step for your team</span>{next}</li>
       </ol>
     </figure>
@@ -181,6 +182,7 @@ export function FirstModel() {
     <Example
       title="Ground floor plan, two rooms"
       start={<p>A dimensioned plan: <strong>one floor, two rooms, five walls</strong>, with the scale on the drawing.</p>}
+      resultLabel={confirmed ? "Result for review" : "Finding for review"}
       result={confirmed
         ? <p><strong>Editable starting model.</strong> Five walls and one floor at the confirmed 3.00 m height. Nothing else is added.</p>
         : <p><strong>Wall height needs confirmation.</strong> The walls are not created until it is confirmed.</p>}
@@ -318,6 +320,7 @@ export function DesignFit() {
     <Example
       title="Corridor ceiling, level 3"
       start={<p>Two discipline models for the same corridor: <strong>structural</strong> and <strong>ventilation</strong>.</p>}
+      resultLabel="Finding for review"
       result={<p><strong>Duct and beam overlap.</strong> These elements occupy the same space in the example model.</p>}
       next={<p>Review the duct route with the structural team.</p>}
     >
@@ -474,6 +477,7 @@ export function RevisionScope() {
     <Example
       title="Plant room, replacement unit"
       start={<p><strong>Supplier proposes a larger equipment unit</strong> for a room that was already designed around the approved one.</p>}
+      resultLabel="Finding for review"
       result={<p><strong>A focused review for the affected disciplines.</strong> Three questions, each linked to its source. None is a confirmed problem yet.</p>}
       next={<p>Each discipline confirms what needs to change.</p>}
     >
@@ -620,6 +624,7 @@ export function Deliverables() {
     <Example
       title="Window schedule and elevation sheet"
       start={<p>A <strong>reviewed model with four windows</strong>, and the firm&apos;s schedule and sheet templates.</p>}
+      resultLabel={corrected ? "Result for review" : "Finding for review"}
       result={corrected
         ? <p><strong>Window schedule, 4 entries.</strong> Ready for review, not approved or issued.</p>
         : <p><strong>One modeled window is missing from the schedule.</strong> The draft lists 3 entries.</p>}

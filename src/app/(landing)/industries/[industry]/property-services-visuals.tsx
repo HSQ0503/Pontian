@@ -17,9 +17,18 @@ function Tag({ tone, children }: { tone: TagTone; children: ReactNode }) {
   return <span className={styles.tag} data-tone={tone}>{children}</span>;
 }
 
-type Footer = { label: string; content: ReactNode; role?: "finding" | "next" };
+type ExampleProps = {
+  stage: number;
+  title: string;
+  children: ReactNode;
+  situation: ReactNode;
+  finding: ReactNode;
+  next: ReactNode;
+  findingLabel?: string;
+  boundary: ReactNode;
+};
 
-function Example({ stage, title, children, footer }: { stage: number; title: string; children: ReactNode; footer: Footer[] }) {
+function Example({ stage, title, children, situation, finding, next, findingLabel = "Finding for review", boundary }: ExampleProps) {
   return (
     <figure className={styles.example}>
       <figcaption className={styles.exampleBar}>
@@ -34,13 +43,11 @@ function Example({ stage, title, children, footer }: { stage: number; title: str
       </figcaption>
       <div className={styles.exampleBody}>{children}</div>
       <ol className={styles.outcome}>
-        {footer.map((item) => (
-          <li key={item.label} data-role={item.role}>
-            <span className={styles.outcomeLabel}>{item.label}</span>
-            {item.content}
-          </li>
-        ))}
+        <li data-role="situation"><span className={styles.outcomeLabel}>Situation</span>{situation}</li>
+        <li data-role="finding"><span className={styles.outcomeLabel}>{findingLabel}</span>{finding}</li>
+        <li data-role="next"><span className={styles.outcomeLabel}>Next step for your team</span>{next}</li>
       </ol>
+      <div className={styles.boundary}><span className={styles.outcomeLabel}>Keep in mind</span>{boundary}</div>
     </figure>
   );
 }
@@ -214,11 +221,11 @@ export function ScopeTheWork() {
     <Example
       stage={0}
       title={`${PROPERTY}, walkthrough on 4 May`}
-      footer={[
-        { label: "What was observed", content: <p>A spoken note and three photos from the owner&rsquo;s walkthrough.</p> },
-        { label: "What your team gets", role: "finding", content: <p><strong>A reviewed scope with its reference photos.</strong> The open side-path question stays outside it.</p> },
-        { label: "Keep in mind", role: "next", content: <p>Ordinary photos do not establish dimensions, hidden conditions, or the right treatment method.</p> },
-      ]}
+      situation={<p>A spoken note and three photos from the owner&rsquo;s walkthrough.</p>}
+      findingLabel="Result for review"
+      finding={<p><strong>A reviewed scope with its reference photos.</strong> The open side-path question stays outside it.</p>}
+      next={<p>Your team reviews the estimate before the customer approves the stated work.</p>}
+      boundary={<p>Ordinary photos do not establish dimensions, hidden conditions, or the right treatment method.</p>}
     >
       <div className={styles.scopeFlow}>
         <div className={styles.column}>
@@ -370,11 +377,11 @@ export function EquipTheCrew() {
     <Example
       stage={1}
       title={`${PROPERTY}, day of service, 14 May`}
-      footer={[
-        { label: "What the crew sees", content: <p>Only what an assigned crew needs: the approved work, instructions, access, and the records behind them.</p> },
-        { label: "Every answer", role: "finding", content: <p><strong>Shows its source,</strong> or says it needs office confirmation when the record is missing or conflicts.</p> },
-        { label: "Keep in mind", role: "next", content: <p>Old notes, customer messages, and crew suggestions never override the accepted scope or authorize extra work.</p> },
-      ]}
+      situation={<p>The assigned crew sees only what it needs: the approved work, instructions, access, and the records behind them.</p>}
+      findingLabel="Result for review"
+      finding={<p><strong>Every answer shows its source,</strong> or says it needs office confirmation when the record is missing or conflicts.</p>}
+      next={<p>Questions without a supporting record go to the office to confirm.</p>}
+      boundary={<p>Old notes, customer messages, and crew suggestions never override the accepted scope or authorize extra work.</p>}
     >
       <div className={styles.crewGrid}>
         <div className={styles.column}>
@@ -462,11 +469,10 @@ export function ReviewTheResult() {
     <Example
       stage={2}
       title={`${PROPERTY}, after the 14 May visit`}
-      footer={[
-        { label: "Finding at the first check", role: "finding", content: <p><strong>Rear patio completion evidence is missing.</strong></p> },
-        { label: "Next step for your team", role: "next", content: <p>Request the relevant photo or crew clarification.</p> },
-        { label: "Keep in mind", content: <p>Missing evidence does not prove missing work, and a photo does not certify workmanship, safety, or hidden work.</p> },
-      ]}
+      situation={<p>Completion photos and crew notes from the 14 May visit, checked against the approved tasks.</p>}
+      finding={<p><strong>Rear patio completion evidence is missing.</strong></p>}
+      next={<p>Request the relevant photo or crew clarification.</p>}
+      boundary={<p>Missing evidence does not prove missing work, and a photo does not certify workmanship, safety, or hidden work.</p>}
     >
       <div className={styles.reviewGrid}>
         <div className={styles.column}>
@@ -623,11 +629,11 @@ export function PlanTheNextVisit() {
     <Example
       stage={3}
       title={`${PROPERTY} and two nearby properties, week of 9 November`}
-      footer={[
-        { label: "What your team gets", role: "finding", content: <p><strong>A crew schedule and customer confirmations to review.</strong></p> },
-        { label: "Next step for your team", role: "next", content: <p>Office approves the schedule before confirming visits.</p> },
-        { label: "Keep in mind", content: <p>Nothing is booked and no customer is contacted. Optimized grouping is a capability to validate with your team.</p> },
-      ]}
+      situation={<p>The next visit is due the week of 9 November, with two nearby properties due around the same time.</p>}
+      findingLabel="Result for review"
+      finding={<p><strong>A crew schedule and customer confirmations to review.</strong></p>}
+      next={<p>Office approves the schedule before confirming visits.</p>}
+      boundary={<p>Nothing is booked and no customer is contacted. Optimized grouping is a capability to validate with your team.</p>}
     >
       <div className={styles.planGrid}>
         <div className={styles.column}>
