@@ -65,7 +65,10 @@ function tinted(material: THREE.Material) {
   const cached = tintCache.get(material);
   if (cached) return cached;
   const copy = (material as THREE.MeshStandardMaterial).clone();
-  copy.color.lerp(new THREE.Color(SELECT), 0.72);
+  // Large painted bodies take a lighter tint so a selected machine reads as
+  // highlighted, not repainted in a manufacturer-like yellow.
+  const strength = material === M.paint || material === M.paintShade ? 0.38 : 0.72;
+  copy.color.lerp(new THREE.Color(SELECT), strength);
   tintCache.set(material, copy);
   return copy;
 }

@@ -286,9 +286,9 @@
   .splitStacked { aspect-ratio: 3 / 4; }
 }
 @media (max-width: 700px) {
-  .hero { min-height: 92svh; padding: 112px 24px 32px; }
-  .heroRender { width: 124vw; right: -20%; top: 84px; transform: none; }
-  .heroShade { background: linear-gradient(180deg, rgb(8 8 8 / 10%) 20%, rgb(8 8 8 / 70%) 52%, #080808 74%); }
+  .hero { min-height: auto; padding: calc(88px + 52vw) 24px 40px; }
+  .heroRender { width: 112vw; right: -12%; top: 72px; transform: none; }
+  .heroShade { background: linear-gradient(180deg, rgb(8 8 8 / 0%) 30%, #080808 62%); }
   .headline { font-size: clamp(38px, 10.5vw, 54px); margin: 24px 0 16px; }
   .heroLead { margin-bottom: 32px; font-size: 16px; }
   .heroNav a { padding: 16px 12px 16px 0; column-gap: 8px; }

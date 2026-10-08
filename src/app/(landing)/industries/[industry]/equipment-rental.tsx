@@ -90,7 +90,7 @@ export function EquipmentRentalPage({ industry, index, next }: { industry: Indus
       <FrontierHeader />
       <main id="industry-content">
         <section className={styles.hero} aria-labelledby="industry-title">
-          <Image src={heroRender} alt="" priority sizes="(max-width: 700px) 150vw, (max-width: 1100px) 104vw, 64vw" className={styles.heroRender} />
+          <Image src={heroRender} alt="" loading="eager" fetchPriority="high" sizes="(max-width: 700px) 112vw, (max-width: 1100px) 92vw, 64vw" className={styles.heroRender} />
           <div className={styles.heroShade} />
           <div className={styles.heroCopy}>
             <Link href="/#industries" className={styles.back}><ArrowLeft size={14} /> Industries / {String(index + 1).padStart(2, "0")} {industry.name}</Link>
