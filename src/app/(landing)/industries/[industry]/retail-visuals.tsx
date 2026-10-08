@@ -747,7 +747,7 @@ export function StockForDemand() {
         </div>
         {option === "transfer" ? (
           <ul className={styles.assumptions} aria-label="Assumptions behind the transfer proposal">
-            {assumptions.map(([label, value]) => <li key={label}><Check size={15} strokeWidth={2} aria-hidden="true" /><span><strong>{label}</strong>{value}</span></li>)}
+            {assumptions.map(([label, value]) => <li key={label}><Check size={15} strokeWidth={2} aria-hidden="true" /><span><strong>{label}</strong><span>{value}</span></span></li>)}
           </ul>
         ) : (
           <p className={styles.meta}>A reorder adds new bags from the roaster in {REORDER.leadDays} days. It could follow a transfer for the next cycle, once the manager has reviewed demand again.</p>

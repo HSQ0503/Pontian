@@ -107,7 +107,7 @@
 .receiptHead strong { font-size: 15px; font-weight: 600; color: #17191a; }
 .receipt ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .receipt ul li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 12px; margin: 0 -10px; padding: 7px 10px; font-size: 15px; transition: background 320ms cubic-bezier(.22, 1, .36, 1), box-shadow 320ms cubic-bezier(.22, 1, .36, 1); }
-.receipt ul li[data-highlight="true"] { background: #fff3a8; box-shadow: inset 3px 0 0 #fed603; }
+.receipt ul li[data-highlight="true"] { background: #fff3a8; }
 .price { font-variant-numeric: tabular-nums; color: #555758; }
 .preference { display: grid; gap: 4px; padding: 16px 20px; border-left: 3px solid #fed603; background: #fff; transition: background 320ms cubic-bezier(.22, 1, .36, 1), box-shadow 320ms cubic-bezier(.22, 1, .36, 1); }
 .preference[data-highlight="true"] { background: #fff3a8; box-shadow: inset 0 0 0 1px #17191a; }
@@ -229,7 +229,7 @@
 .stockFigure > span { display: grid; font-size: 15px; color: #262829; }
 .stockFigure small { font-size: 13px; color: #626465; }
 .stockFigure b { font-size: 14px; font-weight: 600; color: #0062c7; }
-.shelf { display: grid; grid-template-columns: repeat(10, 12px); column-gap: 4px; row-gap: 6px; min-height: 90px; align-content: start; padding-bottom: 2px; background: repeating-linear-gradient(to bottom, transparent 0 13px, #c4c5c5 13px 14px, transparent 14px 18px); }
+.shelf { justify-self: start; width: 156px; display: grid; grid-template-columns: repeat(10, 12px); column-gap: 4px; row-gap: 6px; min-height: 90px; align-content: start; padding-bottom: 2px; background: repeating-linear-gradient(to bottom, transparent 0 13px, #c4c5c5 13px 14px, transparent 14px 18px); }
 .shelf i, .stockLegend i { display: block; width: 12px; height: 12px; border-radius: 1px; transition: background 320ms cubic-bezier(.22, 1, .36, 1), border-color 320ms cubic-bezier(.22, 1, .36, 1); }
 .shelf [data-cell="stock"], .stockLegend [data-cell="stock"] { background: #262829; }
 .shelf [data-cell="leaving"], .stockLegend [data-cell="leaving"] { background: repeating-linear-gradient(135deg, #262829 0 2px, #d7e9ff 2px 4.5px); box-shadow: inset 0 0 0 1px #007dfe; }
@@ -262,7 +262,7 @@
 .assumptions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 32px; margin: 0; padding: 0; list-style: none; }
 .assumptions li { display: grid; grid-template-columns: 18px 1fr; gap: 10px; font-size: 15px; color: #555758; }
 .assumptions li svg { margin-top: 4px; color: #17191a; }
-.assumptions li > span { display: grid; gap: 2px; }
+.assumptions li > span { display: grid; gap: 2px; align-content: start; }
 .assumptions strong { font-weight: 600; color: #17191a; }
 .total { margin: 0; padding-top: 16px; border-top: 1px solid #e4e4e2; font-size: 15px; font-weight: 600; color: #17191a; }
 
@@ -354,11 +354,18 @@
   .offering, .recap, .start, .closing { padding: 72px 24px; }
   .offeringTitle { font-size: clamp(32px, 8.6vw, 44px); }
   .outcomeLine { font-size: clamp(22px, 6vw, 28px); gap: 14px; }
+  .example { margin-inline: -12px; }
   .exampleBar { padding: 14px 16px; }
-  .exampleNote { order: 3; margin-left: 0; width: 100%; }
-  .replay { margin-left: auto; }
-  .exampleBody { padding: 16px; gap: 20px; }
-  .panel, .briefing, .questionRow, .storeTile, .location, .checksPanel, .evidencePanel, .forecastEvidence { padding: 18px; }
+  .exampleTag { order: 1; }
+  .replay { order: 2; margin-left: auto; }
+  .exampleTitle { order: 3; width: 100%; }
+  .exampleNote { order: 4; margin-left: 0; width: 100%; }
+  .exampleBody { padding: 12px; gap: 16px; }
+  .lookup, .history, .recordToggle { padding-inline: 4px; }
+  .panel, .briefing, .questionRow, .storeTile, .location, .checksPanel, .evidencePanel, .forecastEvidence { padding: 16px; }
+  .briefing { margin-inline: -12px; border-radius: 0; box-shadow: 0 1px 0 #d8d9d9, 0 -1px 0 #d8d9d9; }
+  .conversation { padding: 16px; }
+  .weeks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .outcome li { padding: 22px 18px 24px; }
   .outcome li::before { left: 18px; }
   .table { font-size: 14px; }
@@ -366,7 +373,7 @@
   .table th + th, .table td + td { padding-left: 10px; }
   .timeline { height: 132px; margin: 0 4px; }
   .dot span, .today span { font-size: 13px; }
-  .weeks li { flex: 1; min-width: 0; }
+  .weeks li { min-width: 0; }
   .recapTitle, .closingTitle { font-size: clamp(30px, 7.7vw, 46px); line-height: 1.18; }
   .recapList { grid-template-columns: minmax(0, 1fr); row-gap: 32px; }
   .startTitle { font-size: clamp(30px, 8vw, 42px); }
