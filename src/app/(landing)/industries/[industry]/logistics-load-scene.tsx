@@ -8,7 +8,7 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import styles from "./logistics.module.css";
 import { shipments } from "./logistics-data";
-import { blockingKeys, CARGO, items, laneY, PALLET_BASE, placements, ROWS, rowX, transitionMoves, type ArrangementId, type Point, type Track, type ViewId } from "./logistics-load-plan";
+import { CARGO, laneY, PALLET_BASE, ROWS, rowX, type FloorMark, type Point, type SceneItem, type SceneLayout, type SceneTone, type Track, type ViewId } from "./logistics-load-plan";
 
 // World axes: x runs from the front bulkhead to the rear door (the plan's x),
 // z across the body (the plan's y), y up. The truck is backed onto a dock at
@@ -28,6 +28,7 @@ const VIEWS: Record<ViewId, { azimuth: number; elevation: number; zoom: number }
   side: { azimuth: 0, elevation: 10, zoom: 0.95 },
   rear: { azimuth: 90, elevation: 26, zoom: 0.78 },
   top: { azimuth: 0, elevation: 88, zoom: 0.9 },
+  overhead: { azimuth: 24, elevation: 46, zoom: 1.12 },
 };
 
 const INK = new THREE.Color("#17191a");
@@ -35,14 +36,16 @@ const SELECT = new THREE.Color("#fed603");
 const BLOCKED = new THREE.Color("#f51625");
 const PROPOSED = new THREE.Color("#007dfe");
 
-const loadTone: Record<string, string> = { "KV-2041": "#e6e4df", "KV-2042": "#c9b28c", "KV-2043": "#a3a6a9" };
+export const loadTone: Record<string, string> = { "KV-2041": "#e6e4df", "KV-2042": "#c9b28c", "KV-2043": "#a3a6a9", "KV-2044": "#dcd6ca", "KV-2045": "#bfc3c6" };
 
 export type SceneChip = { title: string; detail: string; tone: "ok" | "alert" };
 
 type SceneProps = {
-  arrangement: ArrangementId;
-  step: number;
-  selected: string;
+  items: SceneItem[];
+  layout: SceneLayout;
+  tones: Record<string, SceneTone>;
+  anchor: string | null;
+  marks: FloorMark[];
   view: ViewId | null;
   active: boolean;
   reducedMotion: boolean;
@@ -129,18 +132,18 @@ function wrapTexture(kind: string) {
   });
 }
 
-function labelTexture(shipment: string, stop: number) {
+function labelTexture(shipment: string, stop: string) {
   return canvasTexture(320, 200, (context) => {
     context.fillStyle = "#ffffff";
     context.fillRect(0, 0, 320, 200);
     context.fillStyle = "#17191a";
     context.font = "600 112px system-ui, sans-serif";
     context.textBaseline = "middle";
-    context.fillText(String(stop), 22, 92);
+    context.fillText(stop, 22, 92);
     context.font = "600 34px system-ui, sans-serif";
     context.fillText(shipment, 120, 70);
     context.font = "400 28px system-ui, sans-serif";
-    context.fillText(`Stop ${stop}`, 120, 118);
+    context.fillText(stop === "–" ? "Unassigned" : `Stop ${stop}`, 120, 118);
     context.fillRect(22, 168, 276, 6);
   });
 }
@@ -228,8 +231,8 @@ function Truck({ materials }: { materials: Materials }) {
       {[[-0.07, -0.04], [W + 0.04, W + 0.07]].map(([z0, z1]) => <Block key={`front-${z0}`} min={[-0.06, DECK, z0]} max={[0.06, DECK + H, z1]} material={materials.paint} />)}
       {[-0.06, W].map((z) => <Block key={`rear-${z}`} min={[L, floorBottom, z]} max={[L + 0.06, DECK + H, z + 0.06]} material={materials.paint} />)}
       <Block min={[L - 0.02, DECK + H, -0.06]} max={[L + 0.06, DECK + H + 0.12, W + 0.06]} material={materials.paint} />
-      {/* Rear doors folded flat against the body sides, with locking bars. */}
-      {[[-0.11, -0.065], [W + 0.065, W + 0.11]].map(([z0, z1], side) => (
+      {/* The far rear door, folded flat against the body side, with locking bars. The near one is cut away with the near wall. */}
+      {[[-0.11, -0.065]].map(([z0, z1], side) => (
         <group key={`door-${side}`}>
           <Block min={[L + 0.06 - 1.225, DECK + 0.02, z0]} max={[L + 0.06, DECK + H - 0.02, z1]} material={materials.paint} />
           {[0.35, 0.85].map((offset) => (
@@ -377,7 +380,7 @@ function usePalletGeometry() {
   }, []);
 }
 
-function Pallet({ item, base, store, onPick }: { item: (typeof items)[number]; base: THREE.BufferGeometry; store: SceneStore; onPick: (event: ThreeEvent<MouseEvent>) => void }) {
+function Pallet({ item, base, store, onPick }: { item: SceneItem; base: THREE.BufferGeometry; store: SceneStore; onPick: (event: ThreeEvent<MouseEvent>) => void }) {
   const shipment = shipments[item.shipment];
   const height = shipment.pallet.height - PALLET_BASE - 0.004;
   const group = useRef<THREE.Group>(null);
@@ -390,9 +393,9 @@ function Pallet({ item, base, store, onPick }: { item: (typeof items)[number]; b
       edgeGeometry: new THREE.EdgesGeometry(new THREE.BoxGeometry(1.185, height + 0.004, 0.985)),
       load: new THREE.MeshStandardMaterial({ color: tone.clone(), roughness: item.shipment === "KV-2042" ? 0.8 : 0.48, metalness: 0, map: wrapTexture(item.shipment) }),
       base: new THREE.MeshStandardMaterial({ color: "#cdbd9c", roughness: 0.85 }),
-      label: new THREE.MeshBasicMaterial({ map: labelTexture(item.shipment, item.stop), toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2 }),
+      label: new THREE.MeshBasicMaterial({ map: labelTexture(item.shipment, item.label), toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2 }),
     };
-  }, [item.shipment, item.stop, height]);
+  }, [item.shipment, item.label, height]);
   useLayoutEffect(() => {
     if (!group.current || !edges.current) return;
     store.register(item.key, { group: group.current, load: resources.load, base: resources.base, label: resources.label, edges: edges.current, tone: resources.tone, height: PALLET_BASE + height });
@@ -435,10 +438,11 @@ function sampleTrack(track: Track, time: number): Point {
 
 type Motion = { kind: "unload"; start: number; tracks: Track[]; total: number } | { kind: "fade"; start: number; total: number };
 
-function Cargo({ arrangement, step, selected, reducedMotion, onPick, store }: {
-  arrangement: ArrangementId;
-  step: number;
-  selected: string;
+function Cargo({ items, layout, tones, anchor, reducedMotion, onPick, store }: {
+  items: SceneItem[];
+  layout: SceneLayout;
+  tones: Record<string, SceneTone>;
+  anchor: string | null;
   reducedMotion: boolean;
   onPick: (shipment: string) => void;
   store: SceneStore;
@@ -446,39 +450,35 @@ function Cargo({ arrangement, step, selected, reducedMotion, onPick, store }: {
   const base = usePalletGeometry();
   const { invalidate } = useThree();
   const motion = useRef<Motion | null>(null);
-  const previous = useRef({ arrangement, step });
-  const rest = useMemo(() => placements(arrangement, step), [arrangement, step]);
-  const selectedStop = items.find((item) => item.shipment === selected)?.stop ?? 1;
-  const blocking = useMemo(() => new Set(blockingKeys(arrangement, selectedStop)), [arrangement, selectedStop]);
+  const previous = useRef(layout.key);
+  const rest = layout.placements;
 
   useLayoutEffect(() => {
     const before = previous.current;
-    previous.current = { arrangement, step };
+    if (before === layout.key && motion.current) return;
+    previous.current = layout.key;
     motion.current = null;
     store.handles.forEach((handle, key) => { placePallet(handle, rest[key], !rest[key].gone); setPalletOpacity(handle, 1); });
-    if (!reducedMotion && before.arrangement !== arrangement) {
-      motion.current = { kind: "fade", start: performance.now(), total: 360 };
-    } else if (!reducedMotion && before.arrangement === arrangement && step === before.step + 1) {
-      const { tracks, total } = transitionMoves(arrangement, step);
-      const prior = placements(arrangement, step - 1);
-      tracks.forEach((track) => {
-        const handle = store.handles.get(track.key);
-        if (handle) placePallet(handle, track.frames[0].point, !prior[track.key].gone);
-      });
-      motion.current = { kind: "unload", start: performance.now(), tracks, total };
+    if (!reducedMotion && before !== layout.key) {
+      const transition = layout.transition;
+      if (transition && transition.fromKey === before) {
+        transition.tracks.forEach((track) => {
+          const handle = store.handles.get(track.key);
+          if (handle) placePallet(handle, track.frames[0].point, true);
+        });
+        motion.current = { kind: "unload", start: performance.now(), tracks: transition.tracks, total: transition.total };
+      } else {
+        motion.current = { kind: "fade", start: performance.now(), total: 360 };
+      }
     }
     invalidate();
-  }, [arrangement, step, reducedMotion, invalidate, rest, store]);
+  }, [layout, rest, reducedMotion, invalidate, store]);
 
   useLayoutEffect(() => {
-    const candidates = items.filter((item) => item.shipment === selected && !rest[item.key].gone);
-    store.setAnchor(candidates.sort((a, b) => rest[b.key].x - rest[a.key].x)[0]?.key ?? null);
-    store.handles.forEach((handle, key) => {
-      const shipment = items.find((entry) => entry.key === key)?.shipment;
-      paintPallet(handle, shipment === selected ? "selected" : blocking.has(key) && !rest[key].gone ? "blocking" : "none");
-    });
+    store.setAnchor(anchor && !rest[anchor]?.gone ? anchor : null);
+    store.handles.forEach((handle, key) => paintPallet(handle, rest[key]?.gone ? "none" : tones[key] ?? "none"));
     invalidate();
-  }, [rest, selected, blocking, store, invalidate]);
+  }, [rest, tones, anchor, store, invalidate]);
 
   useFrame((state) => {
     const current = motion.current;
@@ -512,25 +512,15 @@ function Cargo({ arrangement, step, selected, reducedMotion, onPick, store }: {
   );
 }
 
-function AccessPath({ arrangement, step, selected }: { arrangement: ArrangementId; step: number; selected: string }) {
-  const rest = placements(arrangement, step);
-  const stop = items.find((item) => item.shipment === selected)?.stop ?? 1;
-  if (blockingKeys(arrangement, stop).length > 0) return null;
-  const lanes = items.filter((item) => item.shipment === selected && !rest[item.key].gone && !rest[item.key].staged);
+function FloorMarks({ marks }: { marks: FloorMark[] }) {
   return (
     <group>
-      {lanes.map((item) => {
-        const point = rest[item.key];
-        const from = point.x + 1.2;
-        const length = L + 0.6 - from;
-        if (length <= 0.05) return null;
-        return (
-          <mesh key={item.key} position={[from + length / 2, DECK + 0.004, point.y + 0.5]} rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[length, 0.5]} />
-            <meshBasicMaterial color={PROPOSED} transparent opacity={0.22} depthWrite={false} toneMapped={false} />
-          </mesh>
-        );
-      })}
+      {marks.map((mark) => (
+        <mesh key={`${mark.x}-${mark.y}`} position={[mark.x + mark.length / 2, DECK + 0.004, mark.y + mark.width / 2]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[mark.length, mark.width]} />
+          <meshBasicMaterial color={mark.tone === "ok" ? PROPOSED : BLOCKED} transparent opacity={0.38} depthWrite={false} toneMapped={false} />
+        </mesh>
+      ))}
     </group>
   );
 }
@@ -674,7 +664,7 @@ function Ready({ onReady }: { onReady: () => void }) {
   return null;
 }
 
-export default function LoadScene({ arrangement, step, selected, view, active, reducedMotion, chip, label, onSelect, onFreeView, onReady }: SceneProps) {
+export default function LoadScene({ items, layout, tones, anchor, marks, view, active, reducedMotion, chip, label, onSelect, onFreeView, onReady }: SceneProps) {
   const materials = useMaterials();
   const [store] = useState(() => new SceneStore());
   const drag = useRef<{ x: number; y: number; orbit: Orbit; moved: boolean } | null>(null);
@@ -711,7 +701,6 @@ export default function LoadScene({ arrangement, step, selected, view, active, r
       role="group"
       aria-roledescription="3D cargo view"
       aria-label={label}
-      aria-describedby="load-caption"
       tabIndex={0}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -743,8 +732,8 @@ export default function LoadScene({ arrangement, step, selected, view, active, r
         <ContactShadow x={(L + DOCK_END) / 2} z={W / 2} length={DOCK_END - L + 1} width={W + DOCK_SIDE * 2 + 1.2} opacity={0.3} />
         <Truck materials={materials} />
         <Dock materials={materials} />
-        <AccessPath arrangement={arrangement} step={step} selected={selected} />
-        <Cargo arrangement={arrangement} step={step} selected={selected} reducedMotion={reducedMotion} store={store} onPick={(shipment) => { if (!store.dragged) onSelect(shipment); }} />
+        <FloorMarks marks={marks} />
+        <Cargo items={items} layout={layout} tones={tones} anchor={anchor} reducedMotion={reducedMotion} store={store} onPick={(shipment) => { if (!store.dragged) onSelect(shipment); }} />
         <ChipProjector store={store} overlay={overlay} />
         <Ready onReady={onReady} />
         <ResumeWhenActive active={active} store={store} />

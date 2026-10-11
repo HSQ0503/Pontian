@@ -65,8 +65,8 @@ function stopActions(arrangement: ArrangementId, stop: number): Action[] {
 export const blockingKeys = (arrangement: ArrangementId, stop: number) => stopActions(arrangement, stop).filter((action) => action.kind === "stage").map((action) => action.key);
 export const blockersAt = (arrangement: ArrangementId, stop: number) => blockingKeys(arrangement, stop).length;
 
-export type ViewId = "angle" | "side" | "rear" | "top";
-export const viewLabels: Record<ViewId, string> = { angle: "Three-quarter", side: "Side", rear: "Rear door", top: "Plan" };
+export type ViewId = "angle" | "side" | "rear" | "top" | "overhead";
+export const viewLabels: Partial<Record<ViewId, string>> = { angle: "Three-quarter", side: "Side", rear: "Rear door", top: "Plan" };
 
 export type Placement = Point & { gone: boolean; staged: boolean };
 
@@ -123,4 +123,67 @@ export function transitionMoves(arrangement: ArrangementId, step: number): { tra
     total = Math.max(total, cursor + FADE_MS);
   });
   return { tracks: [...tracks.values()], total };
+}
+
+// Shared shape for anything the cargo scene or its plan-view fallback draws.
+export type SceneItem = { key: string; shipment: string; label: string };
+export type SceneTone = "selected" | "blocking" | "none";
+export type FloorMark = { x: number; y: number; length: number; width: number; tone: "ok" | "alert" };
+export type SceneLayout = { key: string; placements: Record<string, Placement>; transition?: { fromKey: string; tracks: Track[]; total: number } };
+
+export const loadSceneItems: SceneItem[] = items.map((item) => ({ key: item.key, shipment: item.shipment, label: String(item.stop) }));
+
+export function loadLayout(arrangement: ArrangementId, step: number): SceneLayout {
+  const key = `${arrangement}-${step}`;
+  if (step === 0) return { key, placements: placements(arrangement, 0) };
+  const { tracks, total } = transitionMoves(arrangement, step);
+  return { key, placements: placements(arrangement, step), transition: { fromKey: `${arrangement}-${step - 1}`, tracks, total } };
+}
+
+export const slotMark = (row: number, lane: Lane, tone: FloorMark["tone"]): FloorMark => ({ x: rowX(row), y: laneY[lane], length: 1.2, width: 1, tone });
+
+// Disruption: Vehicle A is off the road, so its freight waits on the depot
+// dock. Recovery reloads Vehicle B with KV-2044 at the front, since it is
+// delivered last; everything else moves back one row and one space is left.
+export type RecoveryMode = "original" | "recovery";
+
+const fleetPallets = (shipment: string, label: string) =>
+  Array.from({ length: shipments[shipment].pallets }, (_, index): SceneItem => ({ key: `${shipment}-${index + 1}`, shipment, label }));
+
+export const recoverySceneItems: SceneItem[] = [...loadSceneItems, ...fleetPallets("KV-2044", "6"), ...fleetPallets("KV-2045", "–")];
+
+const dock = (index: number, lane: Lane): Placement => ({ x: stageX(index), y: laneY[lane], gone: false, staged: true });
+const inTruck = (row: number, lane: Lane): Placement => ({ x: rowX(row), y: laneY[lane], gone: false, staged: false });
+
+const recoverySlots: Record<string, Slot> = {
+  "KV-2044-1": { row: 0, lane: 0 }, "KV-2044-2": { row: 0, lane: 1 },
+  "KV-2043-1": { row: 1, lane: 0 }, "KV-2043-2": { row: 1, lane: 1 },
+  "KV-2042-1": { row: 2, lane: 0 }, "KV-2042-2": { row: 2, lane: 1 }, "KV-2042-3": { row: 3, lane: 0 },
+  "KV-2041-1": { row: 4, lane: 0 }, "KV-2041-2": { row: 3, lane: 1 },
+};
+
+const fairholtOnDock: Record<string, Placement> = {
+  "KV-2045-1": dock(0, 0), "KV-2045-2": dock(0, 1), "KV-2045-3": dock(1, 0), "KV-2045-4": dock(1, 1),
+};
+
+export function recoveryLayout(mode: RecoveryMode): SceneLayout {
+  const proposed = arrangements.proposed;
+  const placementsFor: Record<string, Placement> = mode === "original"
+    ? {
+      ...Object.fromEntries(items.map((item) => [item.key, inTruck(proposed[item.key].row, proposed[item.key].lane)])),
+      "KV-2044-1": dock(2, 0), "KV-2044-2": dock(2, 1),
+      ...fairholtOnDock,
+    }
+    : {
+      ...Object.fromEntries(Object.entries(recoverySlots).map(([key, slot]) => [key, inTruck(slot.row, slot.lane)])),
+      ...fairholtOnDock,
+    };
+  return { key: `recovery-${mode}`, placements: placementsFor };
+}
+
+export function freeSlots(layout: SceneLayout) {
+  const taken = new Set(Object.values(layout.placements).filter((point) => !point.gone && !point.staged).map((point) => `${point.x.toFixed(2)}:${point.y.toFixed(2)}`));
+  const free: { row: number; lane: Lane }[] = [];
+  for (let row = 0; row < ROWS; row++) for (const lane of [0, 1] as Lane[]) if (!taken.has(`${rowX(row).toFixed(2)}:${laneY[lane].toFixed(2)}`)) free.push({ row, lane });
+  return free;
 }
