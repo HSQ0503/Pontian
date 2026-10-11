@@ -68,7 +68,7 @@ const offerings: Offering[] = [
     label: "Plan the next visit",
     moment: "Before the next one",
     headline: "Carry the property’s history into the next visit.",
-    body: "The customer agreed to a visit every six months. When it comes round, we draft a day around it with nearby jobs and their time windows. The office approves it before anyone is booked.",
+    body: "The customer agreed to a visit every six months. When it’s due, we draft a day around it with nearby jobs. The office approves it before anything is booked.",
     outcome: "Make repeat service easier to organize and deliver.",
     Visual: PlanTheNextVisit,
   },
@@ -133,7 +133,7 @@ export function PropertyServicesPage() {
                 </li>
               ))}
             </ol>
-            <p className={styles.maturity}>We’ve built estimates, scheduling, crew job sheets, photos, payments and repeat visits before. Photo scoping, crew answers, photo review and route grouping are the parts we’d test with you.</p>
+            <p className={styles.maturity}>We’ve built estimates, scheduling, job photos, payments and repeat visits before. The photo and routing parts we’d test with you.</p>
           </div>
         </section>
 

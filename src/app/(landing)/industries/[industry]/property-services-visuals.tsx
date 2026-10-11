@@ -12,7 +12,7 @@ type Tone = "scope" | "excluded" | "open" | "neutral" | "done" | "needed" | "rea
 type Point = readonly [number, number];
 type Box = readonly [number, number, number, number];
 
-const PROPERTY = "Alder Lane property";
+const PROPERTY = "Alder Lane property (fictional)";
 const AREA_NAME: Record<Area, string> = { driveway: "Driveway", patio: "Rear patio", path: "Side path", fence: "Painted fence", gate: "Side gate" };
 
 const svgId = (id: string) => id.replace(/[^a-zA-Z0-9]/g, "");
@@ -45,7 +45,7 @@ function Example({ title, children, situation, finding, next, findingLabel = "Fi
         <li data-role="finding"><span className={styles.outcomeLabel}>{findingLabel}</span>{finding}</li>
         <li data-role="next"><span className={styles.outcomeLabel}>Next step for your team</span>{next}</li>
       </ol>
-      <p className={styles.boundary}>{note} Fictional property and customers.</p>
+      <p className={styles.boundary}>{note}</p>
     </figure>
   );
 }
@@ -499,7 +499,7 @@ const QUESTIONS: CrewQuestion[] = [
     chip: { id: "answer", at: ANCHORS.driveway, title: "Last visit, 12 Oct", detail: "Driveway only" },
   },
   {
-    question: "The customer wants the side path done too. Can we?",
+    question: "Customer wants the side path too. Can we?",
     answer: "Needs office confirmation. A request on the day doesn’t change the approved job.",
     status: ["open", "Needs office confirmation"],
     source: "Approved estimate, 6 May · no approved change",
@@ -631,7 +631,7 @@ const STOPS: Stop[] = [
   { id: "alder", order: 2, name: "Alder Lane", service: "Driveway and rear patio, every 6 months. Fence excluded.", previous: "14 May, reviewed", access: "Side gate", duration: "About 3 hours", window: [8, 17], windowLabel: "Any time", slot: [10.25, 13.25], slotLabel: "10:15–13:15" },
   { id: "cedar", order: 3, name: "Cedar Court", service: "Patio, every 6 months", previous: "12 May", access: "Afternoons only. Park on the street.", duration: "About 1.5 hours", window: [13, 17], windowLabel: "Afternoons only", slot: [13.5, 15], slotLabel: "13:30–15:00" },
 ];
-const HISTORY: [string, string][] = [["14 May", "Driveway and patio done"], ["20 May", "Customer agrees to every 6 months"], ["Week of 9 Nov", "Next visit due"]];
+const HISTORY: [string, string][] = [["14 May", "Visit done"], ["20 May", "Every 6 months agreed"], ["Week of 9 Nov", "Next visit due"]];
 const CHECKS: [string, Tone, string][] = [["Already booked?", "done", "No"], ["Plan paused or cancelled?", "done", "No"], ["Customer confirmation needed?", "needed", "Yes"]];
 
 const DAY_START = 8;
@@ -646,12 +646,12 @@ export function PlanTheNextVisit() {
   const labels: SceneLabel[] = STOPS.map((item) => ({ id: item.id, at: STOP_ANCHORS[item.id], title: `${item.order} · ${item.name}`, detail: item.id === "cedar" ? `${item.slotLabel}, afternoons only` : item.slotLabel, state: "ok" }));
   return (
     <Example
-      title="Alder Lane and two nearby jobs · Week of 9 November"
+      title="Alder Lane and two nearby jobs (fictional) · Week of 9 November"
       situation={<p>Alder Lane is due the week of 9 November.</p>}
       findingLabel="Result for review"
       finding={<p><strong>A draft day for one crew:</strong> three stops, with Cedar Court last.</p>}
       next={<p>The office approves it, then confirms with each customer.</p>}
-      note="Nothing here books a visit or messages a customer. Grouping jobs this way is something we’d test with you."
+      note="Nothing here books a visit or messages a customer. Route grouping is something we’d test with you."
     >
       <div className={styles.stage}>
         <PropertyView
