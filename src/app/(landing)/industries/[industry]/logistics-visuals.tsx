@@ -121,7 +121,7 @@ function Lane({ route, selected, onSelect }: { route: PlannedRoute; selected: Se
                 {stop.driveMinutes >= 60 && <em>{stop.driveMinutes} min drive</em>}
               </span>
               {start > arrive && <span className={styles.wait} style={{ left: pct(arrive), width: span(arrive, start) }} />}
-              {isSelected && <span className={styles.window} data-focus="true" data-late={stop.late || undefined} style={{ left: pct(stop.window[0]), width: span(stop.window[0], stop.window[1]) }}><em>{stop.late ? `Window closes ${stop.window[1]}` : `Window ${stop.window[0]}–${stop.window[1]}`}</em></span>}
+              {isSelected && <span className={styles.window} data-focus="true" data-late={stop.late || undefined} style={{ left: pct(stop.window[0]), width: span(stop.window[0], stop.window[1]) }}><em>{stop.late ? `Closes ${stop.window[1]}` : `Window ${stop.window[0]}–${stop.window[1]}`}</em></span>}
               {breakHere && breakHere.during === "after" && <span className={styles.breakBlock} style={{ left: pct(breakHere.start), width: span(breakHere.start, breakHere.end) }} />}
               <button
                 type="button"
@@ -173,7 +173,7 @@ export function DeliveryPlan() {
     const block = target.getBoundingClientRect();
     // The window label sits at the bracket's right end; keep it and the stop on screen together.
     const label = bracket ? bracket.getBoundingClientRect().right : block.left;
-    const middle = (Math.min(block.left, label - 170) + Math.max(block.right, label)) / 2;
+    const middle = (Math.min(block.left, label - 150) + Math.max(block.right, label)) / 2;
     const left = middle - container.getBoundingClientRect().left + container.scrollLeft - container.clientWidth / 2;
     container.scrollTo({ left, behavior: reduce ? "auto" : "smooth" });
   }, [view, selected]);
