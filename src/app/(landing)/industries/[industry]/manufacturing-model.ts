@@ -254,6 +254,38 @@ export function summarize(run: SimRun): RunSummary {
   };
 }
 
+// Busy share of each stage over the trailing `window` seconds before `time`.
+export function busySharesAt(run: SimRun, time: number, window = 120): Record<Stage, number> {
+  const from = Math.max(0, time - window);
+  const elapsed = Math.max(time - from, 1e-6);
+  const within = (start: number, end: number) => Math.max(0, Math.min(end, time) - Math.max(start, from));
+  const total = (pick: (part: SimPart) => number) => run.parts.reduce((sum, part) => sum + pick(part), 0);
+  return {
+    assembly: total((part) => within(part.assemblyStart, part.assemblyEnd)) / elapsed,
+    inspection: total((part) => within(part.inspectionStart, part.inspectionEnd)) / elapsed / stationsFor[run.configuration].length,
+    packaging: total((part) => within(part.packStart, part.packEnd)) / elapsed,
+  };
+}
+
+export function limitingStageAt(run: SimRun, time: number, window = 120): Stage {
+  const shares = busySharesAt(run, time, window);
+  return (Object.keys(shares) as Stage[]).reduce((best, stage) => (shares[stage] > shares[best] ? stage : best), "assembly");
+}
+
+export const WARM_UP_SECONDS = 160;
+
+// The stage limiting the line at `time`: the busiest over the trailing window,
+// with ties going to inspection when assembled parts are queued for it. Nothing
+// is reported while the line is still filling.
+export function bottleneckAt(run: SimRun, time: number): Stage | null {
+  if (time < WARM_UP_SECONDS) return null;
+  const shares = busySharesAt(run, time);
+  const top = Math.max(...Object.values(shares));
+  const near = (Object.keys(shares) as Stage[]).filter((stage) => shares[stage] >= top - 0.01);
+  if (near.includes("inspection") && near.length > 1 && run.parts.some((part) => part.assemblyEnd <= time && time < part.inspectionStart)) return "inspection";
+  return near[0];
+}
+
 export const runs: Record<Configuration, SimRun> = { existing: simulate("existing"), proposed: simulate("proposed") };
 export const summaries: Record<Configuration, RunSummary> = { existing: summarize(runs.existing), proposed: summarize(runs.proposed) };
 
