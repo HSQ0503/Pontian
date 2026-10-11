@@ -148,7 +148,6 @@ export function LoadPlan() {
       note="Illustration only, not a certified loading plan"
       outcome={{
         start: <p><strong>Seven pallets for three stops,</strong> with dimensions, weights, stacking rules, and delivery order.</p>,
-        findingLabel: "Result for review",
         finding: <p>The first delivery is loaded behind later deliveries. The proposed arrangement keeps it by the door: <strong>a loading sequence to review.</strong></p>,
         next: <p><strong>Warehouse team checks the plan before loading,</strong> including weight distribution and securement, which this illustration does not assess.</p>,
       }}

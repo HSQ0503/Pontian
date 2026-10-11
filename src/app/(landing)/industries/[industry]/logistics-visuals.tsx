@@ -28,7 +28,7 @@ import {
   type VehicleId,
 } from "./logistics-data";
 
-type Outcome = { start: ReactNode; finding: ReactNode; next: ReactNode; findingLabel?: "Finding for review" | "Result for review" };
+type Outcome = { start: ReactNode; finding: ReactNode; next: ReactNode };
 
 export function Example({ title, note, children, outcome }: { title: string; note: string; children: ReactNode; outcome: Outcome }) {
   return (
@@ -41,7 +41,7 @@ export function Example({ title, note, children, outcome }: { title: string; not
       <div className={styles.exampleBody}>{children}</div>
       <ol className={styles.outcome}>
         <li data-role="start"><span className={styles.outcomeLabel}>Situation</span>{outcome.start}</li>
-        <li data-role="finding"><span className={styles.outcomeLabel}>{outcome.findingLabel ?? "Finding for review"}</span>{outcome.finding}</li>
+        <li data-role="finding"><span className={styles.outcomeLabel}>Finding for review</span>{outcome.finding}</li>
         <li data-role="next"><span className={styles.outcomeLabel}>Next step for your team</span>{outcome.next}</li>
       </ol>
     </figure>
@@ -274,7 +274,6 @@ export function DeliveryPlan() {
       note="Schematic map · example drive times"
       outcome={{
         start: <p><strong>Tomorrow’s deliveries</strong> on two vehicles, then a new request to move {request.pallets} pallets from {places.glenway.name} to {places.hollin.name}.</p>,
-        findingLabel: "Result for review",
         finding: <p>Vehicle A conflicts with an existing delivery window. Vehicle B fits the schedule and capacity. <strong>Proposed assignment: Vehicle B.</strong></p>,
         next: <p><strong>Dispatcher reviews the updated route.</strong> Nothing reaches the driver before that.</p>,
       }}
@@ -381,7 +380,6 @@ export function DisruptionRecovery() {
       note="Starts from a recorded vehicle-status update"
       outcome={{
         start: <p><strong>Vehicle A is unavailable before departure.</strong> Its two deliveries are affected. Vehicle B has some remaining capacity.</p>,
-        findingLabel: "Result for review",
         finding: <p><strong>A recovery plan with the remaining gap identified.</strong> Delivery 1 can be reassigned. Delivery 2 still needs another option.</p>,
         next: <p><strong>Dispatcher confirms the reassignment and reviews the unresolved delivery.</strong> Vehicle B’s loading plan is then revised before it leaves.</p>,
       }}
@@ -510,7 +508,6 @@ export function QuotePreparation() {
       note="Example rate card, not market rates"
       outcome={{
         start: <p><strong>A short, unstructured request</strong> with the pickup, delivery, and timing, but no pallet dimensions.</p>,
-        findingLabel: stage === 3 ? "Result for review" : "Finding for review",
         finding: stage === 3
           ? <p><strong>A draft quote with its assumptions,</strong> built after the dimensions were confirmed.</p>
           : <p><strong>Confirm dimensions before selecting a vehicle.</strong> The pallet size decides the rate and the vehicle.</p>,
