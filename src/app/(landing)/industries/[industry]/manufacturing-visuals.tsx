@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { ArrowRight, Pause, Play, RotateCcw } from "lucide-react";
 import type { CellView, SampleId } from "./manufacturing-scene";
 import {
-  averageOf, buildPlan, cell, cellStatus, driveHistory, formatClock, partPoses, planning, runs, sequences, simulation, summaries,
+  averageOf, bottleneckAt, buildPlan, cell, cellStatus, driveHistory, formatClock, partPoses, planning, runs, sequences, simulation, summaries,
   type Configuration, type OrderId, type PlanBlock, type Stage,
 } from "./manufacturing-model";
 import styles from "./manufacturing.module.css";
@@ -497,24 +497,29 @@ function CompareSketch({ time }: { time: number }) {
   const scale = 54;
   const px = (x: number) => (x + 6.2) * scale;
   const lines: { configuration: Configuration; y: number; title: string }[] = [
-    { configuration: "existing", y: 70, title: "Today" },
-    { configuration: "proposed", y: 250, title: "With a second station" },
+    { configuration: "existing", y: 60, title: "Today" },
+    { configuration: "proposed", y: 300, title: "With a second station" },
   ];
   return (
-    <svg viewBox={`0 0 ${8.8 * scale} 330`} className={styles.sketch}>
+    <svg viewBox={`0 0 ${8.8 * scale} 370`} className={styles.sketch}>
       {lines.map(({ configuration, y, title }) => {
         const proposed = configuration === "proposed";
-        const status = cellStatus(runs[configuration], time);
+        const run = runs[configuration];
+        const status = cellStatus(run, time);
+        const limit = bottleneckAt(run, time);
         const pz = (z: number) => y + z * scale;
+        const queue = Math.min(status.waitingForInspection, 7) * simulation.spacing;
         return (
           <g key={configuration}>
-            <text x={px(-6)} y={y - 34} className={styles.sketchText}>{title} · {status.packaged} packed · {status.waitingForInspection} waiting</text>
+            {queue > 0 && <rect x={px(-0.74 - queue)} y={pz(-0.4)} width={queue * scale} height={0.8 * scale} fill="#f51625" fillOpacity={0.16} stroke="#f51625" />}
             <line x1={px(-4.85)} y1={pz(0)} x2={px(2.6)} y2={pz(0)} stroke="#9a9d9f" strokeWidth={18} />
             {proposed && <path d={`M${px(-1.4)} ${pz(0)} V${pz(-2.2)} H${px(1.4)} V${pz(0)}`} fill="none" stroke="#007dfe" strokeWidth={18} />}
             <rect x={px(-5.9)} y={pz(-0.47)} width={1.05 * scale} height={0.95 * scale} fill="#dcdcd9" stroke="#262829" />
             <rect x={px(-0.7)} y={pz(-0.44)} width={1.4 * scale} height={0.88 * scale} fill="none" stroke="#262829" strokeWidth={2.5} />
             {proposed && <rect x={px(-0.7)} y={pz(-2.64)} width={1.4 * scale} height={0.88 * scale} fill="none" stroke="#007dfe" strokeWidth={2.5} />}
-            {partPoses(runs[configuration], time).filter((pose) => pose.visible && pose.x < 2.6).map((pose) => <rect key={pose.id} x={px(pose.x) - 8.5} y={pz(pose.z) - 6.5} width={17} height={13} rx={3} fill="#8a9399" stroke="#262829" />)}
+            {limit && <ellipse cx={px(limit === "assembly" ? -5.375 : 0)} cy={pz(0)} rx={(limit === "assembly" ? 0.85 : 1.05) * scale} ry={0.72 * scale} fill="none" stroke="#f51625" strokeWidth={3} />}
+            {partPoses(run, time).filter((pose) => pose.visible && pose.x < 2.6).map((pose) => <rect key={pose.id} x={px(pose.x) - 8.5} y={pz(pose.z) - 6.5} width={17} height={13} rx={3} fill="#8a9399" stroke="#262829" />)}
+            <text x={px(-6)} y={pz(0.95)} className={styles.sketchText}>{title} · {status.packaged} packed · {status.waitingForInspection} waiting</text>
           </g>
         );
       })}
