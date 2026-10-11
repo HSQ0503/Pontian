@@ -62,7 +62,11 @@ function stopActions(arrangement: ArrangementId, stop: number): Action[] {
   });
 }
 
-export const blockersAt = (arrangement: ArrangementId, stop: number) => stopActions(arrangement, stop).filter((action) => action.kind === "stage").length;
+export const blockingKeys = (arrangement: ArrangementId, stop: number) => stopActions(arrangement, stop).filter((action) => action.kind === "stage").map((action) => action.key);
+export const blockersAt = (arrangement: ArrangementId, stop: number) => blockingKeys(arrangement, stop).length;
+
+export type ViewId = "angle" | "side" | "rear" | "top";
+export const viewLabels: Record<ViewId, string> = { angle: "Three-quarter", side: "Side", rear: "Rear door", top: "Plan" };
 
 export type Placement = Point & { gone: boolean; staged: boolean };
 

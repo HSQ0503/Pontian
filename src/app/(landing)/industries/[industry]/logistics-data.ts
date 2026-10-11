@@ -42,7 +42,7 @@ export function driveMinutes(from: PlaceId, to: PlaceId) {
   return Math.round((roadKm(from, to) / AVERAGE_KMH) * 60);
 }
 
-export const routeAssumptions = `Road distance is about ${WINDING}× the straight line, driven at an average of ${AVERAGE_KMH} km/h.`;
+export const routeAssumptions = `Road distance is ${WINDING}× the straight line at an average ${AVERAGE_KMH} km/h.`;
 
 export type VehicleId = "A" | "B";
 
@@ -100,7 +100,7 @@ const BREAK_MINUTES = 30;
 const BREAK_AFTER = "11:30";
 const BREAK_IN_WAIT_FROM = "11:00";
 
-export const driverRule = `A ${BREAK_MINUTES}-minute break once the driver passes ${BREAK_AFTER}, taken during a wait at a stop where possible.`;
+export const driverRule = `A ${BREAK_MINUTES}-minute break after ${BREAK_AFTER}, taken during a wait where possible.`;
 export const serviceRule = `${SERVICE_MINUTES} minutes per stop, ${FOUR_PALLET_SERVICE_MINUTES} for four pallets or more.`;
 
 export const toMinutes = (time: string) => {
