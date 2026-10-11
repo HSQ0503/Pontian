@@ -1,15 +1,15 @@
 import type { ComponentType } from "react";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import { industries } from "@/lib/industries";
 import { FrontierHeader } from "@/components/landing/frontier-header";
 import frontier from "../../frontier.module.css";
 import base from "./industry.module.css";
 import styles from "./retail.module.css";
 import { KnowTheCustomer, PlanTheNextVisit, StockForDemand, UnderstandTheBusiness } from "./retail-visuals";
+import { HeroPhoto, IndustryHero } from "./industry-hero";
 
 const SLUG = "retail";
 const headline = "Help your team remember what customers love.";
@@ -105,28 +105,14 @@ export function RetailPage() {
       <a className={frontier.skip} href="#industry-content">Skip to content</a>
       <FrontierHeader />
       <main id="industry-content">
-        <section className={styles.hero} aria-labelledby="industry-title">
-          <div className={base.photoFrame}>
-            <Image src={industry.image} alt={industry.alt} fill preload sizes="100vw" className={styles.heroPhoto} />
-          </div>
-          <div className={styles.heroTexture} aria-hidden="true" />
-          <div className={styles.heroShade} aria-hidden="true" />
-          <div className={styles.heroCopy}>
-            <Link href="/#industries" className={styles.back}><ArrowLeft size={14} /> Industries / {String(index + 1).padStart(2, "0")} {industry.name}</Link>
-            <h1 id="industry-title" className={styles.headline}>{headline}</h1>
-            <p className={styles.heroLead}>{summary}</p>
-            <nav className={styles.heroNav} aria-label="What we can build">
-              {offerings.map((offering, offeringIndex) => (
-                <a key={offering.id} href={`#${offering.id}`}>
-                  <span className={styles.navIndex}>{String(offeringIndex + 1).padStart(2, "0")}</span>
-                  <span className={styles.navLabel}>{offering.label}</span>
-                  <span className={styles.navMoment}>{offering.moment}</span>
-                  <ArrowDown size={15} strokeWidth={1.4} aria-hidden="true" />
-                </a>
-              ))}
-            </nav>
-          </div>
-        </section>
+        <IndustryHero
+          industry={industry}
+          index={index}
+          headline={headline}
+          summary={summary}
+          links={offerings.map((offering) => ({ id: offering.id, label: offering.label, detail: offering.moment }))}
+          media={<HeroPhoto src={industry.image} alt={industry.alt} position="50% 50%" />}
+        />
 
         {offerings.map((offering, offeringIndex) => (
           <section key={offering.id} id={offering.id} className={styles.offering} aria-labelledby={`${offering.id}-title`}>
@@ -198,7 +184,7 @@ export function RetailPage() {
           <Link href="/get-started" className={styles.closingButton}>Talk through your retail operation <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
         </section>
       </main>
-      <footer className={`${base.footer} ${styles.footer}`}>
+      <footer className={base.footer}>
         <Link href="/#industries"><ArrowLeft size={14} /> All industries</Link>
         <Link href={`/industries/${next.slug}`}>Next: {next.name} <ArrowRight size={14} /></Link>
       </footer>

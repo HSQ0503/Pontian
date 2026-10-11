@@ -1,13 +1,13 @@
 import type { ComponentType } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import type { Industry } from "@/lib/industries";
 import { FrontierHeader } from "@/components/landing/frontier-header";
 import frontier from "../../frontier.module.css";
 import base from "./industry.module.css";
 import styles from "./construction.module.css";
 import { BidCheck, ChangeImpact, SiteCheck, WayForward } from "./construction-visuals";
+import { HeroPhoto, IndustryHero } from "./industry-hero";
 
 export const constructionHeadline = "Catch costly surprises before they reach the jobsite.";
 export const constructionSummary =
@@ -84,26 +84,14 @@ export function ConstructionPage({ industry, index, next }: { industry: Industry
       <a className={frontier.skip} href="#industry-content">Skip to content</a>
       <FrontierHeader />
       <main id="industry-content">
-        <section className={styles.hero} aria-labelledby="industry-title">
-          <div className={styles.heroPhoto}>
-            <Image src={industry.image} alt={industry.alt} fill preload sizes="(max-width: 700px) 100vw, 64vw" className={styles.heroImage} />
-          </div>
-          <div className={styles.heroCopy}>
-            <Link href="/#industries" className={`${base.back} ${styles.back}`}><ArrowLeft size={14} /> Industries / {String(index + 1).padStart(2, "0")} {industry.name}</Link>
-            <h1 id="industry-title" className={styles.headline}>{constructionHeadline}</h1>
-            <p className={styles.heroLead}>{constructionSummary}</p>
-            <nav className={styles.heroNav} aria-label="What we can build">
-              {offerings.map((offering, offeringIndex) => (
-                <a key={offering.id} href={`#${offering.id}`}>
-                  <span className={styles.navIndex}>{String(offeringIndex + 1).padStart(2, "0")}</span>
-                  <span className={styles.navLabel}>{offering.label}</span>
-                  <span className={styles.navMoment}>{offering.moment}</span>
-                  <ArrowDown size={15} strokeWidth={1.4} aria-hidden="true" />
-                </a>
-              ))}
-            </nav>
-          </div>
-        </section>
+        <IndustryHero
+          industry={industry}
+          index={index}
+          headline={constructionHeadline}
+          summary={constructionSummary}
+          links={offerings.map((offering) => ({ id: offering.id, label: offering.label, detail: offering.moment }))}
+          media={<HeroPhoto src={industry.image} alt={industry.alt} position="62% 45%" />}
+        />
 
         {offerings.map((offering, offeringIndex) => (
           <section key={offering.id} id={offering.id} className={styles.offering} aria-labelledby={`${offering.id}-title`}>

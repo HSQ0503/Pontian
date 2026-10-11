@@ -3,8 +3,8 @@
 .photoFrame { position: absolute; inset: 0; overflow: hidden; z-index: -2; }
 .photo { object-fit: cover; object-position: center 46%; filter: grayscale(1) brightness(.67); transform: scale(1.22); transform-origin: 54% 50%; }
 .shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(8 8 8 / 35%), transparent 32%, rgb(8 8 8 / 15%) 48%, #080808 100%); }
-.back { display: inline-flex; align-items: center; gap: 12px; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: #d0d0ce; }
-.footer { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin: 0 6%; padding: 30px 0; border-top: 1px solid #292929; font-size: 11px; color: #888; }
+.back { display: inline-flex; align-items: center; gap: 12px; font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: #d0d0ce; }
+.footer { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin: 0 max(7%, calc((100% - 1200px) / 2)); padding: 30px 0; border-top: 1px solid #292929; font-size: 13px; color: #888; }
 .footer a { display: inline-flex; gap: 12px; align-items: center; color: #ddd; transition: color 160ms; }
 .footer a:hover { color: #fed603; }
 @keyframes photo-enter { from { transform: scale(1); } to { transform: scale(1.22); } }
@@ -13,5 +13,5 @@
 }
 @media (max-width: 700px) {
   .photo { object-position: 53% center; }
-  .footer { margin: 0 24px; font-size: 10px; }
+  .footer { margin: 0 24px; }
 }

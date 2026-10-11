@@ -1,8 +1,7 @@
 import type { ComponentType } from "react";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import { industries } from "@/lib/industries";
 import { FrontierHeader } from "@/components/landing/frontier-header";
 import frontier from "../../frontier.module.css";
@@ -10,6 +9,7 @@ import base from "./industry.module.css";
 import styles from "./design-engineering.module.css";
 import { DesignFit, FirstModel, Deliverables, RevisionScope } from "./design-engineering-visuals";
 import { BUILDING, WALL_HEIGHT, WALLS, boxFaces, isometric, toPoints } from "./design-engineering-model";
+import { HeroDrawing, IndustryHero } from "./industry-hero";
 
 const SLUG = "design-engineering";
 const headline = "Move designs forward with less repetitive work.";
@@ -27,6 +27,7 @@ export const designEngineeringMetadata: Metadata = {
 type Offering = {
   id: string;
   label: string;
+  moment: string;
   headline: string;
   body: string;
   capabilities: string[];
@@ -38,6 +39,7 @@ const offerings: Offering[] = [
   {
     id: "create-the-first-model",
     label: "Create the first model",
+    moment: "From a dimensioned plan",
     headline: "Turn a plan into a first model.",
     body: "We can build workflows that turn clearly defined plans and project inputs into an initial, editable building model. Your team reviews the interpretation and develops the design from there.",
     capabilities: ["Interpret supported plan elements", "Apply approved project templates", "Create a model your team can continue editing"],
@@ -47,6 +49,7 @@ const offerings: Offering[] = [
   {
     id: "check-how-designs-fit",
     label: "Check how designs fit",
+    moment: "Across discipline models",
     headline: "Find where designs don’t fit together.",
     body: "Different teams design different parts of the same building. We can connect their models and project requirements to help identify potential conflicts and bring the relevant evidence to the people who can resolve them.",
     capabilities: ["Compare discipline models", "Locate potential conflicts", "Bring the right references into the review"],
@@ -56,6 +59,7 @@ const offerings: Offering[] = [
   {
     id: "understand-revisions",
     label: "Understand revisions",
+    moment: "When an input changes",
     headline: "See what else needs checking when a design changes.",
     body: "A revised requirement can affect several disciplines. We can connect the change to related drawings, equipment information, and project decisions so each team can review its part.",
     capabilities: ["Compare the old and new information", "Identify related design dependencies", "Prepare a review with supporting sources"],
@@ -65,6 +69,7 @@ const offerings: Offering[] = [
   {
     id: "prepare-the-deliverables",
     label: "Prepare the deliverables",
+    moment: "From a reviewed model",
     headline: "Prepare drawings and schedules for review.",
     body: "We can automate repeatable document work using reviewed model information and your firm’s templates, then check the resulting package for missing or inconsistent information before your team reviews it.",
     capabilities: ["Create drafts from approved templates", "Check consistency with model information", "Prepare a package for professional review"],
@@ -90,14 +95,14 @@ const startingScopes = [
 const HERO = isometric(26, 236, 118);
 const DROP = 1.8;
 
-// The page's own plan-to-model story, drawn as crisp linework over the photo.
-function HeroDrawing() {
+// The page's own plan-to-model story, drawn as crisp linework.
+function PlanToModelDrawing() {
   const order = ["W1", "W4", "W5", "W2", "W3"].map((id) => WALLS.find((wall) => wall.id === id) ?? WALLS[0]);
   const plan = (x: number, y: number) => HERO(x, y, -DROP);
   const outline = toPoints([plan(0, 0), plan(BUILDING.width, 0), plan(BUILDING.width, BUILDING.depth), plan(0, BUILDING.depth)]);
   const risers: [number, number][] = [[0, BUILDING.depth], [BUILDING.width, BUILDING.depth], [BUILDING.width, 0]];
   return (
-    <svg className={styles.heroDrawing} viewBox="86 24 390 256" aria-hidden="true">
+    <svg viewBox="86 24 390 256" aria-hidden="true">
       <polygon points={outline} fill="none" stroke="#ffffff" strokeOpacity="0.32" strokeDasharray="4 5" />
       {WALLS.map((wall) => (
         <polygon key={wall.id} points={toPoints([plan(wall.x0, wall.y0), plan(wall.x1, wall.y0), plan(wall.x1, wall.y1), plan(wall.x0, wall.y1)])} fill={wall.id === "W5" ? "#fed603" : "#ffffff"} fillOpacity={wall.id === "W5" ? 0.75 : 0.22} />
@@ -133,27 +138,14 @@ export function DesignEngineeringPage() {
       <a className={frontier.skip} href="#industry-content">Skip to content</a>
       <FrontierHeader />
       <main id="industry-content">
-        <section className={styles.hero} aria-labelledby="industry-title">
-          <div className={base.photoFrame}>
-            <Image src={industry.image} alt={industry.alt} fill preload sizes="100vw" className={`${base.photo} ${styles.heroPhoto}`} />
-          </div>
-          <div className={styles.heroShade} />
-          <HeroDrawing />
-          <div className={styles.heroCopy}>
-            <Link href="/#industries" className={styles.back}><ArrowLeft size={14} aria-hidden="true" /> Industries / {String(index + 1).padStart(2, "0")} {industry.name}</Link>
-            <h1 id="industry-title" className={styles.headline}>{headline}</h1>
-            <p className={styles.heroLead}>{summary}</p>
-            <nav className={styles.heroNav} aria-label="What we can build">
-              {offerings.map((offering, offeringIndex) => (
-                <a key={offering.id} href={`#${offering.id}`}>
-                  <span className={styles.navIndex}>{String(offeringIndex + 1).padStart(2, "0")}</span>
-                  <span className={styles.navLabel}>{offering.label}</span>
-                  <ArrowDown size={15} strokeWidth={1.4} aria-hidden="true" />
-                </a>
-              ))}
-            </nav>
-          </div>
-        </section>
+        <IndustryHero
+          industry={industry}
+          index={index}
+          headline={headline}
+          summary={summary}
+          links={offerings.map((offering) => ({ id: offering.id, label: offering.label, detail: offering.moment }))}
+          media={<HeroDrawing><PlanToModelDrawing /></HeroDrawing>}
+        />
 
         {offerings.map((offering, offeringIndex) => (
           <section key={offering.id} id={offering.id} className={styles.offering} aria-labelledby={`${offering.id}-title`}>
@@ -222,7 +214,7 @@ export function DesignEngineeringPage() {
           </div>
         </section>
       </main>
-      <footer className={`${base.footer} ${styles.footer}`}>
+      <footer className={base.footer}>
         <Link href="/#industries"><ArrowLeft size={14} aria-hidden="true" /> All industries</Link>
         <Link href={`/industries/${next.slug}`}>Next: {next.name} <ArrowRight size={14} aria-hidden="true" /></Link>
       </footer>

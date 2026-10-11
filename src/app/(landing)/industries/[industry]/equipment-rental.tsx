@@ -1,14 +1,14 @@
 import type { ComponentType } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import type { Industry } from "@/lib/industries";
 import { FrontierHeader } from "@/components/landing/frontier-header";
 import frontier from "../../frontier.module.css";
 import base from "./industry.module.css";
 import styles from "./equipment-rental.module.css";
-import heroRender from "../../../../../public/pontian/equipment-rental-ex014.png";
+import heroRender from "../../../../../public/pontian/equipment-rental-hero.webp";
 import { BREAKER, BREAKER_TYPE, EX014, EX027, EX027_STATE, MACHINE_TYPE, QUARRY, YARD } from "./equipment-rental-fleet";
+import { HeroPhoto, IndustryHero } from "./industry-hero";
 import { ManageRental, MatchMachine, PrepareDelivery, ReturnToService } from "./equipment-rental-visuals";
 
 export const equipmentRentalHeadline = "Keep the right machines working.";
@@ -89,25 +89,14 @@ export function EquipmentRentalPage({ industry, index, next }: { industry: Indus
       <a className={frontier.skip} href="#industry-content">Skip to content</a>
       <FrontierHeader />
       <main id="industry-content">
-        <section className={styles.hero} aria-labelledby="industry-title">
-          <Image src={heroRender} alt="" loading="eager" fetchPriority="high" sizes="(max-width: 700px) 112vw, (max-width: 1100px) 92vw, 64vw" className={styles.heroRender} />
-          <div className={styles.heroShade} />
-          <div className={styles.heroCopy}>
-            <Link href="/#industries" className={styles.back}><ArrowLeft size={14} /> Industries / {String(index + 1).padStart(2, "0")} {industry.name}</Link>
-            <h1 id="industry-title" className={styles.headline}>{equipmentRentalHeadline}</h1>
-            <p className={styles.heroLead}>{equipmentRentalSummary}</p>
-            <nav className={styles.heroNav} aria-label="What we can build">
-              {offerings.map((offering, offeringIndex) => (
-                <a key={offering.id} href={`#${offering.id}`}>
-                  <span className={styles.navIndex}>{String(offeringIndex + 1).padStart(2, "0")}</span>
-                  <span className={styles.navLabel}>{offering.label}</span>
-                  <span className={styles.navMoment}>{offering.moment}</span>
-                  <ArrowDown size={15} strokeWidth={1.4} aria-hidden="true" />
-                </a>
-              ))}
-            </nav>
-          </div>
-        </section>
+        <IndustryHero
+          industry={industry}
+          index={index}
+          headline={equipmentRentalHeadline}
+          summary={equipmentRentalSummary}
+          links={offerings.map((offering) => ({ id: offering.id, label: offering.label, detail: offering.moment }))}
+          media={<HeroPhoto src={heroRender} alt={`Render of ${EX014}, the fictional tracked excavator followed through this page’s examples`} position="50% 50%" />}
+        />
 
         <section id="the-example" className={styles.story} aria-labelledby="the-example-title">
           <div className={styles.inner}>
@@ -188,7 +177,7 @@ export function EquipmentRentalPage({ industry, index, next }: { industry: Indus
           </div>
         </section>
       </main>
-      <footer className={styles.footer}>
+      <footer className={base.footer}>
         <Link href="/#industries"><ArrowLeft size={14} /> All industries</Link>
         <Link href={`/industries/${next.slug}`}>Next: {next.name} <ArrowRight size={14} /></Link>
       </footer>

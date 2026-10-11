@@ -1,37 +1,6 @@
-/* Content aligns to the homepage's 1200px measure on wide screens and keeps a 6% gutter below it. */
-.hero, .offering, .recap, .start, .closing { --gutter: max(6%, calc((100% - 1200px) / 2)); padding-inline: var(--gutter); }
+/* Content aligns to the homepage's 1200px measure on wide screens and keeps a 7% gutter below it. */
+.offering, .recap, .start, .closing { --gutter: max(7%, calc((100% - 1200px) / 2)); padding-inline: var(--gutter); }
 
-.hero { position: relative; min-height: 100svh; isolation: isolate; overflow: hidden; display: flex; align-items: flex-end; padding-block: 150px 56px; background: #080808; }
-.heroPhoto { object-fit: cover; object-position: center 42%; filter: grayscale(1) contrast(1.08) brightness(.5) blur(1.2px); transform: scale(1.03); }
-.heroTexture, .heroShade { position: absolute; inset: 0; pointer-events: none; }
-.heroShade { z-index: -1; background: linear-gradient(180deg, rgb(8 8 8 / 60%), rgb(8 8 8 / 22%) 34%, rgb(8 8 8 / 55%) 64%, #080808 100%), linear-gradient(90deg, rgb(8 8 8 / 55%), transparent 72%); }
-.heroTexture { z-index: 0; }
-.heroTexture::before { content: ""; position: absolute; inset: 0; background: url("/pontian/grain.svg") repeat; opacity: .14; }
-.heroTexture::after { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgb(255 255 255 / 6%) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 6%) 1px, transparent 1px); background-size: 80px 80px; mask-image: radial-gradient(ellipse at 70% 35%, #000 10%, transparent 75%); -webkit-mask-image: radial-gradient(ellipse at 70% 35%, #000 10%, transparent 75%); }
-.heroCopy { position: relative; z-index: 1; width: 100%; }
-.back { display: inline-flex; align-items: center; gap: 12px; font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: #d0d0ce; transition: color 160ms; }
-.back:hover { color: #fed603; }
-.headline { max-width: 1080px; margin: 28px 0 26px; font-family: var(--font-frontier-headline), sans-serif; font-size: clamp(46px, 6.2vw, 104px); font-weight: 400; line-height: 1.04; letter-spacing: -.06em; text-wrap: balance; }
-.heroLead { max-width: 700px; margin: 0 0 56px; font-size: clamp(17px, 1.3vw, 20px); line-height: 1.6; color: #d4d4d2; }
-.heroNav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid #ffffff2b; }
-.heroNav a { --accent: #f51625; position: relative; display: grid; grid-template-columns: auto 1fr auto; column-gap: 12px; row-gap: 6px; align-items: baseline; padding: 22px 22px 6px 0; color: #eeeeec; transition: color 180ms; }
-.heroNav a + a { padding-left: 22px; border-left: 1px solid #ffffff1f; }
-.heroNav a::before { content: ""; position: absolute; top: -1px; left: 0; width: 30px; height: 4px; background: var(--accent); }
-.heroNav a + a::before { left: 22px; }
-.heroNav a:nth-child(2) { --accent: #fed603; }
-.heroNav a:nth-child(3) { --accent: #007dfe; }
-.heroNav a:nth-child(4) { --accent: #eeeeec; }
-.heroNav a:hover { color: #fed603; }
-.heroNav svg { grid-column: 3; grid-row: 1; color: #a8a8a5; }
-.navIndex { grid-column: 1; grid-row: 1; font-size: 13px; letter-spacing: .08em; color: var(--accent); }
-.navLabel { grid-column: 2; grid-row: 1; font-family: var(--font-frontier-headline), sans-serif; font-size: clamp(18px, 1.5vw, 24px); letter-spacing: -.035em; }
-.navMoment { grid-column: 2 / 4; grid-row: 2; font-size: 13px; color: #a8a8a5; }
-@keyframes hero-photo-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes hero-copy-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: no-preference) {
-  .heroPhoto { animation: hero-photo-in 900ms cubic-bezier(.22, 1, .36, 1) both; }
-  .heroCopy { animation: hero-copy-in 520ms 160ms cubic-bezier(.22, 1, .36, 1) both; }
-}
 
 .offering { position: relative; padding-block: clamp(88px, 9vw, 140px); scroll-margin-top: 64px; border-top: 1px solid #1e1e1e; background-image: linear-gradient(#ffffff05 1px, transparent 1px), linear-gradient(90deg, #ffffff05 1px, transparent 1px); background-size: 80px 80px; }
 .offering:nth-of-type(2) { --accent: #f51625; }
@@ -306,7 +275,6 @@
 .closingBody { max-width: 640px; margin: 28px 0 40px; font-size: 18px; line-height: 1.6; color: #4a4a48; }
 .closingButton { display: inline-flex; align-items: center; justify-content: center; gap: 14px; height: 48px; padding: 0 22px; background: #161616; color: #f8f8f6; font-size: 14px; letter-spacing: -.2px; transition: background 160ms; }
 .closingButton:hover { background: #333; }
-.footer { margin-inline: max(6%, calc((100% - 1200px) / 2)); font-size: 13px; }
 .recap a:focus-visible, .closing a:focus-visible, .example button:focus-visible { outline: 2px solid #0068e8; outline-offset: 3px; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -314,11 +282,6 @@
   .stage, .receipt ul li, .preference, .shelf i, .suggestion, .compareValue { transition: none; }
 }
 @media (max-width: 1100px) {
-  .heroNav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .heroNav a:nth-child(3) { padding-left: 0; border-left: 0; }
-  .heroNav a:nth-child(3)::before { left: 0; }
-  .heroNav a:nth-child(n + 3) { border-top: 1px solid #ffffff1f; }
-  .heroNav a { padding-bottom: 20px; }
   .offeringHead { grid-template-columns: minmax(0, 1fr); align-items: start; }
   .customerGrid, .evidencePanel { grid-template-columns: minmax(0, 1fr); }
   .locations { grid-template-columns: minmax(0, 1fr); }
@@ -342,15 +305,6 @@
   .compareOption { font-size: 15px; padding: 12px; }
 }
 @media (max-width: 700px) {
-  .hero { min-height: 92svh; padding: 120px 24px 32px; }
-  .heroPhoto { object-position: 53% center; }
-  .headline { font-size: clamp(36px, 10vw, 54px); margin: 22px 0 18px; }
-  .heroLead { margin-bottom: 32px; font-size: 16px; }
-  .heroNav a { padding: 16px 12px 14px 0; column-gap: 8px; }
-  .heroNav a:nth-child(even) { padding-left: 12px; }
-  .heroNav a:nth-child(even)::before { left: 12px; }
-  .navLabel { font-size: 17px; }
-  .heroNav svg { display: none; }
   .offering, .recap, .start, .closing { padding: 72px 24px; }
   .offeringTitle { font-size: clamp(32px, 8.6vw, 44px); }
   .outcomeLine { font-size: clamp(22px, 6vw, 28px); gap: 14px; }
@@ -380,5 +334,4 @@
   .startSteps li { grid-template-columns: 36px 1fr; }
   .closingBody { font-size: 16px; }
   .closingButton { width: 100%; }
-  .footer { margin-inline: 24px; }
 }

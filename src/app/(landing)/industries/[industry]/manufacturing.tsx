@@ -1,12 +1,13 @@
 import type { ComponentType } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import type { Industry } from "@/lib/industries";
 import { FrontierHeader } from "@/components/landing/frontier-header";
 import frontier from "../../frontier.module.css";
 import base from "./industry.module.css";
 import styles from "./manufacturing.module.css";
 import { CellIllustration } from "./manufacturing-illustration";
+import { HeroDrawing, IndustryHero } from "./industry-hero";
 import { InspectProduct, InvestigateProblem, PlanProduction, TestChange } from "./manufacturing-visuals";
 
 export const manufacturingHeadline = "Help your factory understand problems and test better ways to work.";
@@ -97,28 +98,14 @@ export function ManufacturingPage({ industry, index, next }: { industry: Industr
       <a className={frontier.skip} href="#industry-content">Skip to content</a>
       <FrontierHeader />
       <main id="industry-content">
-        <section className={styles.hero} aria-labelledby="industry-title">
-          <div className={styles.heroInner}>
-            <Link href="/#industries" className={styles.back}><ArrowLeft size={14} strokeWidth={1.5} /> Industries <span aria-hidden="true">/</span> {String(index + 1).padStart(2, "0")} {industry.name}</Link>
-            <div className={styles.heroGrid}>
-              <div className={styles.heroCopy}>
-                <h1 id="industry-title" className={styles.headline}>{manufacturingHeadline}</h1>
-                <p className={styles.heroLead}>{manufacturingSummary}</p>
-              </div>
-              <CellIllustration />
-            </div>
-            <nav className={styles.heroNav} aria-label="What we can build">
-              {offerings.map((offering, offeringIndex) => (
-                <a key={offering.id} href={`#${offering.id}`}>
-                  <span className={styles.navIndex}>{String(offeringIndex + 1).padStart(2, "0")}</span>
-                  <span className={styles.navLabel}>{offering.label}</span>
-                  <span className={styles.navMoment}>{offering.moment}</span>
-                  <ArrowDown size={15} strokeWidth={1.4} aria-hidden="true" />
-                </a>
-              ))}
-            </nav>
-          </div>
-        </section>
+        <IndustryHero
+          industry={industry}
+          index={index}
+          headline={manufacturingHeadline}
+          summary={manufacturingSummary}
+          links={offerings.map((offering) => ({ id: offering.id, label: offering.label, detail: offering.moment }))}
+          media={<HeroDrawing><CellIllustration /></HeroDrawing>}
+        />
 
         {offerings.map((offering, offeringIndex) => (
           <section key={offering.id} id={offering.id} className={styles.offering} aria-labelledby={`${offering.id}-title`}>
@@ -197,7 +184,7 @@ export function ManufacturingPage({ industry, index, next }: { industry: Industr
           </div>
         </section>
       </main>
-      <footer className={styles.footer}>
+      <footer className={base.footer}>
         <Link href="/#industries"><ArrowLeft size={14} strokeWidth={1.5} /> All industries</Link>
         <Link href={`/industries/${next.slug}`}>Next: {next.name} <ArrowRight size={14} strokeWidth={1.5} /></Link>
       </footer>
