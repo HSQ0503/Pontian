@@ -563,7 +563,7 @@ function LabelLayer({ labels, layer }: { labels: SceneLabel[]; layer: RefObject<
   return (
     <div ref={layer} className={styles.sceneLabels} aria-hidden="true">
       {labels.map((label) => (
-        <div key={label.id} className={styles.sceneLabel} data-label={label.id} data-state={label.state} style={{ "--lift": `${label.lift ?? 30}px` } as CSSProperties}>
+        <div key={label.id} className={styles.sceneLabel} data-label={label.id} data-state={label.state} data-minor={label.minor || undefined} style={{ "--lift": `${label.lift ?? 30}px` } as CSSProperties}>
           <span className={styles.labelChip}><strong>{label.title}</strong>{label.detail && <span>{label.detail}</span>}</span>
           <i className={styles.labelLeader} />
         </div>
@@ -599,11 +599,11 @@ function placeLabels(layer: HTMLDivElement | null, labels: SceneLabel[], camera:
 type Frame = { position: Point; target: Point };
 type View = Frame & { narrow?: Frame };
 const VIEWS: Record<ViewId, View> = {
-  wide: { position: [-17, 44, 25], target: [-0.5, 0, 0.6], narrow: { position: [-14, 66, 32], target: [-0.5, 0, 1] } },
-  side: { position: [-25, 10.5, 17], target: [-7.5, 0.6, 0.6], narrow: { position: [-27, 14, 23], target: [-7.4, 0.6, 1] } },
+  wide: { position: [-17, 44, 25], target: [-0.5, 0, 0.6], narrow: { position: [-13, 84, 40], target: [-0.5, 0, 1] } },
+  side: { position: [-25, 10.5, 17], target: [-7.5, 0.6, 0.6], narrow: { position: [-29, 15, 25], target: [-7.6, 0.6, 1.2] } },
   front: { position: [9, 10, 31], target: [-1.2, 0.6, 9.2], narrow: { position: [8, 14, 36], target: [-1.2, 0.6, 8] } },
   back: { position: [20, 13.5, -25], target: [4.2, 0.4, -5.6], narrow: { position: [22, 18, -31], target: [4.2, 0.4, -5] } },
-  street: { position: [0, 78, 62], target: [0, 0, -8], narrow: { position: [0, 118, 82], target: [0, 0, -9] } },
+  street: { position: [0, 92, 72], target: [0, 0, -8], narrow: { position: [0, 132, 92], target: [0, 0, -9] } },
   birch: { position: [-12, 22, 4], target: [-27, 0, -21], narrow: { position: [-10, 30, 12], target: [-27, 0, -21] } },
   alder: { position: [12, 26, 36], target: [0, 0, 2], narrow: { position: [8, 40, 50], target: [0, 0, 2] } },
   cedar: { position: [42, 22, -6], target: [27, 0, -27], narrow: { position: [44, 30, 2], target: [27, 0, -27] } },

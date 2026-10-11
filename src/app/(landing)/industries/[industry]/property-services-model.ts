@@ -3,7 +3,7 @@ export type AreaState = "scope" | "excluded" | "open" | "plain";
 export type StopId = "birch" | "alder" | "cedar";
 export type ViewId = "wide" | "side" | "front" | "back" | "street" | StopId;
 export type Point = [number, number, number];
-export type SceneLabel = { id: string; at: Point; title: string; detail?: string; state?: "ok" | "blocked"; lift?: number };
+export type SceneLabel = { id: string; at: Point; title: string; detail?: string; state?: "ok" | "blocked"; lift?: number; minor?: boolean };
 export type Pin = { id: "driveway" | "patio"; state: "ok" | "blocked" };
 
 export type SceneInput = {

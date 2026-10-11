@@ -522,8 +522,8 @@ export function EquipTheCrew() {
   const labels: SceneLabel[] = [
     question.chip,
     { id: "gate", at: ANCHORS.gate, title: "Side gate", detail: "Way in", lift: 22 },
-    { id: "fence", at: SIDE_FENCE, title: "Painted fence", detail: "Leave it alone", state: "blocked", lift: 22 },
-    ...(question.focus === "driveway" ? [] : [{ id: "patio", at: ANCHORS.patio, title: "Rear patio", detail: "Today", state: "ok" as const }]),
+    { id: "fence", at: SIDE_FENCE, title: "Painted fence", detail: "Leave it alone", state: "blocked", lift: 22, minor: true },
+    ...(question.focus === "driveway" ? [] : [{ id: "patio", at: ANCHORS.patio, title: "Rear patio", detail: "Today", state: "ok" as const, minor: true }]),
   ];
   return (
     <Example

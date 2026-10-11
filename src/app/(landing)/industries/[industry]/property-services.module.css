@@ -196,6 +196,7 @@
   .outcome { grid-template-columns: minmax(0, 1fr); }
   .outcome li + li { border-left: 0; border-top: 1px solid #d8d9d9; }
   .labelChip { padding: 5px 8px 6px; }
+  .sceneLabel[data-minor] { display: none; }
   .start { padding: 80px 24px; }
   .startTitle { font-size: clamp(30px, 8vw, 42px); }
   .closing { padding: 80px 24px; }
