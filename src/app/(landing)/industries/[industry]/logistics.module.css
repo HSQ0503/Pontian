@@ -271,7 +271,7 @@ button.stopButton[aria-pressed="true"] { background: #fffbea; box-shadow: inset 
 .sceneChip { position: absolute; left: 0; top: 0; display: grid; gap: 2px; max-width: 260px; padding: 9px 12px; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 8%), 0 0 0 1px rgb(23 25 26 / 10%); color: #17191a; font-size: 13px; line-height: 1.35; opacity: 0; pointer-events: none; transition: opacity 180ms; }
 .sceneChip strong { font-size: 14px; font-weight: 600; }
 .sceneChip span { display: flex; align-items: center; gap: 6px; color: #3b3d3e; }
-.sceneChip span::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #007dfe; }
+.sceneChip span::before { content: ""; flex-shrink: 0; width: 8px; height: 8px; background: #007dfe; }
 .sceneChip span[data-tone="alert"]::before { background: #f51625; }
 .sceneControls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .sceneHint { font-size: 13px; color: #707273; }

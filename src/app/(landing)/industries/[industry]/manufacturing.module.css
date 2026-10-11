@@ -77,16 +77,14 @@
 .sceneLabel[data-place="left"] .leader { left: auto; right: 0; }
 .sceneLabel[data-place="right"] .chip { left: var(--leader); bottom: auto; top: 0; transform: translateY(-50%); }
 .sceneLabel[data-place="left"] .chip { left: auto; right: var(--leader); bottom: auto; top: 0; transform: translateY(-50%); }
-.chip strong { font-weight: 600; }
+.chip strong { display: flex; align-items: center; gap: 7px; font-weight: 600; }
 .chip span { color: #555758; }
-.sceneLabel[data-tone="accent"] .chip { background: #fed603; }
-.sceneLabel[data-tone="accent"] .chip span { color: #17191a; }
-.sceneLabel[data-tone="proposed"] .chip { background: #007dfe; color: #fff; }
-.sceneLabel[data-tone="proposed"] .chip span { color: #e6f1ff; }
-.sceneLabel[data-tone="alert"] .chip { background: #f51625; color: #fff; }
-.sceneLabel[data-tone="alert"] .chip span { color: #ffe6e8; }
-.sceneLabel[data-tone="quiet"] .chip { background: rgb(255 255 255 / 90%); color: #3c3e3f; }
-.sceneLabel[data-tone="quiet"] .chip strong { font-weight: 500; }
+.sceneLabel[data-tone="accent"] { --state: #fed603; }
+.sceneLabel[data-tone="proposed"] { --state: #007dfe; }
+.sceneLabel[data-tone="alert"] { --state: #f51625; }
+.sceneLabel:is([data-tone="accent"], [data-tone="proposed"], [data-tone="alert"]) .chip strong::before { content: ""; flex-shrink: 0; width: 8px; height: 8px; background: var(--state); }
+.sceneLabel[data-tone="accent"] .chip strong::before { box-shadow: inset 0 0 0 1px #17191a; }
+.sceneLabel[data-tone="quiet"] .chip { background: rgb(255 255 255 / 90%); }
 .sketch { display: block; width: 100%; height: 100%; }
 .sketchText { font-family: inherit; font-size: 17px; font-weight: 600; fill: #262829; }
 
