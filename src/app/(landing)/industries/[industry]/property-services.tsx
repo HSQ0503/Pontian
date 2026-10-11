@@ -14,7 +14,7 @@ import heroPhoto from "../../../../../public/pontian/property-services-hero.webp
 const SLUG = "property-services";
 const headline = "Help every crew arrive prepared.";
 const summary =
-  "We connect property history, approved work, and field observations so your team can prepare estimates, answer job questions, document service, and plan the next visit.";
+  "What you learn on a walkthrough usually lives in one person’s head. We put it on the job record, so nobody has to ring you to find it.";
 const socialTitle = "Pontian for Property Services";
 
 export const propertyServicesMetadata: Metadata = {
@@ -29,10 +29,8 @@ type Offering = {
   id: string;
   label: string;
   moment: string;
-  summary: string;
   headline: string;
   body: string;
-  capabilities: string[];
   outcome: string;
   Visual: ComponentType;
 };
@@ -42,21 +40,17 @@ const offerings: Offering[] = [
     id: "scope-the-work",
     label: "Scope the work",
     moment: "At the walkthrough",
-    summary: "The owner’s walkthrough becomes a reviewed estimate.",
     headline: "Turn a walkthrough into a clear plan for the job.",
-    body: "We can bring together site photos, spoken notes, and your service catalog to prepare a draft scope and estimate, with exclusions and unanswered questions kept visible.",
-    capabilities: ["Capture photos and spoken observations", "Prepare work items and exclusions", "Keep open questions out of the approved scope"],
+    body: "You walk the property, take a few photos and say what you want done. We turn that into a draft scope your estimator checks and prices. What’s excluded, and what’s still a question, stays written down.",
     outcome: "Make the promised work clear before the crew arrives.",
     Visual: ScopeTheWork,
   },
   {
     id: "equip-the-crew",
     label: "Equip the crew",
-    moment: "On the day of service",
-    summary: "The crew receives the accepted scope and the property’s history.",
+    moment: "On the day",
     headline: "Give the crew the property’s context.",
-    body: "We can connect the accepted estimate, property notes, previous visits, and reference photos so assigned crews can find useful answers without repeatedly calling the owner.",
-    capabilities: ["See the approved work", "Find property-specific instructions", "Get answers with supporting records"],
+    body: "Your crew gets the approved job, the gate, the fence warning and last visit’s notes on their phone. When they ask something, the answer comes with the record behind it.",
     outcome: "Keep routine job questions from depending on one person’s memory.",
     Visual: EquipTheCrew,
   },
@@ -64,31 +58,27 @@ const offerings: Offering[] = [
     id: "review-the-result",
     label: "Review the result",
     moment: "After the visit",
-    summary: "The supervisor reviews the evidence against the work promised.",
     headline: "Connect the evidence to the work promised.",
-    body: "We can organize completion photos and crew notes against the approved tasks, helping supervisors identify missing documentation and prepare a clear service summary.",
-    capabilities: ["Match photos to approved tasks", "Identify missing documentation", "Prepare a reviewed service record"],
+    body: "Crew photos land on the task they belong to. Your supervisor sees straight away that the patio has a before shot and no after shot.",
     outcome: "Make the handoff from crew to office to customer easier to follow.",
     Visual: ReviewTheResult,
   },
   {
     id: "plan-the-next-visit",
     label: "Plan the next visit",
-    moment: "Before the next visit",
-    summary: "The next visit starts with that knowledge already available.",
+    moment: "Before the next one",
     headline: "Carry the property’s history into the next visit.",
-    body: "We can connect agreed service intervals, previous work, customer preferences, and crew availability to help your team prepare the next visit and review how it fits into the schedule.",
-    capabilities: ["Use agreed service intervals", "Consider travel and crew availability", "Bring previous instructions into the next job"],
+    body: "The customer agreed to a visit every six months. When it comes round, we draft a day around it with nearby jobs and their time windows. The office approves it before anyone is booked.",
     outcome: "Make repeat service easier to organize and deliver.",
     Visual: PlanTheNextVisit,
   },
 ];
 
 const startingScopes = [
-  "Walkthrough notes into draft estimates.",
-  "Property briefings for assigned crews.",
-  "Completion-photo review for defined services.",
-  "Recurring-visit planning for one crew.",
+  "Walkthrough notes into draft estimates",
+  "Property briefings for your crews",
+  "Photo checks for one service",
+  "Repeat visits for one crew",
 ];
 
 export function PropertyServicesPage() {
@@ -120,31 +110,12 @@ export function PropertyServicesPage() {
                 </p>
                 <h2 id={`${offering.id}-title`} className={styles.offeringTitle}>{offering.headline}</h2>
               </div>
-              <div>
-                <p className={styles.offeringBody}>{offering.body}</p>
-                <ul className={styles.capabilities}>
-                  {offering.capabilities.map((capability) => <li key={capability}>{capability}</li>)}
-                </ul>
-              </div>
+              <p className={styles.offeringBody}>{offering.body}</p>
             </div>
             <offering.Visual />
             <p className={styles.outcomeLine}>{offering.outcome}</p>
           </section>
         ))}
-
-        <section className={styles.recap} aria-labelledby="recap-title">
-          <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
-          <h2 id="recap-title" className={styles.recapTitle}>One property record, from the first walkthrough to the next visit.</h2>
-          <ol className={styles.recapList}>
-            {offerings.map((offering) => (
-              <li key={offering.id}>
-                <span className={styles.recapMoment}>{offering.moment}</span>
-                <p>{offering.summary}</p>
-                <a href={`#${offering.id}`}>{offering.label} <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden="true" /></a>
-              </li>
-            ))}
-          </ol>
-        </section>
 
         <section id="how-we-start" className={styles.start} aria-labelledby="how-we-start-title">
           <div>
@@ -152,8 +123,8 @@ export function PropertyServicesPage() {
             <h2 id="how-we-start-title" className={styles.startTitle}>Start with the handoff that causes the most friction.</h2>
           </div>
           <div>
-            <p className={styles.startBody}>We work with your team to understand how a job moves from inquiry to completion, choose one recurring problem, and test a focused workflow using representative jobs.</p>
-            <p className={styles.scopesLabel}>Possible starting scopes</p>
+            <p className={styles.startBody}>Tell us which handoff keeps landing back on you. We map it with your team and test a fix on a handful of real jobs.</p>
+            <p className={styles.scopesLabel}>Good places to start</p>
             <ol className={styles.startSteps}>
               {startingScopes.map((scope, scopeIndex) => (
                 <li key={scope}>
@@ -162,23 +133,14 @@ export function PropertyServicesPage() {
                 </li>
               ))}
             </ol>
-            <dl className={styles.maturity}>
-              <div>
-                <dt>Field-service workflows we have implemented</dt>
-                <dd>Estimates, scheduling, crew workflows, job photos, payments, and recurring service.</dd>
-              </div>
-              <div>
-                <dt>Proposed extensions to develop and validate</dt>
-                <dd>Photo-assisted scoping, property-aware answers, visual evidence review, and optimized scheduling.</dd>
-              </div>
-            </dl>
+            <p className={styles.maturity}>We’ve built estimates, scheduling, crew job sheets, photos, payments and repeat visits before. Photo scoping, crew answers, photo review and route grouping are the parts we’d test with you.</p>
           </div>
         </section>
 
         <section id="talk" className={styles.closing} aria-labelledby="talk-title">
           <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
           <h2 id="talk-title" className={styles.closingTitle}>What does your team keep having to explain twice?</h2>
-          <p className={styles.closingBody}>Tell us about the property details, crew questions, or follow-ups that repeatedly come back to you.</p>
+          <p className={styles.closingBody}>Tell us which property details, crew questions or follow-ups keep coming back to you.</p>
           <Link href="/get-started" className={styles.closingButton}>Talk through your service operation <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
         </section>
       </main>
