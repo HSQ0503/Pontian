@@ -483,7 +483,7 @@ function CameraRig({ framing, store, reducedMotion, labels, layer }: { framing: 
 
 /* Maya's briefing: the Harbor Street coffee bay, with the suggested product lit. */
 
-const BRIEFING_FRAMING: Framing = { target: [0, 0.78, 0], halfWidth: BAY.width / 2 + 0.06, halfHeight: 0.86, azimuth: -20, elevation: 15, fillX: 0.64, fillY: 0.84, narrowFillX: 0.7 };
+const BRIEFING_FRAMING: Framing = { target: [0, 0.72, 0], halfWidth: BAY.width / 2 + 0.14, halfHeight: 0.94, azimuth: -34, elevation: 30, fillX: 0.74, fillY: 0.78, narrowFillX: 0.64 };
 const BRIEFING_TICKETS = PRICE_TAGS.map((tag) => ({ product: tag.product, x: tag.at[0], level: tag.at[1] }));
 
 function BriefingScene({ focus, onPick, store }: { focus: BriefingFocus; onPick: (focus: BriefingFocus) => void; store: SceneStore }) {

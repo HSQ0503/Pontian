@@ -16,7 +16,8 @@ export const BAG = { width: 0.112, depth: 0.072, body: 0.17, fold: 0.032 };
 export const BAG_HEIGHT = BAG.body + BAG.fold;
 export const BAY = { width: 1.34, depth: 0.4, height: 1.6, plinth: 0.106, shelf: 0.024, levels: [0.13, 0.47, 0.81, 1.15], slots: 10, pitch: 0.126, header: [1.44, 1.6] as const };
 const FRONT_Z = BAY.depth / 2 - 0.055;
-const BACK_Z = FRONT_Z - 0.1;
+// Far enough behind the front row that a high camera shows the second nine bags.
+const BACK_Z = FRONT_Z - 0.16;
 
 export const COLORS = {
   kraft: "#c4a477",
@@ -77,7 +78,7 @@ export const BRIEFING_ANCHORS: Record<ProductId, Vec3> = {
   house: [column(8, 9) + 0.04, BAY.levels[2] + BAG_HEIGHT - 0.03, FRONT_Z + BAG.depth / 2],
   reserve: [column(0) - 0.04, BAY.levels[1] + BAG_HEIGHT - 0.03, FRONT_Z + BAG.depth / 2],
 };
-export const BRIEFING_SIDES: Record<ProductId, "left" | "right"> = { brewer: "left", reserve: "left", tasting: "right", house: "right" };
+export const BRIEFING_SIDES: Record<ProductId, "left" | "right" | "top"> = { brewer: "left", reserve: "left", tasting: "top", house: "right" };
 
 /* Stock: the Reserve Blend bay at each of the three stores. Bags fill the top shelf first. */
 
@@ -290,7 +291,11 @@ export function BriefingElevation({ focus, labels, onPick }: { focus: BriefingFo
       {BREWER_BOXES.map((at) => <BoxDrawing key={at[0]} at={at} />)}
       <g onClick={() => onPick("owned")} className={styles.pickable}><BrewerDrawing at={BREWER_AT} tone={tone("brewer")} /></g>
       <g onClick={() => onPick("tasting")} className={styles.pickable}><TastingDrawing at={TASTING_AT} tone={tone("tasting")} /></g>
-      {[...BRIEFING_BAGS].toSorted((a, b) => a.at[2] - b.at[2]).map((bag) => <BagDrawing key={bag.key} at={bag.at} product={bag.product} tone={tone(bag.product)} onPick={() => onPick(bag.product)} />)}
+      {[...BRIEFING_BAGS].toSorted((a, b) => a.at[2] - b.at[2]).map((bag) => {
+        // A flat elevation can't show a row tucked behind another, so the back nine sit slightly higher.
+        const at: Vec3 = bag.at[2] === FRONT_Z ? bag.at : [bag.at[0], bag.at[1] + 0.09, bag.at[2]];
+        return <BagDrawing key={bag.key} at={at} product={bag.product} tone={tone(bag.product)} onPick={() => onPick(bag.product)} />;
+      })}
     </Elevation>
   );
 }

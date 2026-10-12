@@ -253,7 +253,7 @@
   .briefing { padding: 18px 16px; }
   .briefingView { height: 440px; }
   .stockView { height: 280px; }
-  .chip { max-width: 112px; white-space: normal; }
+  .chip { max-width: 148px; }
   .fallbackLayer { padding: 6px; }
   .chip { padding: 5px 8px 6px; }
   .chip em { display: none; }

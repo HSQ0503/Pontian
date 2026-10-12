@@ -184,7 +184,7 @@ const SUGGESTIONS: { id: Exclude<BriefingFocus, "owned">; product: ProductId; ki
     id: "tasting",
     product: "tasting",
     kind: "Next experience",
-    reason: "If she wants to explore",
+    reason: "Worth a mention",
     why: "She’s only bought one coffee so far. A tasting is worth a mention if she wants to try others.",
     stock: `${TASTING_SLOT.when}, ${TASTING_SLOT.open} of ${TASTING_SLOT.places} places open.`,
     starter: "We also have a tasting session if you’d like to explore a few different coffees.",
