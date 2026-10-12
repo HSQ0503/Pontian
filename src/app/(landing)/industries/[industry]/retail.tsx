@@ -14,7 +14,7 @@ import { HeroPhoto, IndustryHero } from "./industry-hero";
 const SLUG = "retail";
 const headline = "Help your team remember what customers love.";
 const summary =
-  "We connect purchase history, customer preferences, and product knowledge so your team can make relevant recommendations, plan thoughtful follow-ups, and understand what works across your stores.";
+  "We tie your receipts to what customers have told your staff. Your salespeople get a short briefing before they say hello, and you get straight answers about each store.";
 
 export const retailMetadata: Metadata = {
   title: "Retail",
@@ -28,11 +28,8 @@ type Offering = {
   id: string;
   label: string;
   moment: string;
-  summary: string;
   headline: string;
   body: string;
-  capabilities: string[];
-  note: string;
   outcome: string;
   Visual: ComponentType;
 };
@@ -42,35 +39,26 @@ const offerings: Offering[] = [
     id: "know-the-customer",
     label: "Know the customer",
     moment: "Before the conversation",
-    summary: "The salesperson understands Maya’s history.",
     headline: "Give your salesperson the context before the conversation.",
-    body: "We can bring a customer’s recent purchases, recorded preferences, and relevant service history into a concise briefing, then suggest useful products or experiences with a clear reason behind each recommendation.",
-    capabilities: ["See recent purchases and recorded preferences", "Suggest relevant products and upgrades", "Introduce a suitable next experience"],
-    note: "A custom workflow, developed and validated with your team. It works from authorized customer records and appropriate staff access, never infers personal traits, and never suggests an item for its margin alone.",
-    outcome: "Help the conversation start with something the customer actually cares about.",
+    body: "Staff look a customer up by name and get a reason for each suggestion on the shelf. It won’t invent a personality, or push a bag for the margin.",
+    outcome: "Start the conversation with something the customer actually cares about.",
     Visual: KnowTheCustomer,
   },
   {
     id: "understand-the-business",
     label: "Understand the business",
     moment: "Across your stores",
-    summary: "The owner understands what is happening across stores.",
     headline: "Ask a business question. Follow the evidence.",
-    body: "We build AI-assisted analysis that helps owners investigate sales, product margins, discounts, and customer behavior across locations, then identify practical questions and actions for their managers.",
-    capabilities: ["Compare locations consistently", "Investigate the underlying transactions", "Turn findings into a focused next step"],
-    note: "Builds on our work in transaction analysis and product performance. Sales, product gross margin, and business profit stay distinct, and what sold is never treated as proof of why.",
-    outcome: "Understand what deserves attention, not just what changed.",
+    body: "Ask why one store’s margin is lower. The check uses both stores’ sales records, and it says what they can’t explain.",
+    outcome: "Know which difference deserves your attention.",
     Visual: UnderstandTheBusiness,
   },
   {
     id: "plan-the-next-visit",
     label: "Plan the next visit",
     moment: "Between visits",
-    summary: "The team recognizes a relevant reason to reconnect.",
-    headline: "Recognize when a thoughtful follow-up could help.",
-    body: "We can use purchase and service patterns to identify a relevant reason to reconnect, check for more recent activity, and prepare a message for your team to review.",
-    capabilities: ["Recognize repeat-purchase patterns", "Check whether follow-up is still relevant", "Prepare a personal message for review"],
-    note: "A custom workflow, developed and validated with your team. It respects consent, channel preferences, and contact frequency. Nothing is sent without review.",
+    headline: "Know when a follow-up is worth sending.",
+    body: "When a regular goes quiet, the tool looks for a newer purchase before it drafts a note. Nothing goes out until your team approves it.",
     outcome: "Give customers a useful reason to return.",
     Visual: PlanTheNextVisit,
   },
@@ -78,21 +66,11 @@ const offerings: Offering[] = [
     id: "stock-for-demand",
     label: "Stock for demand",
     moment: "Before the shelf runs low",
-    summary: "Inventory planning supports the products being recommended.",
-    headline: "Put stock where it is more likely to sell.",
-    body: "We can combine sales patterns with current inventory, incoming orders, and supplier lead times to help your team review replenishment and store-transfer decisions.",
-    capabilities: ["Forecast demand by product and location", "Compare stock with expected needs", "Prepare replenishment or transfer proposals"],
-    note: "A proposed extension that needs reliable stock and supplier data and validation before anyone relies on it. Forecasts are estimates, always shown apart from recorded counts.",
-    outcome: "Make the stock decision with its assumptions in view.",
+    headline: "Put stock where it’s more likely to sell.",
+    body: "The shelf count sits next to usual sales and what’s already on order. A short store and a full one become a transfer a manager can approve. The forecast stays an estimate.",
+    outcome: "Make the stock call with its assumptions in view.",
     Visual: StockForDemand,
   },
-];
-
-const startingScopes = [
-  "Customer briefings for one store.",
-  "Product recommendations for a defined catalog.",
-  "A repeat-purchase follow-up workflow.",
-  "A recurring question about performance across locations.",
 ];
 
 export function RetailPage() {
@@ -125,62 +103,28 @@ export function RetailPage() {
                 </p>
                 <h2 id={`${offering.id}-title`} className={styles.offeringTitle}>{offering.headline}</h2>
               </div>
-              <div>
-                <p className={styles.offeringBody}>{offering.body}</p>
-                <ul className={styles.capabilities}>
-                  {offering.capabilities.map((capability) => <li key={capability}>{capability}</li>)}
-                </ul>
-                <p className={styles.offeringNote}>{offering.note}</p>
-              </div>
+              <p className={styles.offeringBody}>{offering.body}</p>
             </div>
             <offering.Visual />
             <p className={styles.outcomeLine}>{offering.outcome}</p>
           </section>
         ))}
 
-        <section className={styles.recap} aria-labelledby="recap-title">
-          <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
-          <h2 id="recap-title" className={styles.recapTitle}>One retailer’s records, turned into useful work.</h2>
-          <p className={styles.recapLead}>The same fictional coffee retailer, the same customer, and the same products run through every example on this page.</p>
-          <ol className={styles.recapList}>
-            {offerings.map((offering) => (
-              <li key={offering.id}>
-                <span className={styles.recapMoment}>{offering.moment}</span>
-                <p>{offering.summary}</p>
-                <a href={`#${offering.id}`}>{offering.label} <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden="true" /></a>
-              </li>
-            ))}
-          </ol>
-        </section>
-
         <section id="how-we-start" className={styles.start} aria-labelledby="how-we-start-title">
           <div>
             <p className={styles.startLabel}>How we start</p>
-            <h2 id="how-we-start-title" className={styles.startTitle}>Start with the information your business already has.</h2>
+            <h2 id="how-we-start-title" className={styles.startTitle}>Start with the records you already keep.</h2>
           </div>
           <div>
-            <p className={styles.startBody}>We connect a defined set of retail records, check their quality, and build a focused workflow with the people who will use it. Your team helps evaluate whether the recommendations and analysis are useful before the scope expands.</p>
-            <p className={styles.startListLabel}>Possible starting scopes</p>
-            <ol className={styles.startSteps}>
-              {startingScopes.map((scope, scopeIndex) => (
-                <li key={scope}>
-                  <span>{String(scopeIndex + 1).padStart(2, "0")}</span>
-                  <p>{scope}</p>
-                </li>
-              ))}
-              <li data-additional="true">
-                <span>+</span>
-                <p>Inventory planning, added once the required stock and supplier information is available.</p>
-              </li>
-            </ol>
-            <p className={styles.startNote}>Our retail work to date covers transaction analysis, customer histories, product performance, and AI-assisted business analysis. Personalized selling, follow-up workflows, and inventory planning are custom capabilities we would develop and validate with you.</p>
+            <p className={styles.startBody}>We start with one store and one job: a briefing, a set catalog, or one follow-up. Stock planning waits until the counts and the supplier data are reliable. Your team decides if it’s useful before we add more.</p>
+            <p className={styles.startNote}>Sales analysis is work we’ve already done. Briefings, follow-ups and stock plans get built and tested with you.</p>
           </div>
         </section>
 
         <section id="talk" className={styles.closing} aria-labelledby="talk-title">
           <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
           <h2 id="talk-title" className={styles.closingTitle}>What should your team know before the next customer walks in?</h2>
-          <p className={styles.closingBody}>Tell us how you sell, what your systems already record, and where useful information gets lost.</p>
+          <p className={styles.closingBody}>Tell us how you sell and what your point-of-sale system already records.</p>
           <Link href="/get-started" className={styles.closingButton}>Talk through your retail operation <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
         </section>
       </main>

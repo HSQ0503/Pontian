@@ -1,38 +1,24 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
-import { ArrowRight, Check, RotateCcw, Search } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from "react";
+import { ArrowRight, Check, RotateCcw } from "lucide-react";
 import styles from "./retail.module.css";
+import type { ShelfSceneProps } from "./retail-scene";
+import {
+  BRIEFING_DATE, DAYS_OF_COVER, HARBOR_HOUSE_BLEND, LOCATIONS, MARKET_SPARE, PRODUCTS, RECEIPTS, REORDER, STORE_TOTAL, TASTING_SLOT, TRANSFER,
+  forecastOf, location, shelfCounts, type ProductId, type StockOption,
+} from "./retail-data";
+import {
+  BRIEFING_ANCHORS, BRIEFING_SIDES, BriefingElevation, COLORS, INCOMING_CARTON, REORDER_CARTON, STOCK_ANCHOR_Y, STOCK_BAY_X, StockElevation,
+  type BriefingFocus, type ShelfLabel,
+} from "./retail-shelf";
 
-/*
- * One fictional specialty coffee retailer runs through every example:
- * three stores, one loyalty customer (Maya), and four catalog items.
- * Displayed totals, shares, and margins are computed from these records.
- */
-
-type ProductId = "house" | "reserve" | "brewer" | "tasting";
-
-const PRODUCTS: Record<ProductId, { name: string; price: number; catalog: string }> = {
-  house: { name: "House Blend, 250 g", price: 16, catalog: "Medium roast. Tasting notes: milk chocolate, toasted almond." },
-  reserve: { name: "Reserve Blend, 250 g", price: 24, catalog: "Medium-dark roast. Tasting notes: dark chocolate, cherry, brown sugar." },
-  brewer: { name: "Ceramic pour-over brewer", price: 38, catalog: "Pour-over brewer for one or two cups." },
-  tasting: { name: "Coffee tasting session", price: 15, catalog: "45 minutes. Five coffees, including House Blend and Reserve Blend." },
-};
-
-type Receipt = { id: string; date: string; daysAgo: number; store: string; items: ProductId[] };
-
-const BRIEFING_DATE = "3 June";
-const RECEIPTS: Receipt[] = [
-  { id: "r1", date: "8 March", daysAgo: 87, store: "Harbor Street", items: ["brewer", "house"] },
-  { id: "r2", date: "6 April", daysAgo: 58, store: "Harbor Street", items: ["house"] },
-  { id: "r3", date: "5 May", daysAgo: 29, store: "Harbor Street", items: ["house"] },
-];
+const ShelfScene = dynamic(() => import("./retail-scene"), { ssr: false });
 
 const money = (value: number) => `$${value.toLocaleString("en-US")}`;
 const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
 const roundedPercent = (value: number) => `${Math.round(value * 100)}%`;
-const COUNT_WORDS = ["no", "one", "two", "three", "four", "five"];
-const times = (count: number) => (count === 1 ? "once" : `${COUNT_WORDS[count] ?? count} times`);
 
 const MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 function subscribeToMotion(callback: () => void) {
@@ -44,33 +30,63 @@ function useReducedMotion() {
   return useSyncExternalStore(subscribeToMotion, () => window.matchMedia(MOTION_QUERY).matches, () => false);
 }
 
-function useSequence(length: number) {
-  const [step, setStep] = useState(length - 1);
-  const [playing, setPlaying] = useState(false);
+let webglSupport: boolean | undefined;
+function detectWebGL() {
+  if (webglSupport === undefined) {
+    try {
+      const canvas = document.createElement("canvas");
+      webglSupport = Boolean(canvas.getContext("webgl2") ?? canvas.getContext("webgl"));
+    } catch {
+      webglSupport = false;
+    }
+  }
+  return webglSupport;
+}
+const noSubscription = () => () => undefined;
+
+// Fetches the 3D scene once the example nears the viewport, and renders it only while on screen.
+function useShelfPresence(ref: RefObject<HTMLDivElement | null>) {
+  const [near, setNear] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [ready, setReady] = useState(false);
+  const webgl = useSyncExternalStore(noSubscription, detectWebGL, () => false);
   const reducedMotion = useReducedMotion();
   useEffect(() => {
-    if (!playing || step >= length - 1) return;
-    const timer = window.setTimeout(() => setStep(step + 1), 900);
-    return () => window.clearTimeout(timer);
-  }, [playing, step, length]);
-  const replay = () => {
-    if (reducedMotion) return;
-    setStep(0);
-    setPlaying(true);
-  };
-  return { step, replay };
+    const element = ref.current;
+    if (!element) return;
+    const nearObserver = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setNear(true); }, { rootMargin: "600px 0px" });
+    const visibleObserver = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { rootMargin: "0px" });
+    nearObserver.observe(element);
+    visibleObserver.observe(element);
+    return () => { nearObserver.disconnect(); visibleObserver.disconnect(); };
+  }, [ref]);
+  const live = near && webgl;
+  const onReady = useCallback(() => setReady(true), []);
+  return { near, visible, webgl, reducedMotion, live, ready: live && ready, onReady };
 }
+type ShelfPresence = ReturnType<typeof useShelfPresence>;
 
-function Replay({ onClick }: { onClick: () => void }) {
+type SceneInput = ShelfSceneProps extends infer P ? (P extends unknown ? Omit<P, "active" | "reducedMotion" | "onReady"> : never) : never;
+
+function ShelfView({ frame, presence, scene, fallback, className = "" }: { frame: RefObject<HTMLDivElement | null>; presence: ShelfPresence; scene: SceneInput; fallback: ReactNode; className?: string }) {
   return (
-    <button type="button" className={styles.replay} onClick={onClick}>
-      <RotateCcw size={14} strokeWidth={1.6} aria-hidden="true" /> Replay
-    </button>
+    <div ref={frame} className={`${styles.viewport} ${className}`} data-live={presence.ready || undefined}>
+      <div className={styles.fallbackLayer} aria-hidden={presence.ready || undefined}>
+        {fallback}
+        {!presence.webgl && presence.near && <p className={styles.planNote}>Front view. The 3D shelf needs WebGL.</p>}
+      </div>
+      {presence.live && <ShelfScene {...(scene as ShelfSceneProps)} active={presence.visible} reducedMotion={presence.reducedMotion} onReady={presence.onReady} />}
+      {presence.ready && <span className={styles.sceneHint} aria-hidden="true">Drag to turn</span>}
+    </div>
   );
 }
 
-function Stage({ index, step, className = "", children }: { index: number; step: number; className?: string; children: ReactNode }) {
-  return <div className={`${styles.stage} ${className}`} data-pending={index > step}>{children}</div>;
+function Replay({ onClick, label = "Replay" }: { onClick: () => void; label?: string }) {
+  return (
+    <button type="button" className={styles.replay} onClick={onClick}>
+      <RotateCcw size={14} strokeWidth={1.6} aria-hidden="true" /> {label}
+    </button>
+  );
 }
 
 type ExampleProps = { title: string; action?: ReactNode; children: ReactNode; situation: ReactNode; finding: ReactNode; next: ReactNode; findingLabel?: string };
@@ -94,22 +110,21 @@ function Example({ title, action, children, situation, finding, next, findingLab
   );
 }
 
-/* Product glyphs share one 24-unit grid and a 1.5 stroke so the same items read alike in every view. */
+/* Product glyphs match the 3D packaging: kraft House Blend, charcoal Reserve Blend, a ceramic brewer, a tasting flight. */
 function Glyph({ product, size = 24 }: { product: ProductId; size?: number }) {
   const ink = "#262829";
   return (
     <svg className={styles.glyph} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={ink} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true">
       {(product === "house" || product === "reserve") && (
         <>
-          <path d="M7.5 2.75h9l1.75 4.5V20.5a.75.75 0 0 1-.75.75h-11a.75.75 0 0 1-.75-.75V7.25z" fill="#fff" />
+          <path d="M7.5 2.75h9l1.75 4.5V20.5a.75.75 0 0 1-.75.75h-11a.75.75 0 0 1-.75-.75V7.25z" fill={product === "house" ? COLORS.kraft : COLORS.charcoal} />
           <path d="M5.75 7.25h12.5" />
-          <rect x="5.75" y="11" width="12.5" height="5" fill={product === "house" ? "#fed603" : "#007dfe"} />
-          <circle cx="12" cy="9.1" r=".85" fill={ink} stroke="none" />
+          <rect x="7.5" y="11" width="9" height="5" fill={product === "house" ? COLORS.kraftLabel : COLORS.charcoalLabel} strokeWidth="1" />
         </>
       )}
       {product === "brewer" && (
         <>
-          <path d="M4.25 6.25h13.5l-3.75 8h-6z" fill="#e4e4e2" />
+          <path d="M4.25 6.25h13.5l-3.75 8h-6z" fill={COLORS.stoneware} />
           <path d="M17.6 7.75h.9a2 2 0 0 1 0 4h-1.6" />
           <path d="M6.5 17.25h9" />
           <path d="M8 14.25v3M14 14.25v3" />
@@ -118,12 +133,7 @@ function Glyph({ product, size = 24 }: { product: ProductId; size?: number }) {
       )}
       {product === "tasting" && (
         <>
-          {[3, 9.5, 16].map((x) => (
-            <g key={x}>
-              <path d={`M${x} 10.25h5v4.5a2.5 2.5 0 0 1-5 0z`} fill="#fff" />
-              <path d={`M${x + 0.9} 12.25h3.2`} stroke="#f51625" />
-            </g>
-          ))}
+          {[3, 9.5, 16].map((x) => <path key={x} d={`M${x} 10.25h5v4.5a2.5 2.5 0 0 1-5 0z`} fill="#fff" />)}
           <path d="M2 20.25h20" />
         </>
       )}
@@ -131,7 +141,7 @@ function Glyph({ product, size = 24 }: { product: ProductId; size?: number }) {
   );
 }
 
-function Segmented<T extends string>({ label, options, value, onChange }: { label: string; options: { id: T; label: string }[]; value: T; onChange: (value: T) => void }) {
+function Segmented<T extends string>({ label, options, value, onChange }: { label: string; options: { id: T; label: string }[]; value: T | null; onChange: (value: T) => void }) {
   return (
     <div className={styles.segmented} role="group" aria-label={label}>
       {options.map((option) => (
@@ -143,178 +153,134 @@ function Segmented<T extends string>({ label, options, value, onChange }: { labe
 
 /* 1. Know the customer */
 
-type Period = "3" | "6" | "12";
-const PERIODS: { id: Period; label: string; days: number; since: string }[] = [
-  { id: "3", label: "3 months", days: 92, since: "3 March" },
-  { id: "6", label: "6 months", days: 183, since: "3 December" },
-  { id: "12", label: "12 months", days: 365, since: "3 June last year" },
-];
-
-type Focus = "familiar" | "new" | "experience" | "owned";
 type Evidence = { lines: `${string}:${ProductId}`[]; preference: boolean };
-
 const HOUSE_LINES = RECEIPTS.filter((receipt) => receipt.items.includes("house")).map((receipt) => `${receipt.id}:house` as const);
-const OWNED: Evidence = { lines: ["r1:brewer"], preference: false };
+const houseCount = HOUSE_LINES.length;
+const COUNT_WORDS = ["no", "once", "twice", "three times", "four times"];
 
-const RECOMMENDATIONS: {
-  id: Exclude<Focus, "owned">;
-  kind: string;
-  title: string;
-  product: ProductId;
-  why: string;
-  availability: string;
-  starter: string;
-  caution?: string;
-  evidence: Evidence;
-}[] = [
+const SUGGESTIONS: { id: Exclude<BriefingFocus, "owned">; product: ProductId; kind: string; reason: string; why: string; stock: string; starter: string; caution?: string; evidence: Evidence }[] = [
   {
-    id: "familiar",
-    kind: "Familiar choice",
-    title: "Offer their usual House Blend.",
+    id: "house",
     product: "house",
-    why: "House Blend is on all three receipts, about a month apart. That makes it frequently purchased, not a confirmed favorite.",
-    availability: "18 bags at Harbor Street, from the 08:00 inventory count.",
+    kind: "Familiar choice",
+    reason: `On all ${houseCount} receipts`,
+    why: "House Blend is on every receipt, about a month apart. Bought often. That doesn’t make it her favorite.",
+    stock: `${HARBOR_HOUSE_BLEND} bags at Harbor Street, 08:00 count.`,
     starter: "Would you like your usual House Blend today?",
     evidence: { lines: HOUSE_LINES, preference: false },
   },
   {
-    id: "new",
-    kind: "Something new",
-    title: "Introduce Reserve Blend, which shares the chocolate notes they enjoy.",
+    id: "reserve",
     product: "reserve",
-    why: "Maya told staff she enjoys chocolatey coffee. The catalog lists chocolate notes for both House Blend and Reserve Blend.",
-    availability: "6 bags at Harbor Street, from the 08:00 inventory count.",
+    kind: "Something new",
+    reason: "Chocolate notes",
+    why: "She told staff she likes chocolatey coffee. Both blends list chocolate notes in the catalog.",
+    stock: `${location("harbor").stock} bags at Harbor Street, 08:00 count.`,
     starter: "You’ve been enjoying House Blend. Would you like to try another coffee with a similar chocolate profile?",
-    caution: "$8 more than House Blend. Offer it alongside her usual, not instead of it.",
+    caution: `It costs ${money(PRODUCTS.reserve.price - PRODUCTS.house.price)} more, so offer it next to her usual.`,
     evidence: { lines: HOUSE_LINES, preference: true },
   },
   {
-    id: "experience",
-    kind: "Next experience",
-    title: "Mention the tasting session if they are interested in exploring more coffees.",
+    id: "tasting",
     product: "tasting",
-    why: "She has bought one coffee so far. A tasting is worth raising only if she wants to explore.",
-    availability: "Saturday 10:00, 3 of 8 places open, from the booking calendar.",
+    kind: "Next experience",
+    reason: "Worth a mention",
+    why: "She’s only bought one coffee so far. A tasting is worth a mention if she wants to try others.",
+    stock: `${TASTING_SLOT.when}, ${TASTING_SLOT.open} of ${TASTING_SLOT.places} places open.`,
     starter: "We also have a tasting session if you’d like to explore a few different coffees.",
     evidence: { lines: HOUSE_LINES, preference: true },
   },
 ];
+const OWNED: Evidence = { lines: ["r1:brewer"], preference: false };
+
+function briefingLabels(focus: BriefingFocus): ShelfLabel[] {
+  return [
+    ...SUGGESTIONS.map((item): ShelfLabel => ({
+      id: item.id,
+      at: BRIEFING_ANCHORS[item.product],
+      side: BRIEFING_SIDES[item.product],
+      title: PRODUCTS[item.product].short,
+      detail: item.reason,
+      state: focus === item.id ? "selected" : "ok",
+    })),
+    { id: "owned", at: BRIEFING_ANCHORS.brewer, side: BRIEFING_SIDES.brewer, title: "Brewer", detail: "Already owned", state: "blocked" },
+  ];
+}
 
 export function KnowTheCustomer() {
-  const [period, setPeriod] = useState<Period>("3");
-  const [focus, setFocus] = useState<Focus>("familiar");
-  const { step, replay } = useSequence(4);
-  const range = PERIODS.find((item) => item.id === period) ?? PERIODS[0];
-  const receipts = RECEIPTS.filter((receipt) => receipt.daysAgo <= range.days);
-  const houseCount = receipts.filter((receipt) => receipt.items.includes("house")).length;
-  const ownsBrewer = receipts.some((receipt) => receipt.items.includes("brewer"));
-  const olderThanRecords = range.days > RECEIPTS[0].daysAgo + 5;
-  const selected = RECOMMENDATIONS.find((item) => item.id === focus);
+  const [focus, setFocus] = useState<BriefingFocus>("house");
+  const frame = useRef<HTMLDivElement>(null);
+  const presence = useShelfPresence(frame);
+  const selected = SUGGESTIONS.find((item) => item.id === focus);
   const evidence = selected ? selected.evidence : OWNED;
+  const labels = briefingLabels(focus);
 
   return (
     <Example
       title="Maya at the counter, Harbor Street"
-      action={<Replay onClick={replay} />}
-      situation={<p>Maya comes in. A staff member finds her loyalty account by name.</p>}
-      finding={<p><strong>A short briefing:</strong> what she bought, what she told us, and three ways to help, each with its reason.</p>}
-      next={<p>The salesperson decides what, if anything, to mention. Nothing is added to a basket.</p>}
+      situation={<p>Maya comes in. Staff find her loyalty account by name.</p>}
+      finding={<p><strong>A short briefing.</strong> Each suggestion shows why it’s there.</p>}
+      next={<p>Your salesperson decides what, if anything, to mention. Nothing goes in a basket.</p>}
       findingLabel="Result for review"
     >
-      <Stage index={0} step={step} className={styles.lookup}>
-        <span className={styles.lookupField}><Search size={16} strokeWidth={1.6} aria-hidden="true" /> Maya</span>
-        <span className={styles.lookupResult}><strong>Maya</strong> Loyalty member since 8 March</span>
-        <span className={styles.lookupNote}>Found by name or loyalty number. No cameras or automatic identification.</span>
-      </Stage>
-
       <div className={styles.customerGrid}>
-        <Stage index={1} step={step} className={styles.history}>
-          <div className={styles.panelHead}>
-            <p className={styles.panelTitle}>Maya’s customer history</p>
-            <Segmented label="History period" options={PERIODS} value={period} onChange={setPeriod} />
-          </div>
-          <p className={styles.meta} aria-live="polite">Since {range.since}: {receipts.length} receipts. Records as of {BRIEFING_DATE}.</p>
-          <ol className={styles.receipts}>
-            {[...receipts].reverse().map((receipt) => (
-              <li key={receipt.id} className={styles.receipt}>
-                <p className={styles.receiptHead}><strong>{receipt.date}</strong><span>{receipt.store}</span></p>
-                <ul>
-                  {receipt.items.map((item) => (
-                    <li key={item} data-highlight={evidence.lines.includes(`${receipt.id}:${item}`)}>
-                      <Glyph product={item} size={22} />
-                      <span>{PRODUCTS[item].name}</span>
-                      <span className={styles.price}>{money(PRODUCTS[item].price)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-            {olderThanRecords && <li className={styles.receiptEmpty}>Nothing earlier on record. Her first purchase was on 8 March.</li>}
-          </ol>
-          <div className={styles.preference} data-highlight={evidence.preference}>
-            <p className={styles.label}>Recorded preference</p>
-            <p className={styles.preferenceText}>Enjoys chocolatey coffee</p>
-            <p className={styles.meta}>Told to staff by Maya, 8 March</p>
-          </div>
-        </Stage>
+        <ShelfView
+          frame={frame}
+          presence={presence}
+          className={styles.briefingView}
+          scene={{ kind: "briefing", focus, onPick: setFocus, labels, label: "The Harbor Street coffee shelf. The suggested product is highlighted. Drag or use the arrow keys to turn the view." }}
+          fallback={<BriefingElevation focus={focus} labels={labels} onPick={setFocus} />}
+        />
 
         <div className={styles.briefing}>
-          <Stage index={2} step={step}>
-            <p className={styles.panelTitle}>Briefing</p>
-            <dl className={styles.facts}>
-              <div><dt>Observed</dt><dd>Purchased House Blend {times(houseCount)}.</dd></div>
-              {ownsBrewer && (
-                <div>
-                  <dt>Observed</dt>
-                  <dd>
-                    <button type="button" className={styles.textButton} aria-pressed={focus === "owned"} onClick={() => setFocus("owned")}>
-                      Already owns this brewer. <span>Show receipt</span>
-                    </button>
-                  </dd>
-                </div>
-              )}
-              <div><dt>Recorded</dt><dd>Recorded preference: chocolatey coffee.</dd></div>
-            </dl>
-          </Stage>
+          <p className={styles.briefingHead}><strong>Briefing: Maya</strong><span>Found by name. No cameras.</span></p>
+          <dl className={styles.facts}>
+            <div>
+              <dt>Observed</dt>
+              <dd>
+                Purchased House Blend {COUNT_WORDS[houseCount]}.
+                <ol className={styles.receipts} aria-label={`Receipts on record as of ${BRIEFING_DATE}`}>
+                  {RECEIPTS.map((receipt) => (
+                    <li key={receipt.id}>
+                      <span className={styles.receiptDate}>{receipt.short}</span>
+                      {receipt.items.map((item) => (
+                        <span key={item} className={styles.receiptLine} data-highlight={evidence.lines.includes(`${receipt.id}:${item}`)}>
+                          <Glyph product={item} size={18} />{item === "brewer" ? "Brewer" : "House Blend"}
+                        </span>
+                      ))}
+                    </li>
+                  ))}
+                </ol>
+              </dd>
+            </div>
+            <div>
+              <dt>Observed</dt>
+              <dd><button type="button" className={styles.textButton} aria-pressed={focus === "owned"} onClick={() => setFocus("owned")}>Already owns this brewer.</button></dd>
+            </div>
+            <div data-recorded="true">
+              <dt>Recorded</dt>
+              <dd className={styles.preference} data-highlight={evidence.preference}>Recorded preference: chocolatey coffee. <span>Told to staff, 8 March</span></dd>
+            </div>
+          </dl>
 
-          <Stage index={3} step={step} className={styles.suggestStage}>
-            <p className={styles.label}>Suggested next steps</p>
-            <div className={styles.suggestions} role="group" aria-label="Suggested next steps">
-              {RECOMMENDATIONS.map((item) => (
-                <button key={item.id} type="button" className={styles.suggestion} aria-pressed={focus === item.id} onClick={() => setFocus(item.id)}>
-                  <Glyph product={item.product} size={26} />
-                  <span className={styles.suggestionKind}>{item.kind}</span>
-                  <span className={styles.suggestionTitle}>{item.title}</span>
-                </button>
-              ))}
-              <button type="button" className={styles.excluded} aria-pressed={focus === "owned"} onClick={() => setFocus("owned")}>
-                <Glyph product="brewer" size={22} />
-                <span>Brewer not suggested — already purchased.</span>
-              </button>
-            </div>
-            <div className={styles.conversation} aria-live="polite">
-              {selected ? (
-                <>
-                  <p className={styles.label}>Conversation starter</p>
-                  <p className={styles.starter}>“{selected.starter}”</p>
-                  <dl className={styles.support}>
-                    <div><dt>Why</dt><dd>{selected.why}</dd></div>
-                    <div><dt>Catalog</dt><dd>{PRODUCTS[selected.product].name}, {money(PRODUCTS[selected.product].price)}. {PRODUCTS[selected.product].catalog}</dd></div>
-                    <div><dt>Availability</dt><dd>{selected.availability}</dd></div>
-                    {selected.caution && <div><dt>Keep in mind</dt><dd>{selected.caution}</dd></div>}
-                  </dl>
-                </>
-              ) : (
-                <>
-                  <p className={styles.label}>Left out</p>
-                  <p className={styles.starter}>Not suggested. Maya already owns this brewer.</p>
-                  <dl className={styles.support}>
-                    <div><dt>Receipt</dt><dd>8 March, Harbor Street: {PRODUCTS.brewer.name}, {money(PRODUCTS.brewer.price)}.</dd></div>
-                  </dl>
-                </>
-              )}
-            </div>
-          </Stage>
+          <Segmented label="Suggestion" options={SUGGESTIONS.map((item) => ({ id: item.id, label: item.kind }))} value={focus === "owned" ? null : focus} onChange={setFocus} />
+          <div className={styles.conversation} aria-live="polite">
+            {selected ? (
+              <>
+                <p className={styles.starter}>“{selected.starter}”</p>
+                <p className={styles.why}>{selected.why}</p>
+                <p className={styles.meta}>In stock: {selected.stock}{selected.caution && <> {selected.caution}</>}</p>
+              </>
+            ) : (
+              <>
+                <p className={styles.starter}>Not suggested. Maya already bought this brewer.</p>
+                <p className={styles.meta}>Receipt, 8 March: {PRODUCTS.brewer.name}, {money(PRODUCTS.brewer.price)}.</p>
+              </>
+            )}
+          </div>
+          <button type="button" className={styles.excluded} aria-pressed={focus === "owned"} onClick={() => setFocus("owned")}>
+            <Glyph product="brewer" size={20} />Brewer not suggested. She already bought it.
+          </button>
         </div>
       </div>
     </Example>
@@ -326,8 +292,7 @@ export function KnowTheCustomer() {
 type CategoryId = "beans" | "equipment" | "tastings";
 type StoreId = "harbor" | "market";
 type Month = "april" | "may";
-type CategoryRecord = { sales: number; cost: number };
-type StoreMonth = { categories: Record<CategoryId, CategoryRecord>; discounts: number; returns: number };
+type StoreMonth = { categories: Record<CategoryId, { sales: number; cost: number }>; discounts: number; returns: number };
 
 const CATEGORIES: { id: CategoryId; name: string }[] = [
   { id: "beans", name: "Coffee beans" },
@@ -392,10 +357,10 @@ export function UnderstandTheBusiness() {
   const similar = (a: number, b: number) => Math.abs(a - b) < 0.005;
 
   const checks = [
-    { name: "Products sold", result: `Brewing equipment is ${roundedPercent(equipment.market)} of Market Square’s net sales and ${roundedPercent(equipment.harbor)} of Harbor Street’s.`, status: "Differs" },
-    { name: "Recorded product costs", result: `One cost list for both stores. Category margins: ${stores.market.categories.map((category) => `${category.name.toLowerCase()} ${roundedPercent(category.margin)}`).join(", ")}.`, status: marginsMatch ? "Same" : "Differs" },
-    { name: "Discounts", result: `${percent(stores.market.discountRate)} of sales before discounts at Market Square, ${percent(stores.harbor.discountRate)} at Harbor Street.`, status: similar(stores.market.discountRate, stores.harbor.discountRate) ? "Similar" : "Differs" },
-    { name: "Returns", result: `${percent(stores.market.returnRate)} at Market Square, ${percent(stores.harbor.returnRate)} at Harbor Street.`, status: similar(stores.market.returnRate, stores.harbor.returnRate) ? "Similar" : "Differs" },
+    { name: "Products sold", result: `Equipment: ${roundedPercent(equipment.market)} vs ${roundedPercent(equipment.harbor)}`, status: "Differs" },
+    { name: "Product costs", result: "One cost list for both", status: marginsMatch ? "Same" : "Differs" },
+    { name: "Discounts", result: `${percent(stores.market.discountRate)} vs ${percent(stores.harbor.discountRate)}`, status: similar(stores.market.discountRate, stores.harbor.discountRate) ? "Similar" : "Differs" },
+    { name: "Returns", result: `${percent(stores.market.returnRate)} vs ${percent(stores.harbor.returnRate)}`, status: similar(stores.market.returnRate, stores.harbor.returnRate) ? "Similar" : "Differs" },
   ];
 
   return (
@@ -403,13 +368,13 @@ export function UnderstandTheBusiness() {
       title="Two stores, similar sales"
       situation={<p>Net sales for {periodLabel}: <strong>{money(stores.harbor.sales)}</strong> at Harbor Street and <strong>{money(stores.market.sales)}</strong> at Market Square.</p>}
       finding={
-        <button type="button" className={styles.findingButton} aria-expanded={open} aria-controls="retail-mix" onClick={() => setOpen(!open)}>
-          <strong>A larger share of sales came from lower-margin products.</strong>
-          <span>The records show what sold, not why customers chose it or how staff sold it.</span>
-          <span className={styles.findingAction}>{open ? "Hide the evidence" : "Show the evidence"} <ArrowRight size={14} strokeWidth={1.5} aria-hidden="true" /></span>
+        <button type="button" className={styles.findingButton} aria-expanded={open} aria-controls="retail-records" onClick={() => setOpen(!open)}>
+          <strong>More of Market Square’s sales came from lower-margin products.</strong>
+          <span>The records show what sold. They don’t show why.</span>
+          <span className={styles.findingAction}>{open ? "Hide the records" : "Show the records"} <ArrowRight size={14} strokeWidth={1.5} aria-hidden="true" /></span>
         </button>
       }
-      next={<p>Review product mix and merchandising with the store manager. <span className={styles.muted}>Next question: is equipment more prominent at Market Square because of its customers, its displays, or its range?</span></p>}
+      next={<p>Go through product mix and displays with the store manager. <span className={styles.muted}>Next question: why does equipment sell better there?</span></p>}
     >
       <div className={styles.questionRow}>
         <div>
@@ -419,69 +384,51 @@ export function UnderstandTheBusiness() {
         <Segmented label="Period" options={PERIOD_OPTIONS} value={period} onChange={setPeriod} />
       </div>
 
-      <div className={styles.storeTiles} role="group" aria-label="Choose a store">
-        {STORE_IDS.map((id) => (
-          <button key={id} type="button" className={styles.storeTile} aria-pressed={store === id} onClick={() => { setStore(id); setOpen(true); }}>
-            <span className={styles.storeName}>{STORE_NAMES[id]} <span>{periodLabel}</span></span>
-            <span className={styles.tileFigures}>
-              <span><strong>{money(stores[id].sales)}</strong>Net sales</span>
-              <span><strong>{percent(stores[id].margin)}</strong>Product gross margin</span>
-            </span>
-            <span className={styles.meta}>Gross profit on products: {money(stores[id].grossProfit)}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className={styles.checksPanel}>
-        <p className={styles.panelTitle}>What was checked</p>
-        <ul className={styles.checks}>
-          {checks.map((check) => (
-            <li key={check.name} data-status={check.status}>
-              <span className={styles.checkName}>{check.name}<span className={styles.checkStatus}>{check.status}</span></span>
-              <span className={styles.checkResult}>{check.result}</span>
-            </li>
+      <div className={styles.mixPanel}>
+        <div className={styles.mixRows} role="group" aria-label="Share of net sales by category. Choose a store to see its records.">
+          {STORE_IDS.map((id) => (
+            <button key={id} type="button" className={styles.mixRow} aria-pressed={open && store === id} onClick={() => { setStore(id); setOpen(true); }}>
+              <span className={styles.mixName}>{STORE_NAMES[id]}<small>{money(stores[id].sales)} net sales</small></span>
+              <span className={styles.mixBar}>
+                {stores[id].categories.map((category) => (
+                  <span key={category.id} data-category={category.id} style={{ flexBasis: `${category.share * 100}%` }}>{roundedPercent(category.share)}</span>
+                ))}
+              </span>
+              <span className={styles.mixMargin}><strong>{percent(stores[id].margin)}</strong>margin</span>
+            </button>
           ))}
+        </div>
+        <ul className={styles.legend}>
+          {stores.market.categories.map((category) => <li key={category.id}><span data-category={category.id} aria-hidden="true" />{category.name}, {roundedPercent(category.margin)} margin</li>)}
         </ul>
       </div>
 
+      <ul className={styles.checks} aria-label="What was checked">
+        {checks.map((check) => (
+          <li key={check.name} data-status={check.status}>
+            <span className={styles.checkName}>{check.name}<span className={styles.checkStatus}>{check.status}</span></span>
+            <span className={styles.checkResult}>{check.result}</span>
+          </li>
+        ))}
+      </ul>
+
       {open && (
-        <div id="retail-mix" className={styles.evidencePanel}>
-          <div className={styles.mixBlock}>
-            <p className={styles.panelTitle}>Share of net sales, {periodLabel}</p>
-            <div className={styles.mix}>
-              {STORE_IDS.map((id) => (
-                <div key={id} className={styles.mixRow}>
-                  <span className={styles.mixStore}>{STORE_NAMES[id]}</span>
-                  <span className={styles.mixBar}>
-                    {stores[id].categories.map((category) => (
-                      <span key={category.id} data-category={category.id} style={{ flexBasis: `${category.share * 100}%` }}>{roundedPercent(category.share)}</span>
-                    ))}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <ul className={styles.legend}>
-              {stores.market.categories.map((category) => <li key={category.id}><span data-category={category.id} aria-hidden="true" />{category.name}, {roundedPercent(category.margin)} margin</li>)}
-            </ul>
+        <div id="retail-records" className={styles.records} aria-live="polite">
+          <p className={styles.panelTitle}>Records: {STORE_NAMES[store]}, {periodLabel}</p>
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead><tr><th>Category</th><th>Net sales</th><th>Share</th><th>Product cost</th><th>Margin</th></tr></thead>
+              <tbody>
+                {shown.categories.map((category) => (
+                  <tr key={category.id} data-highlight={category.id === lowestMargin.id}>
+                    <td>{category.name}</td><td>{money(category.sales)}</td><td>{roundedPercent(category.share)}</td><td>{money(category.cost)}</td><td>{roundedPercent(category.margin)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot><tr><td>Total</td><td>{money(shown.sales)}</td><td>100%</td><td>{money(shown.cost)}</td><td>{percent(shown.margin)}</td></tr></tfoot>
+            </table>
           </div>
-          <div className={styles.recordsBlock} aria-live="polite">
-            <p className={styles.panelTitle}>Records: {STORE_NAMES[store]}, {periodLabel}</p>
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead><tr><th>Category</th><th>Net sales</th><th>Share</th><th>Product cost</th><th>Margin</th></tr></thead>
-                <tbody>
-                  {shown.categories.map((category) => (
-                    <tr key={category.id} data-highlight={category.id === lowestMargin.id}>
-                      <td>{category.name}</td><td>{money(category.sales)}</td><td>{roundedPercent(category.share)}</td><td>{money(category.cost)}</td><td>{roundedPercent(category.margin)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot><tr><td>Total</td><td>{money(shown.sales)}</td><td>100%</td><td>{money(shown.cost)}</td><td>{percent(shown.margin)}</td></tr></tfoot>
-              </table>
-            </div>
-            <p className={styles.meta}>Product gross margin is net sales minus recorded product cost. It excludes rent, wages, and other operating costs, so it is not store profit.</p>
-          </div>
-          <p className={styles.note}>Not established by these records: whether customers, displays, range, or staff caused the difference. That is the question for the store manager.</p>
+          <p className={styles.meta}>Product gross margin is net sales minus recorded product cost: {money(shown.grossProfit)} here. Rent and wages aren’t in it, so it isn’t store profit.</p>
         </div>
       )}
     </Example>
@@ -499,38 +446,59 @@ const HOUSE_DAYS = [
 ];
 const NEWER_PURCHASE = { date: "12 June", short: "12 Jun", store: "Riverside", day: 96 };
 
+function useSequence(length: number) {
+  const [step, setStep] = useState(length - 1);
+  const [playing, setPlaying] = useState(false);
+  const reducedMotion = useReducedMotion();
+  useEffect(() => {
+    if (!playing || step >= length - 1) return;
+    const timer = window.setTimeout(() => setStep(step + 1), 900);
+    return () => window.clearTimeout(timer);
+  }, [playing, step, length]);
+  const replay = () => {
+    if (reducedMotion) return;
+    setStep(0);
+    setPlaying(true);
+  };
+  return { step, replay };
+}
+
+function Stage({ index, step, className = "", children }: { index: number; step: number; className?: string; children: ReactNode }) {
+  return <div className={`${styles.stage} ${className}`} data-pending={index > step}>{children}</div>;
+}
+
 export function PlanTheNextVisit() {
   const [newer, setNewer] = useState<"none" | "found">("none");
-  const [why, setWhy] = useState(false);
-  const { step, replay } = useSequence(4);
+  const { step, replay } = useSequence(3);
   const found = newer === "found";
   const last = HOUSE_DAYS[2].day;
+  const usual = HOUSE_DAYS[1].day - HOUSE_DAYS[0].day;
   const gap = 100 - last;
   const sinceLast = NEWER_PURCHASE.day - last;
 
   const checks = [
-    { question: "More recent purchase?", result: found ? `Found: ${NEWER_PURCHASE.date}, ${NEWER_PURCHASE.store}, House Blend` : "None at any store since 5 May", state: found ? "stop" : "clear" },
-    { question: "Existing order?", result: found ? "Not checked" : "No open orders", state: found ? "skipped" : "clear" },
-    { question: "Recent outreach?", result: found ? "Not checked" : "No messages in the last 60 days", state: found ? "skipped" : "clear" },
-    { question: "Communication preference?", result: found ? "Not checked" : "Email, opted in to product updates on 8 March", state: found ? "skipped" : "clear" },
+    { question: "Newer purchase", result: found ? `${NEWER_PURCHASE.date}, ${NEWER_PURCHASE.store}` : "None at any store since 5 May", state: found ? "stop" : "clear" },
+    { question: "Open order", result: found ? "Not checked" : "None", state: found ? "skipped" : "clear" },
+    { question: "Recent message", result: found ? "Not checked" : "None in 60 days", state: found ? "skipped" : "clear" },
+    { question: "Contact preference", result: found ? "Not checked" : "Email, opted in 8 March", state: found ? "skipped" : "clear" },
   ];
 
   return (
     <Example
       title={`Maya’s record, checked ${CHECK_DATE}`}
       action={<Replay onClick={replay} />}
-      situation={found ? <p>A newer purchase appears in Maya’s record.</p> : <p>Six weeks have passed since Maya’s last recorded purchase.</p>}
-      finding={found ? <p><strong>Recent purchase found — no reminder needed.</strong> The workflow decides not to contact her.</p> : <p><strong>May be ready for a refill.</strong> A draft is prepared for review. Nothing has been sent.</p>}
-      next={found ? <p>No action. Her record is checked again after her next usual interval.</p> : <p>A team member edits, approves, or discards the draft.</p>}
+      situation={found ? <p>A newer purchase shows up in Maya’s record.</p> : <p>Six weeks since Maya’s last recorded purchase.</p>}
+      finding={found ? <p><strong>Recent purchase found. No reminder needed.</strong> Nobody contacts her.</p> : <p><strong>May be ready for a refill.</strong> A draft waits for review. Nothing has been sent.</p>}
+      findingLabel="Result for review"
+      next={found ? <p>No action. Her record gets checked again after her usual interval.</p> : <p>Someone on your team edits, approves or bins the draft.</p>}
     >
       <div className={styles.recordToggle}>
-        <p className={styles.label}>Purchase record</p>
         <Segmented label="Purchase record" options={[{ id: "none", label: "No newer purchase" }, { id: "found", label: "New purchase recorded" }]} value={newer} onChange={setNewer} />
       </div>
 
       <div className={styles.panel}>
         <p className={styles.panelTitle}><Glyph product="house" size={22} />Maya’s House Blend purchases</p>
-        <div className={styles.timeline} role="img" aria-label={`House Blend bought on 8 March, 6 April, and 5 May, 29 days apart. ${found ? "A newer purchase on 12 June at Riverside." : `No purchase in the ${gap} days since, as of 16 June.`}`}>
+        <div className={styles.timeline} role="img" aria-label={`House Blend bought on 8 March, 6 April and 5 May, ${usual} days apart. ${found ? "A newer purchase on 12 June at Riverside." : `No purchase in the ${gap} days since, as of 16 June.`}`}>
           <span className={styles.track} />
           <Stage index={0} step={step} className={styles.timelineLayer}>
             {HOUSE_DAYS.slice(1).map((point, index) => (
@@ -546,37 +514,15 @@ export function PlanTheNextVisit() {
             <span className={styles.today} style={{ left: "100%" }}><span>Checked {CHECK_DATE}</span></span>
           </Stage>
         </div>
-        <div className={styles.patternGrid}>
-          <Stage index={0} step={step}>
-            <p className={styles.label}>Observed pattern</p>
-            <p className={styles.patternText}>House Blend purchased approximately monthly.</p>
-          </Stage>
-          <Stage index={1} step={step}>
-            <p className={styles.label}>{found ? "Latest record" : "Possible reason to reconnect"}</p>
-            <p className={styles.patternText}>{found ? "Bought House Blend at Riverside on 12 June." : "May be ready for a refill."}</p>
-            {!found && <p className={styles.meta}>Not known: how much coffee is left at home, or whether she bought coffee elsewhere.</p>}
-          </Stage>
-        </div>
-        {!found && (
-          <div className={styles.disclosure} data-open={why}>
-            <button type="button" aria-expanded={why} aria-controls="retail-why" onClick={() => setWhy(!why)}>
-              <span>Why was this follow-up suggested?</span>
-              <span className={styles.findingAction}>{why ? "Hide reasoning" : "Show reasoning"} <ArrowRight size={14} strokeWidth={1.5} aria-hidden="true" /></span>
-            </button>
-            {why && (
-              <ul id="retail-why">
-                <li>Her three House Blend purchases were 29 days apart.</li>
-                <li>On {CHECK_DATE}, it has been {gap} days since the last one, {gap - 29} days longer than usual.</li>
-                <li>Three purchases make a short pattern. It suggests a reason to check in, not a fact about her.</li>
-              </ul>
-            )}
-          </div>
-        )}
+        <Stage index={1} step={step} className={styles.pattern}>
+          <p className={styles.patternText}>{found ? "She bought House Blend at Riverside on 12 June." : `She usually comes back after ${usual} days. It’s been ${gap}.`}</p>
+          {!found && <p className={styles.meta}>Three purchases is a short pattern. Home stock, and coffee bought elsewhere, aren’t in the record.</p>}
+        </Stage>
       </div>
 
-      <div className={styles.followGrid}>
-        <Stage index={2} step={step} className={styles.panel}>
-          <p className={styles.panelTitle}>Checked before preparing a message</p>
+      <Stage index={2} step={step} className={styles.followGrid}>
+        <div className={styles.panel}>
+          <p className={styles.label}>Checked before drafting</p>
           <ul className={styles.followChecks}>
             {checks.map((check) => (
               <li key={check.question} data-state={check.state}>
@@ -585,179 +531,122 @@ export function PlanTheNextVisit() {
               </li>
             ))}
           </ul>
-        </Stage>
-        <Stage index={3} step={step} className={styles.panel}>
+        </div>
+        <div className={styles.panel}>
           {found ? (
             <div className={styles.draft}>
               <p className={styles.label}>Outcome</p>
-              <p className={styles.patternText}>Recent purchase found — no reminder needed.</p>
-              <p className={styles.meta}>Maya bought House Blend at Riverside on 12 June. No draft was prepared.</p>
+              <p className={styles.patternText}>Recent purchase found. No reminder needed.</p>
+              <p className={styles.meta}>No draft was prepared.</p>
             </div>
           ) : (
             <div className={styles.draft}>
-              <p className={styles.draftLabel}>Draft follow-up — awaiting review</p>
-              <p className={styles.meta}>Email, her recorded channel</p>
+              <p className={styles.draftLabel}>Draft follow-up, awaiting review</p>
               <p className={styles.draftText}>Hi Maya, would you like help choosing your next coffee? Your usual House Blend is available.</p>
-              <p className={styles.meta}>Availability: 12 bags of House Blend at Harbor Street, from the 08:00 inventory count on {CHECK_DATE}. Staff can edit, approve, or discard the draft. Nothing is sent from this page.</p>
+              <p className={styles.meta}>Email, opted in. 12 bags at Harbor Street on {CHECK_DATE}, House Blend. Nothing is sent from here.</p>
             </div>
           )}
-        </Stage>
-      </div>
+        </div>
+      </Stage>
     </Example>
   );
 }
 
 /* 4. Stock for demand */
 
-type LocationId = "harbor" | "market" | "riverside";
-type Location = { id: LocationId; name: string; stock: number; weeks: number[]; incoming: number; incomingNote?: string; reserve?: number; note: string };
+const harbor = location("harbor");
+const market = location("market");
+const riverside = location("riverside");
+const harborForecast = forecastOf(harbor);
 
-// Reserve Blend, 250 g bags. Stock is the 08:00 count on 3 June; weekly sales are the four weeks to 2 June.
-const LOCATIONS: Location[] = [
-  { id: "harbor", name: "Harbor Street", stock: 6, weeks: [8, 9, 9, 10], incoming: 0, note: "Staff suggest Reserve Blend here; those suggestions are not counted in the forecast." },
-  { id: "market", name: "Market Square", stock: 40, weeks: [3, 4, 4, 5], incoming: 0, reserve: 16, note: "This store keeps a reserve of 16 bags, twice its forecast demand." },
-  { id: "riverside", name: "Riverside", stock: 14, weeks: [5, 6, 6, 7], incoming: 12, incomingNote: "Due in 6 days, confirmed by the roaster", note: "Its incoming order stays at Riverside and is not part of any transfer." },
-];
+const STOCK_SHORT = { harbor: "Harbor", market: "Market", riverside: "Riverside" } as const;
 
-const forecastOf = (location: Location) => {
-  const total = location.weeks.reduce((sum, week) => sum + week, 0);
-  return { recent: total, weekly: total / location.weeks.length, expected: (total / location.weeks.length) * 2, low: Math.min(...location.weeks) * 2, high: Math.max(...location.weeks) * 2 };
-};
-
-const harbor = LOCATIONS[0];
-const market = LOCATIONS[1];
-const TRANSFER = forecastOf(harbor).expected - harbor.stock - harbor.incoming;
-const MARKET_AVAILABLE = market.stock - (market.reserve ?? 0);
-const REORDER = { quantity: 24, leadDays: 10 };
-const STORE_TOTAL = LOCATIONS.reduce((sum, location) => sum + location.stock, 0);
-const DAYS_OF_COVER = Math.round(harbor.stock / (forecastOf(harbor).weekly / 7));
-
-type Option = "transfer" | "reorder";
-
-function Shelf({ location, option }: { location: Location; option: Option }) {
-  const forecast = forecastOf(location);
-  const arriving = option === "transfer" && location.id === "harbor" ? TRANSFER : 0;
-  const leaving = option === "transfer" && location.id === "market" ? TRANSFER : 0;
-  const ordered = option === "reorder" && location.id === "harbor" ? REORDER.quantity : 0;
-  const cells: string[] = [];
-  for (let index = 0; index < location.stock; index += 1) cells.push(index >= location.stock - leaving ? "leaving" : "stock");
-  for (let index = 0; index < arriving; index += 1) cells.push("arriving");
-  for (let index = 0; index < location.incoming; index += 1) cells.push("incoming");
-  const shortfall = Math.max(0, forecast.expected - cells.filter((cell) => cell !== "leaving").length);
-  for (let index = 0; index < shortfall; index += 1) cells.push("short");
-  for (let index = 0; index < ordered; index += 1) cells.push("ordered");
-  return (
-    <span className={styles.shelf} aria-hidden="true">
-      {cells.map((cell, index) => <i key={index} data-cell={cell} />)}
-    </span>
-  );
+function stockLabels(option: StockOption, counts: ReturnType<typeof shelfCounts>): ShelfLabel[] {
+  const filled = counts.harbor >= harborForecast.expected;
+  const top = (id: "harbor" | "market" | "riverside") => [STOCK_BAY_X[id], STOCK_ANCHOR_Y, 0.2] as [number, number, number];
+  const labels: ShelfLabel[] = [
+    {
+      id: "harbor",
+      at: top("harbor"),
+      side: "top",
+      title: STOCK_SHORT.harbor,
+      detail: `${counts.harbor} bags`,
+      note: option === "reorder" ? `about ${DAYS_OF_COVER} days left` : filled ? "if approved" : `needs about ${harborForecast.expected}`,
+      state: option === "transfer" && filled ? "ok" : "blocked",
+    },
+    { id: "market", at: top("market"), side: "top", title: STOCK_SHORT.market, detail: `${counts.market} bags`, note: counts.market < market.stock ? `keeps ${market.reserve}` : `${MARKET_SPARE} spare` },
+    { id: "riverside", at: top("riverside"), side: "top", title: STOCK_SHORT.riverside, detail: `${counts.riverside} bags`, note: "covers its forecast" },
+    { id: "incoming", at: [INCOMING_CARTON.at[0], INCOMING_CARTON.size[1] + 0.04, INCOMING_CARTON.at[2]], side: "top", title: `${riverside.incoming} incoming`, detail: `${riverside.incomingDays} days`, lead: 16 },
+  ];
+  if (option === "reorder") labels.push({ id: "reorder", at: [REORDER_CARTON.at[0], REORDER_CARTON.size[1] + 0.04, REORDER_CARTON.at[2]], side: "top", title: `${REORDER.quantity} ordered`, detail: `${REORDER.leadDays} days`, state: "ok", lead: 16 });
+  return labels;
 }
 
 export function StockForDemand() {
-  const [selected, setSelected] = useState<LocationId>("harbor");
-  const [option, setOption] = useState<Option>("transfer");
-  const location = LOCATIONS.find((item) => item.id === selected) ?? harbor;
-  const forecast = forecastOf(location);
-  const after = (item: Location) => item.stock + (option === "transfer" ? (item.id === "harbor" ? TRANSFER : item.id === "market" ? -TRANSFER : 0) : 0);
-  const totalAfter = LOCATIONS.reduce((sum, item) => sum + after(item), 0);
+  const [option, setOption] = useState<StockOption>("transfer");
+  const [armed, setArmed] = useState(false);
+  const [replayCount, setReplayCount] = useState(0);
+  const [progress, setProgress] = useState({ lifted: 0, landed: 0 });
+  const frame = useRef<HTMLDivElement>(null);
+  const presence = useShelfPresence(frame);
+  const animate = presence.ready && !presence.reducedMotion;
 
-  const options = [
-    { id: "transfer" as const, name: "Transfer", title: `Move ${TRANSFER} bags from Market Square`, leadTime: "Next-day store run", available: `${MARKET_AVAILABLE} bags above Market Square’s reserve`, tradeoff: `Market Square keeps ${market.stock - TRANSFER}, above its ${market.reserve}-bag reserve` },
-    { id: "reorder" as const, name: "Reorder", title: `Order ${REORDER.quantity} bags from the roaster`, leadTime: `${REORDER.leadDays} days, per the roaster`, available: `Minimum order ${REORDER.quantity} bags; roaster confirms stock`, tradeoff: `Harbor Street’s ${harbor.stock} bags last about ${DAYS_OF_COVER} days at its recent rate, so the order likely arrives after it runs out` },
-  ];
-  const rows: { label: string; key: "leadTime" | "available" | "tradeoff" }[] = [
-    { label: "Lead time", key: "leadTime" },
-    { label: "Available quantity", key: "available" },
-    { label: "Tradeoff", key: "tradeoff" },
-  ];
+  // The transfer plays once, the first time the shelves come into view.
+  useEffect(() => {
+    if (!animate || !presence.visible || armed) return;
+    const timer = window.setTimeout(() => setArmed(true), 500);
+    return () => window.clearTimeout(timer);
+  }, [animate, presence.visible, armed]);
 
-  const assumptions = [
-    ["Available stock confirmed", `Market Square counted ${market.stock} bags at 08:00 today.`],
-    ["Incoming orders considered", "None due at Harbor Street or Market Square. Riverside’s 12 bags stay at Riverside."],
-    ["Receiving store’s expected need reviewed", `Harbor Street forecast: about ${forecastOf(harbor).expected} bags over two weeks (${forecastOf(harbor).low}–${forecastOf(harbor).high}).`],
-    ["Sending store retains a defined reserve", `Market Square keeps ${market.stock - TRANSFER} bags against a reserve of ${market.reserve}.`],
-  ];
+  const onProgress = useCallback((lifted: number, landed: number) => setProgress({ lifted, landed }), []);
+  const settled = option === "transfer" ? TRANSFER : 0;
+  const counts = presence.ready ? shelfCounts(progress.lifted, progress.landed) : shelfCounts(settled, settled);
+  const total = counts.harbor + counts.market + counts.riverside + counts.transit;
+  const moved = option === "transfer" && (armed || presence.reducedMotion);
+  const labels = stockLabels(option, counts);
 
   return (
     <Example
       title="Reserve Blend across three stores, 3 June"
-      situation={<p>Harbor Street has {harbor.stock} bags against a forecast of about {forecastOf(harbor).expected}. Market Square has {market.stock} against about {forecastOf(market).expected}.</p>}
-      finding={<p><strong>A transfer proposal for review:</strong> {TRANSFER} bags from Market Square to Harbor Street. Nothing has been moved or ordered.</p>}
-      next={<p>Manager confirms quantities and timing.</p>}
+      action={animate && option === "transfer" ? <Replay label="Replay the move" onClick={() => { setArmed(true); setReplayCount((count) => count + 1); }} /> : undefined}
+      situation={<p>Harbor Street has {harbor.stock} bags and needs about {harborForecast.expected}. Market Square has {market.stock} and needs about {forecastOf(market).expected}.</p>}
+      finding={<p><strong>A transfer proposal:</strong> {TRANSFER} bags from Market Square to Harbor Street. Nothing has been moved or ordered.</p>}
+      next={<p>The manager checks quantities and timing, then approves or changes it.</p>}
       findingLabel="Result for review"
     >
-      <div className={styles.questionRow}>
+      <div className={styles.stockHead}>
         <div>
           <p className={styles.label}><Glyph product="reserve" size={20} />Reserve Blend, 250 g bags</p>
           <p className={styles.ownerQuestion}>Transfer stock or place another order?</p>
         </div>
+        <Segmented label="Option" options={[{ id: "transfer", label: `Transfer ${TRANSFER} bags` }, { id: "reorder", label: `Order ${REORDER.quantity} instead` }]} value={option} onChange={setOption} />
       </div>
 
-      <div className={styles.locations} role="group" aria-label="Choose a store">
-        {LOCATIONS.map((item) => {
-          const itemForecast = forecastOf(item);
-          const changed = after(item) !== item.stock;
-          return (
-            <button key={item.id} type="button" className={styles.location} aria-pressed={selected === item.id} onClick={() => setSelected(item.id)}>
-              <span className={styles.locationName}>{item.name}</span>
-              <span className={styles.stockFigure}>
-                <strong>{item.stock}</strong>
-                <span>Current stock<small>Recorded, 08:00 count</small></span>
-                {changed && <b>{after(item)} if approved</b>}
-              </span>
-              <Shelf location={item} option={option} />
-              <span className={styles.stockFacts}>
-                <span><em>Recent sales</em><strong>{itemForecast.recent}</strong><small>Recorded, last 4 weeks</small></span>
-                <span data-estimate="true"><em>Forecast demand</em><strong>~{itemForecast.expected}</strong><small>Estimate, next 2 weeks ({itemForecast.low}–{itemForecast.high})</small></span>
-                <span><em>Incoming order</em><strong>{item.incoming || "None"}</strong><small>{item.incomingNote ?? "No confirmed order"}</small></span>
-              </span>
-            </button>
-          );
-        })}
-      </div>
-      <ul className={styles.stockLegend} aria-label="Key">
-        <li><i data-cell="stock" aria-hidden="true" />Recorded stock</li>
-        <li><i data-cell="incoming" aria-hidden="true" />Confirmed incoming</li>
-        <li><i data-cell="short" aria-hidden="true" />Forecast need not covered</li>
-        <li><i data-cell="arriving" aria-hidden="true" /><i data-cell="leaving" aria-hidden="true" />Proposed, not done</li>
-      </ul>
+      <ShelfView
+        frame={frame}
+        presence={presence}
+        className={styles.stockView}
+        scene={{ kind: "stock", moved, replay: replayCount, reorder: option === "reorder", onProgress, labels, label: `Reserve Blend shelves at ${LOCATIONS.map((item) => item.name).join(", ")}. Drag or use the arrow keys to turn the view.` }}
+        fallback={<StockElevation option={option} labels={labels} />}
+      />
 
-      <div className={styles.forecastEvidence} aria-live="polite">
-        <p className={styles.panelTitle}>Behind {location.name}’s forecast</p>
-        <ol className={styles.weeks}>
-          {location.weeks.map((week, index) => <li key={index}><span>Week {index + 1}</span><strong>{week}</strong></li>)}
-        </ol>
-        <p className={styles.meta}>{forecast.recent} bags in four weeks is {forecast.weekly} a week, so about {forecast.expected} over the next two. The range uses the slowest and fastest week. {location.note}</p>
-      </div>
+      <p className={styles.caption} data-tone={option === "transfer" ? "ok" : "alert"} aria-live="polite">
+        {option === "transfer"
+          ? `${TRANSFER} spare bags from Market Square cover Harbor Street on the next store run. The need, about ${harborForecast.expected} (${harborForecast.low}–${harborForecast.high}), is an estimate. Market Square keeps ${market.stock - TRANSFER}, above its reserve of ${market.reserve}.`
+          : `The roaster’s minimum is ${REORDER.quantity} bags, ${REORDER.leadDays} days away. Harbor Street’s ${harbor.stock} bags last about ${DAYS_OF_COVER}.`}
+      </p>
 
-      <div className={styles.panel}>
-        <div className={styles.compare} role="group" aria-label="Compare transfer and reorder">
-          <span className={styles.compareCorner} aria-hidden="true" />
-          {options.map((item) => (
-            <button key={item.id} type="button" className={styles.compareOption} aria-pressed={option === item.id} onClick={() => setOption(item.id)}>
-              <span>{item.name}</span>{item.title}
-            </button>
-          ))}
-          {rows.map((row) => (
-            <div key={row.key} className={styles.compareRow}>
-              <span className={styles.compareLabel}>{row.label}</span>
-              {options.map((item) => <span key={item.id} className={styles.compareValue} data-selected={option === item.id}>{item[row.key]}</span>)}
-            </div>
-          ))}
-        </div>
-        {option === "transfer" ? (
-          <ul className={styles.assumptions} aria-label="Assumptions behind the transfer proposal">
-            {assumptions.map(([label, value]) => <li key={label}><Check size={15} strokeWidth={2} aria-hidden="true" /><span><strong>{label}</strong><span>{value}</span></span></li>)}
-          </ul>
-        ) : (
-          <p className={styles.meta}>A reorder adds new bags from the roaster in {REORDER.leadDays} days. It could follow a transfer for the next cycle, once the manager has reviewed demand again.</p>
-        )}
-        <p className={styles.total} aria-live="polite">
-          {option === "transfer"
-            ? `Across the three stores: ${STORE_TOTAL} bags now and ${totalAfter} after the transfer. Bags move between stores; none are created or lost.`
-            : `Across the three stores: ${STORE_TOTAL} bags now. A reorder would add ${REORDER.quantity} from the roaster when it arrives.`}
-        </p>
-      </div>
+      <p className={styles.ledger} aria-live="polite">
+        <span>{harbor.name} <strong>{counts.harbor}</strong></span>
+        <span>+ {market.name} <strong>{counts.market}</strong></span>
+        <span>+ {riverside.name} <strong>{counts.riverside}</strong></span>
+        {counts.transit > 0 && <span>+ moving <strong>{counts.transit}</strong></span>}
+        <span className={styles.ledgerTotal}>= <strong>{total}</strong> bags{option === "transfer" ? `, the same ${STORE_TOTAL} as this morning` : ` in stores. The order adds ${REORDER.quantity} new bags from the roaster`}</span>
+      </p>
+
+      {option === "transfer" && (
+        <p className={styles.meta}>Checked first: Market Square’s 08:00 count was {market.stock}, and neither store has an order due.</p>
+      )}
     </Example>
   );
 }
