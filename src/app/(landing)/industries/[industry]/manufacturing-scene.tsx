@@ -722,7 +722,7 @@ const Ground = memo(function Ground() {
   );
 });
 
-const LineEquipment = memo(function LineEquipment({ proposed, drive = false }: { proposed: boolean; drive?: boolean }) {
+const LineEquipment = memo(function LineEquipment({ proposed, drive = false, tail = 4.85 }: { proposed: boolean; drive?: boolean; tail?: number }) {
   return (
     <>
       <AssemblyStation />
@@ -730,7 +730,7 @@ const LineEquipment = memo(function LineEquipment({ proposed, drive = false }: {
         <>
           <Conveyor from={[-4.85, 0]} to={[layout.head[0] - 0.25, 0]} />
           <Conveyor from={[layout.head[0] + 0.25, 0]} to={[layout.merge[0] - 0.25, 0]} />
-          <Conveyor from={[layout.merge[0] + 0.25, 0]} to={[4.85, 0]} />
+          <Conveyor from={[layout.merge[0] + 0.25, 0]} to={[tail, 0]} />
           <TransferUnit at={layout.head} />
           <TransferUnit at={layout.merge} />
           <TransferUnit at={layout.divert} />
@@ -741,7 +741,7 @@ const LineEquipment = memo(function LineEquipment({ proposed, drive = false }: {
           <InspectionBooth at={layout.booth.I2.center} proposed />
         </>
       ) : (
-        <Conveyor from={[-4.85, 0]} to={[4.85, 0]} />
+        <Conveyor from={[-4.85, 0]} to={[tail, 0]} />
       )}
       <InspectionBooth at={layout.booth.I1.center} />
       {drive && <ConveyorDrive selected />}
@@ -749,14 +749,14 @@ const LineEquipment = memo(function LineEquipment({ proposed, drive = false }: {
   );
 });
 
-const SimulatedParts = memo(function SimulatedParts({ run, clock }: { run: SimRun; clock: RefObject<number> }) {
+const SimulatedParts = memo(function SimulatedParts({ run, clock, limitX = Infinity }: { run: SimRun; clock: RefObject<number>; limitX?: number }) {
   const groups = useRef<(THREE.Group | null)[]>([]);
   useFrame(() => {
     const poses = partPoses(run, clock.current);
     poses.forEach((pose, index) => {
       const group = groups.current[index];
       if (!group) return;
-      group.visible = pose.visible;
+      group.visible = pose.visible && pose.x <= limitX;
       group.position.set(pose.x, H, pose.z);
       for (let fastener = 0; fastener < 4; fastener++) {
         const object = group.getObjectByName(`fastener-${fastener}`);
@@ -843,8 +843,8 @@ const views: Record<ViewName, { wide: ViewPreset; tall: ViewPreset }> = {
     tall: { target: [4.5, 0.62, 0.38], direction: [0.62, 0.55, 1], bounds: [[4.15, 0.32, 0.05], [4.85, 0.95, 0.8]] },
   },
   compare: {
-    wide: { target: [-2.05, 0.42, -1.72], direction: [0.16, 1.9, 0.58], bounds: [[-6.2, 0, TODAY_Z - 0.48], [2.05, 1.42, 0.46]] },
-    tall: { target: [-2.15, 0.4, -1.78], direction: [0.95, 2.2, 0.02], bounds: [[-6.15, 0, TODAY_Z - 0.42], [1.85, 1.55, 0.42]] },
+    wide: { target: [-2.05, 0.38, -1.85], direction: [0.14, 1.72, 0.64], bounds: [[-6.55, 0, TODAY_Z - 0.95], [2.4, 1.28, 0.88]] },
+    tall: { target: [-2.0, 0.36, -1.85], direction: [1.02, 2.35, 0], bounds: [[-6.5, 0, TODAY_Z - 0.95], [2.5, 1.32, 0.9]] },
   },
 };
 
@@ -974,15 +974,15 @@ export function CompareCanvas({ clock, time, animating, active, instant, onReady
     <div className={styles.sceneCanvas}>
       <Stage3D frameloop={!active ? "never" : animating ? "always" : "demand"} onReady={onReady} span={6.4} focus={[-2.05, 0, -1.72]}>
         <group position={[0, 0, TODAY_Z]}>
-          <LineEquipment proposed={false} />
+          <LineEquipment proposed={false} tail={2.25} />
           <QueueLane run={runs.existing} clock={clock} />
           <BottleneckRing run={runs.existing} clock={clock} />
-          <SimulatedParts run={runs.existing} clock={clock} />
+          <SimulatedParts run={runs.existing} clock={clock} limitX={2.05} />
         </group>
-        <LineEquipment proposed />
+        <LineEquipment proposed tail={2.25} />
         <QueueLane run={runs.proposed} clock={clock} />
         <BottleneckRing run={runs.proposed} clock={clock} />
-        <SimulatedParts run={runs.proposed} clock={clock} />
+        <SimulatedParts run={runs.proposed} clock={clock} limitX={2.05} />
         <CameraRig view="compare" instant={instant} />
         <LabelProjector labels={labels} layer={layer} />
         <Invalidate signal={`${time}-${active}`} />
