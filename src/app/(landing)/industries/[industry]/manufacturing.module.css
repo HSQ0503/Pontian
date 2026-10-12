@@ -55,7 +55,7 @@
 
 /* 3D frames ------------------------------------------------------------ */
 .scene { position: relative; overflow: hidden; border-radius: 2px; background: #eeeeec; box-shadow: inset 0 0 0 1px #dcdcda; }
-.sceneArt { position: relative; aspect-ratio: 16 / 7.8; }
+.sceneArt { position: relative; aspect-ratio: 16 / 9; }
 .scene[data-shape="product"] .sceneArt { aspect-ratio: 16 / 7.4; }
 .scene[data-shape="detail"] .sceneArt { aspect-ratio: 5 / 4; }
 .sceneFallback { position: absolute; inset: 0; display: grid; place-items: center; padding: 4%; }

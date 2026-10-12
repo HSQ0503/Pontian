@@ -102,7 +102,7 @@ const material = {
   grille: satin("#3b4044", 0.6, 0.2),
   marker: new THREE.MeshBasicMaterial({ color: "#fed603", side: THREE.DoubleSide, toneMapped: false }),
   outline: new THREE.LineBasicMaterial({ color: "#17191a", transparent: true, opacity: 0.55 }),
-  queue: new THREE.MeshBasicMaterial({ color: "#f51625", transparent: true, opacity: 0.16, depthWrite: false, toneMapped: false }),
+  queue: new THREE.MeshBasicMaterial({ color: "#f51625", transparent: true, opacity: 0.28, depthWrite: false, toneMapped: false }),
   alert: new THREE.MeshBasicMaterial({ color: "#f51625", toneMapped: false }),
 };
 
@@ -707,10 +707,11 @@ function ConveyorDrive({ selected }: { selected: boolean }) {
 
 /* Floor, line equipment, parts ------------------------------------------ */
 
-// Today's line sits behind the proposed one so both run side by side.
-const TODAY_Z = -5.2;
+// Today's line sits just behind the proposed loop, close enough that both
+// bottlenecks and the queue fill one frame.
+const TODAY_Z = -3.65;
 const QUEUE_FRONT = -0.74;
-const RING = new THREE.RingGeometry(0.94, 1, 96).rotateX(-Math.PI / 2);
+const RING = new THREE.RingGeometry(0.78, 1.02, 96).rotateX(-Math.PI / 2);
 
 const Ground = memo(function Ground() {
   return (
@@ -798,8 +799,8 @@ function QueueLane({ run, clock }: { run: SimRun; clock: RefObject<number> }) {
   });
   return (
     <>
-      <mesh ref={fill} material={material.queue} rotation={[-Math.PI / 2, 0, 0]} position={[QUEUE_FRONT, 0.004, 0]} visible={false}><planeGeometry args={[1, 0.8]} /></mesh>
-      <mesh ref={edge} material={material.alert} rotation={[-Math.PI / 2, 0, 0]} position={[QUEUE_FRONT, 0.005, 0]} visible={false}><planeGeometry args={[0.035, 0.8]} /></mesh>
+      <mesh ref={fill} material={material.queue} rotation={[-Math.PI / 2, 0, 0]} position={[QUEUE_FRONT, 0.004, 0]} visible={false}><planeGeometry args={[1, 0.96]} /></mesh>
+      <mesh ref={edge} material={material.alert} rotation={[-Math.PI / 2, 0, 0]} position={[QUEUE_FRONT, 0.005, 0]} visible={false}><planeGeometry args={[0.04, 0.96]} /></mesh>
     </>
   );
 }
@@ -842,8 +843,8 @@ const views: Record<ViewName, { wide: ViewPreset; tall: ViewPreset }> = {
     tall: { target: [4.5, 0.62, 0.38], direction: [0.62, 0.55, 1], bounds: [[4.15, 0.32, 0.05], [4.85, 0.95, 0.8]] },
   },
   compare: {
-    wide: { target: [-1.9, 0.5, -2.5], direction: [-0.12, 1.55, 1], bounds: [[-6.0, 0, TODAY_Z - 0.55], [2.4, 1.95, 0.55]] },
-    tall: { target: [-1.9, 0.5, -2.5], direction: [1, 2.1, 0], bounds: [[-6.0, 0, TODAY_Z - 0.55], [2.4, 1.95, 0.55]] },
+    wide: { target: [-2.05, 0.42, -1.72], direction: [0.16, 1.9, 0.58], bounds: [[-6.2, 0, TODAY_Z - 0.48], [2.05, 1.42, 0.46]] },
+    tall: { target: [-2.15, 0.4, -1.78], direction: [0.95, 2.2, 0.02], bounds: [[-6.15, 0, TODAY_Z - 0.42], [1.85, 1.55, 0.42]] },
   },
 };
 
@@ -951,7 +952,7 @@ function lineLabels(configuration: Configuration, time: number, z: number, inwar
   const run = runs[configuration];
   const status = cellStatus(run, time);
   const labels: SceneLabel[] = [
-    { id: `${configuration}-line`, at: [2.25, H + 0.06, z], text: configuration === "existing" ? "Today" : "With a second station", detail: `${status.packaged} packed`, tone: configuration === "existing" ? "quiet" : "proposed", leader: 22, minor: true },
+    { id: `${configuration}-line`, at: [1.45, H + 0.1, z], text: configuration === "existing" ? "Today" : "With a second station", detail: `${status.packaged} packed`, tone: configuration === "existing" ? "quiet" : "proposed", leader: 18, minor: true },
   ];
   const bottleneck = bottleneckAt(run, time);
   if (bottleneck) {
@@ -971,7 +972,7 @@ export function CompareCanvas({ clock, time, animating, active, instant, onReady
   const labels = [...lineLabels("existing", time, TODAY_Z, "left"), ...lineLabels("proposed", time, 0, "right")];
   return (
     <div className={styles.sceneCanvas}>
-      <Stage3D frameloop={!active ? "never" : animating ? "always" : "demand"} onReady={onReady} span={7.6} focus={[-1.9, 0, -2.5]}>
+      <Stage3D frameloop={!active ? "never" : animating ? "always" : "demand"} onReady={onReady} span={6.4} focus={[-2.05, 0, -1.72]}>
         <group position={[0, 0, TODAY_Z]}>
           <LineEquipment proposed={false} />
           <QueueLane run={runs.existing} clock={clock} />
