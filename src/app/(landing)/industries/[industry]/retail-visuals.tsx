@@ -233,7 +233,7 @@ export function KnowTheCustomer() {
         />
 
         <div className={styles.briefing}>
-          <p className={styles.briefingHead}><strong>Briefing: Maya</strong><span>Loyalty member since 8 March. Found by name, no cameras.</span></p>
+          <p className={styles.briefingHead}><strong>Briefing: Maya</strong><span>Found by name. No cameras.</span></p>
           <dl className={styles.facts}>
             <div>
               <dt>Observed</dt>
@@ -516,7 +516,7 @@ export function PlanTheNextVisit() {
         </div>
         <Stage index={1} step={step} className={styles.pattern}>
           <p className={styles.patternText}>{found ? "She bought House Blend at Riverside on 12 June." : `She usually comes back after ${usual} days. It’s been ${gap}.`}</p>
-          {!found && <p className={styles.meta}>Three purchases is a short pattern. We don’t know how much coffee she has left, or whether she bought some elsewhere.</p>}
+          {!found && <p className={styles.meta}>Three purchases is a short pattern. Home stock, and coffee bought elsewhere, aren’t in the record.</p>}
         </Stage>
       </div>
 
@@ -543,7 +543,7 @@ export function PlanTheNextVisit() {
             <div className={styles.draft}>
               <p className={styles.draftLabel}>Draft follow-up, awaiting review</p>
               <p className={styles.draftText}>Hi Maya, would you like help choosing your next coffee? Your usual House Blend is available.</p>
-              <p className={styles.meta}>By email, her opted-in channel. House Blend: 12 bags at Harbor Street, 08:00 count on {CHECK_DATE}. Nothing is sent from this page.</p>
+              <p className={styles.meta}>Email, opted in. 12 bags at Harbor Street on {CHECK_DATE}, House Blend. Nothing is sent from here.</p>
             </div>
           )}
         </div>
@@ -605,13 +605,6 @@ export function StockForDemand() {
   const moved = option === "transfer" && (armed || presence.reducedMotion);
   const labels = stockLabels(option, counts);
 
-  const assumptions = [
-    `Market Square counted ${market.stock} at 08:00`,
-    "No orders due at either store",
-    `Harbor Street needs about ${harborForecast.expected} (${harborForecast.low}–${harborForecast.high}), an estimate`,
-    `Market Square keeps ${market.stock - TRANSFER}, above its ${market.reserve} reserve`,
-  ];
-
   return (
     <Example
       title="Reserve Blend across three stores, 3 June"
@@ -639,7 +632,7 @@ export function StockForDemand() {
 
       <p className={styles.caption} data-tone={option === "transfer" ? "ok" : "alert"} aria-live="polite">
         {option === "transfer"
-          ? `Market Square has ${MARKET_SPARE} bags above its ${market.reserve}-bag reserve. ${TRANSFER} of them fill Harbor Street’s gap on the next-day store run.`
+          ? `${TRANSFER} spare bags from Market Square cover Harbor Street on the next store run. The need, about ${harborForecast.expected} (${harborForecast.low}–${harborForecast.high}), is an estimate. Market Square keeps ${market.stock - TRANSFER}, above its reserve of ${market.reserve}.`
           : `The roaster’s minimum is ${REORDER.quantity} bags, ${REORDER.leadDays} days away. Harbor Street’s ${harbor.stock} bags last about ${DAYS_OF_COVER}.`}
       </p>
 
@@ -652,9 +645,7 @@ export function StockForDemand() {
       </p>
 
       {option === "transfer" && (
-        <ul className={styles.assumptions} aria-label="Checked before proposing the transfer">
-          {assumptions.map((item) => <li key={item}><Check size={15} strokeWidth={2} aria-hidden="true" />{item}</li>)}
-        </ul>
+        <p className={styles.meta}>Checked first: Market Square’s 08:00 count was {market.stock}, and neither store has an order due.</p>
       )}
     </Example>
   );

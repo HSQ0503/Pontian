@@ -40,7 +40,7 @@ const offerings: Offering[] = [
     label: "Know the customer",
     moment: "Before the conversation",
     headline: "Give your salesperson the context before the conversation.",
-    body: "Staff look a customer up by name. The briefing shows what they’ve bought and what they’ve told your team, with a reason beside every suggestion. It doesn’t guess at personal traits or push anything for margin.",
+    body: "Staff look a customer up by name and get a reason for each suggestion on the shelf. It won’t invent a personality, or push a bag for the margin.",
     outcome: "Start the conversation with something the customer actually cares about.",
     Visual: KnowTheCustomer,
   },
@@ -49,7 +49,7 @@ const offerings: Offering[] = [
     label: "Understand the business",
     moment: "Across your stores",
     headline: "Ask a business question. Follow the evidence.",
-    body: "Ask why one store’s margin is lower. The tool runs that question on both stores’ sales records, and it says what those records can’t explain.",
+    body: "Ask why one store’s margin is lower. The check uses both stores’ sales records, and it says what they can’t explain.",
     outcome: "Know which difference deserves your attention.",
     Visual: UnderstandTheBusiness,
   },
@@ -58,7 +58,7 @@ const offerings: Offering[] = [
     label: "Plan the next visit",
     moment: "Between visits",
     headline: "Know when a follow-up is worth sending.",
-    body: "When a regular goes quiet for longer than usual, the tool first checks for newer purchases and recent messages. If there’s still a reason to get in touch, it drafts a note for your team. Nothing goes out until a person approves it.",
+    body: "When a regular goes quiet, the tool looks for a newer purchase before it drafts a note. Nothing goes out until your team approves it.",
     outcome: "Give customers a useful reason to return.",
     Visual: PlanTheNextVisit,
   },
@@ -67,17 +67,10 @@ const offerings: Offering[] = [
     label: "Stock for demand",
     moment: "Before the shelf runs low",
     headline: "Put stock where it’s more likely to sell.",
-    body: "The tool compares each store’s shelf count with what it usually sells and what’s already on order. When one store runs short and another has bags to spare, it proposes a transfer for a manager to approve. Forecasts stay marked as estimates.",
+    body: "The shelf count sits next to usual sales and what’s already on order. A short store and a full one become a transfer a manager can approve. The forecast stays an estimate.",
     outcome: "Make the stock call with its assumptions in view.",
     Visual: StockForDemand,
   },
-];
-
-const startingScopes = [
-  "Briefings for one store",
-  "Suggestions from a set catalog",
-  "One repeat-purchase follow-up",
-  "One recurring question about your stores",
 ];
 
 export function RetailPage() {
@@ -123,20 +116,8 @@ export function RetailPage() {
             <h2 id="how-we-start-title" className={styles.startTitle}>Start with the records you already keep.</h2>
           </div>
           <div>
-            <p className={styles.startBody}>We start with one store and one job. We check the data, then build it with the people who’ll use it. Your team decides if it’s useful before we add more.</p>
-            <ol className={styles.startSteps}>
-              {startingScopes.map((scope, scopeIndex) => (
-                <li key={scope}>
-                  <span>{String(scopeIndex + 1).padStart(2, "0")}</span>
-                  <p>{scope}</p>
-                </li>
-              ))}
-              <li data-additional="true">
-                <span>+</span>
-                <p>Stock planning, once your counts and supplier data are reliable</p>
-              </li>
-            </ol>
-            <p className={styles.startNote}>Our retail work so far covers transaction analysis, customer histories and product performance. Briefings, follow-ups and stock planning would be built and tested with you.</p>
+            <p className={styles.startBody}>We start with one store and one job: a briefing, a set catalog, or one follow-up. Stock planning waits until the counts and the supplier data are reliable. Your team decides if it’s useful before we add more.</p>
+            <p className={styles.startNote}>Sales analysis is work we’ve already done. Briefings, follow-ups and stock plans get built and tested with you.</p>
           </div>
         </section>
 
