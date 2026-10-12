@@ -124,7 +124,7 @@ function Glyph({ product, size = 24 }: { product: ProductId; size?: number }) {
       )}
       {product === "brewer" && (
         <>
-          <path d="M4.25 6.25h13.5l-3.75 8h-6z" fill={COLORS.ceramic} />
+          <path d="M4.25 6.25h13.5l-3.75 8h-6z" fill={COLORS.stoneware} />
           <path d="M17.6 7.75h.9a2 2 0 0 1 0 4h-1.6" />
           <path d="M6.5 17.25h9" />
           <path d="M8 14.25v3M14 14.25v3" />

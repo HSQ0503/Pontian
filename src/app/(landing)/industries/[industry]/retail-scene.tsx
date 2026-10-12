@@ -33,6 +33,7 @@ const M = {
   kraft: standard(COLORS.kraft, 0.86),
   charcoal: standard(COLORS.charcoal, 0.62),
   ceramic: new THREE.MeshPhysicalMaterial({ color: COLORS.ceramic, roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.32, side: THREE.DoubleSide }),
+  stoneware: new THREE.MeshPhysicalMaterial({ color: COLORS.stoneware, roughness: 0.42, clearcoat: 0.45, clearcoatRoughness: 0.4, side: THREE.DoubleSide }),
   tray: standard("#b99f78", 0.72),
   coffee: standard("#3a2a20", 0.32),
   oak: standard(COLORS.oak, 0.68),
@@ -56,7 +57,8 @@ function tinted(material: THREE.MeshStandardMaterial, color: string, strength: n
   }
   return copy;
 }
-const selected = (material: THREE.MeshStandardMaterial) => tinted(material, COLORS.select, material === M.ceramic ? 0.5 : 0.62);
+// Light packaging takes a lighter tint so a selected product reads as highlighted, not repackaged in yellow.
+const selected = (material: THREE.MeshStandardMaterial) => tinted(material, COLORS.select, material === M.charcoal ? 0.6 : 0.42);
 const proposed = (material: THREE.MeshStandardMaterial) => tinted(material, COLORS.ok, 0.45);
 
 const EDGE_INK = new THREE.LineBasicMaterial({ color: COLORS.ink, transparent: true, opacity: 0.85 });
@@ -340,7 +342,7 @@ function Brewer({ position, highlight, onPick }: { position: Vec3; highlight?: b
   const k = getKit();
   return (
     <group position={position} onClick={onPick} onPointerOver={onPick && hover} onPointerOut={onPick && unhover}>
-      <mesh geometry={k.brewer} material={highlight ? selected(M.ceramic) : M.ceramic} castShadow receiveShadow />
+      <mesh geometry={k.brewer} material={highlight ? selected(M.stoneware) : M.stoneware} castShadow receiveShadow />
       {highlight && <lineSegments geometry={k.brewerEdges} material={EDGE_INK} />}
     </group>
   );
@@ -359,7 +361,7 @@ function BrewerBox({ position }: { position: Vec3 }) {
 function TastingSet({ position, highlight, onPick }: { position: Vec3; highlight?: boolean; onPick?: (event: ThreeEvent<MouseEvent>) => void }) {
   const k = getKit();
   return (
-    <group position={position} onClick={onPick} onPointerOver={onPick && hover} onPointerOut={onPick && unhover}>
+    <group position={position} scale={1.3} onClick={onPick} onPointerOver={onPick && hover} onPointerOut={onPick && unhover}>
       <mesh geometry={k.tray} material={highlight ? selected(M.tray) : M.tray} castShadow receiveShadow />
       <mesh geometry={k.cups} material={highlight ? selected(M.ceramic) : M.ceramic} castShadow receiveShadow />
       <mesh geometry={k.coffee} material={M.coffee} />
@@ -481,7 +483,7 @@ function CameraRig({ framing, store, reducedMotion, labels, layer }: { framing: 
 
 /* Maya's briefing: the Harbor Street coffee bay, with the suggested product lit. */
 
-const BRIEFING_FRAMING: Framing = { target: [0, 0.8, 0], halfWidth: BAY.width / 2, halfHeight: 0.84, azimuth: -14, elevation: 7, fillX: 0.5, fillY: 0.86, narrowFillX: 0.5 };
+const BRIEFING_FRAMING: Framing = { target: [0, 0.8, 0], halfWidth: BAY.width / 2, halfHeight: 0.84, azimuth: -14, elevation: 9, fillX: 0.6, fillY: 0.9, narrowFillX: 0.6 };
 const BRIEFING_TICKETS = PRICE_TAGS.map((tag) => ({ product: tag.product, x: tag.at[0], level: tag.at[1] }));
 
 function BriefingScene({ focus, onPick, store }: { focus: BriefingFocus; onPick: (focus: BriefingFocus) => void; store: SceneStore }) {

@@ -24,9 +24,10 @@ export const COLORS = {
   charcoal: "#35322f",
   charcoalLabel: "#ebe6dc",
   ceramic: "#f1f0ec",
+  stoneware: "#aaa59c",
   oak: "#d8c8a6",
   steel: "#3c3f41",
-  panel: "#e8e8e5",
+  panel: "#dcdcd9",
   card: "#cdb48b",
   ink: "#17191a",
   select: "#fed603",
@@ -67,7 +68,7 @@ export const PRICE_TAGS: { product: ProductId; at: Vec3 }[] = [
 
 export const BRIEFING_ANCHORS: Record<ProductId, Vec3> = {
   brewer: [BREWER_AT[0] - 0.06, BREWER_AT[1] + 0.13, BREWER_AT[2] + 0.04],
-  tasting: [TASTING_AT[0] + 0.17, TASTING_AT[1] + 0.06, TASTING_AT[2] + 0.04],
+  tasting: [TASTING_AT[0] + 0.22, TASTING_AT[1] + 0.07, TASTING_AT[2] + 0.05],
   house: [column(8, 9) + 0.04, BAY.levels[2] + BAG_HEIGHT - 0.03, FRONT_Z + BAG.depth / 2],
   reserve: [column(0) - 0.04, BAY.levels[1] + BAG_HEIGHT - 0.03, FRONT_Z + BAG.depth / 2],
 };
@@ -225,7 +226,7 @@ function BagDrawing({ at, product, tone = "none", onPick }: { at: Vec3; product:
   const [x, y] = at;
   const half = BAG.width / 2;
   const body = product === "house" ? COLORS.kraft : COLORS.charcoal;
-  const fill = tone === "selected" ? mix(body, COLORS.select, 0.62) : tone === "proposed" ? mix(body, COLORS.ok, 0.45) : body;
+  const fill = tone === "selected" ? mix(body, COLORS.select, product === "house" ? 0.42 : 0.6) : tone === "proposed" ? mix(body, COLORS.ok, 0.45) : body;
   const label = product === "house" ? COLORS.kraftLabel : COLORS.charcoalLabel;
   return (
     <g transform={`translate(${x} ${y})`} onClick={onPick} className={onPick ? styles.pickable : undefined} opacity={tone === "dim" ? 0.35 : 1}>
@@ -246,7 +247,7 @@ function mix(a: string, b: string, k: number) {
 
 function BrewerDrawing({ at, tone }: { at: Vec3; tone: BagTone }) {
   const [x, y] = at;
-  const fill = tone === "selected" ? mix(COLORS.ceramic, COLORS.select, 0.62) : COLORS.ceramic;
+  const fill = tone === "selected" ? mix(COLORS.stoneware, COLORS.select, 0.42) : COLORS.stoneware;
   return (
     <g transform={`translate(${x} ${y})`} opacity={tone === "dim" ? 0.45 : 1}>
       <rect x={-0.05} y={0} width={0.1} height={0.012} fill={fill} {...STROKE} strokeWidth={0.8} />
@@ -258,10 +259,10 @@ function BrewerDrawing({ at, tone }: { at: Vec3; tone: BagTone }) {
 
 function TastingDrawing({ at, tone }: { at: Vec3; tone: BagTone }) {
   const [x, y] = at;
-  const board = tone === "selected" ? mix(COLORS.oak, COLORS.select, 0.62) : "#bfa57a";
-  const cup = tone === "selected" ? mix(COLORS.ceramic, COLORS.select, 0.5) : COLORS.ceramic;
+  const board = tone === "selected" ? mix("#b99f78", COLORS.select, 0.42) : "#b99f78";
+  const cup = tone === "selected" ? mix(COLORS.ceramic, COLORS.select, 0.42) : COLORS.ceramic;
   return (
-    <g transform={`translate(${x} ${y})`} opacity={tone === "dim" ? 0.45 : 1}>
+    <g transform={`translate(${x} ${y}) scale(1.3)`} opacity={tone === "dim" ? 0.45 : 1}>
       <rect x={-0.17} y={0} width={0.34} height={0.018} fill={board} {...STROKE} strokeWidth={0.8} />
       {TASTING_CUPS.map((offset) => <path key={offset} d={`M${offset - 0.018} 0.018h0.036l0.006 0.042h-0.048z`} fill={cup} {...STROKE} strokeWidth={0.8} />)}
     </g>
