@@ -17,7 +17,7 @@ import { HeroDrawing, IndustryHero } from "./industry-hero";
 const SLUG = "logistics";
 const headline = "Make every shipment work better.";
 const summary =
-  "We build tools for the calls your dispatch desk makes every day, shaped around how your trucks actually run.";
+  "We build tools for the call your dispatcher is on right now. A new job, a tight truck, a breakdown, a quote.";
 
 export const logisticsMetadata: Metadata = {
   title: "Logistics",
@@ -44,7 +44,7 @@ const offerings: Offering[] = [
     label: "Plan the deliveries",
     audience: "For fleet operators",
     headline: "Give every delivery a workable place in the day.",
-    body: "We connect your orders, delivery windows, truck sizes and driver hours into a plan your dispatcher can check. When a new job comes in, you see which truck can take it and what it would push late.",
+    body: "Tomorrow sits on one timeline, with the windows and the hours your drivers already work. A new pickup shows which truck can take it, and which stop would miss its window.",
     outcome: "See how the day fits together before sending vehicles out.",
     note: "Drive times here are fixed examples. Real routing needs your vehicle limits, driver rules and stop times built in.",
     Visual: DeliveryPlan,
@@ -54,9 +54,9 @@ const offerings: Offering[] = [
     label: "Plan the load",
     audience: "For fleet operators",
     headline: "See how the load fits before loading starts.",
-    body: "We turn pallet sizes, weights, stacking rules and drop order into a loading plan. Your warehouse sees whether it fits, and whether each drop can come off when it’s due.",
+    body: "You see the pallets on the truck, in the order of the drops. The first stop is at the door, or it’s stuck behind freight that isn’t due yet.",
     outcome: "Give the loading team a plan they can inspect before moving freight.",
-    note: "An illustration, not a certified safe-loading plan. It doesn’t check weight distribution or securing, and we’d build it on proven packing tools rather than an engine of our own.",
+    note: "An illustration, not a certified safe-loading plan. It doesn’t check weight distribution or securing. We’d build it on proven packing tools. There isn’t a Pontian packing engine behind the drawing.",
     Visual: LoadPlan,
   },
   {
@@ -64,9 +64,9 @@ const offerings: Offering[] = [
     label: "Handle the disruption",
     audience: "For fleet operators and brokers",
     headline: "Find the next workable move.",
-    body: "When a truck is off the road, dispatch sees which deliveries it had and where they could go. Some fit. The ones that don’t get flagged, so nobody assumes they’re covered.",
+    body: "A truck is off the road before it leaves the yard. Dispatch sees what it was carrying, and what still fits on the truck that’s running.",
     outcome: "Give dispatch options and consequences in the same place.",
-    note: "For brokers, the other options are other carriers; the rest works the same. It starts from a recorded status update and doesn’t predict breakdowns or track trucks live.",
+    note: "For brokers, the other options are other carriers. Everything else works the same way. It starts from a recorded status update. It doesn’t predict breakdowns or track trucks live.",
     Visual: DisruptionRecovery,
   },
   {
@@ -74,9 +74,9 @@ const offerings: Offering[] = [
     label: "Prepare the quote",
     audience: "For fleet operators and brokers",
     headline: "Turn a shipment request into a quote you can explain.",
-    body: "We pull the details out of the email, flag what’s missing, and price it from your rate card. Every line says which rule it came from. It’s the same job that lands on Vehicle B above.",
+    body: "Most requests show up as a short email. We price it from your rate card, and each line names the rule behind the number. This one is the Glenway job on Vehicle B.",
     outcome: "Respond with a price your team can stand behind.",
-    note: "For brokers, the price starts from the carrier’s cost plus your margin, which is a separate calculation. This is an example rate card, not market rates, and not a profit figure.",
+    note: "For brokers, start from the carrier’s cost and add your margin. That’s a separate sum. This rate card is an example. It isn’t market rates, and it isn’t a profit figure.",
     Visual: QuotePreparation,
   },
 ];
