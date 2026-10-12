@@ -1,20 +1,19 @@
 "use client";
 
-import { useId, useState, type CSSProperties, type ReactNode } from "react";
-import { ArrowRight, Check, Mic, RotateCcw } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useEffect, useId, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { ArrowRight, RotateCcw } from "lucide-react";
 import styles from "./property-services.module.css";
+import { ANCHORS, PIN_ANCHORS, SIDE_FENCE, STOP_ANCHORS, type Area, type AreaState, type SceneInput, type SceneLabel, type StopId } from "./property-services-model";
 
-type Area = "driveway" | "patio" | "path" | "fence" | "gate";
-type AreaTone = "scope" | "excluded" | "open" | "access";
-type Tone = "proposed" | "accepted" | "excluded" | "open" | "neutral" | "done" | "needed" | "ready" | "reviewed";
+const PropertyScene = dynamic(() => import("./property-services-scene"), { ssr: false });
+
+type Tone = "scope" | "excluded" | "open" | "neutral" | "done" | "needed" | "ready";
 type Point = readonly [number, number];
 type Box = readonly [number, number, number, number];
 
-const PROPERTY = "Alder Lane property";
-const RECORD = ["Walkthrough and estimate", "Crew briefing", "Visit evidence", "Next visit"];
-const AREA_TONE: Record<Area, AreaTone> = { driveway: "scope", patio: "scope", path: "open", fence: "excluded", gate: "access" };
+const PROPERTY = "Alder Lane property (fictional)";
 const AREA_NAME: Record<Area, string> = { driveway: "Driveway", patio: "Rear patio", path: "Side path", fence: "Painted fence", gate: "Side gate" };
-const ALL_AREAS: Area[] = ["driveway", "patio", "path", "fence", "gate"];
 
 const svgId = (id: string) => id.replace(/[^a-zA-Z0-9]/g, "");
 const place = (box: Box, [x, y]: Point): CSSProperties => ({ left: `${((x - box[0]) / box[2]) * 100}%`, top: `${((y - box[1]) / box[3]) * 100}%` });
@@ -24,91 +23,109 @@ function Status({ tone, children }: { tone: Tone; children: ReactNode }) {
 }
 
 type ExampleProps = {
-  stage: number;
   title: string;
   children: ReactNode;
   situation: ReactNode;
   finding: ReactNode;
   next: ReactNode;
   findingLabel?: string;
-  boundary: ReactNode;
+  note: ReactNode;
 };
 
-function Example({ stage, title, children, situation, finding, next, findingLabel = "Finding for review", boundary }: ExampleProps) {
+function Example({ title, children, situation, finding, next, findingLabel = "Finding for review", note }: ExampleProps) {
   return (
     <figure className={styles.example}>
       <figcaption className={styles.exampleBar}>
         <span className={styles.exampleTag}>Example workflow</span>
         <span className={styles.exampleTitle}>{title}</span>
-        <span className={styles.exampleNote}>Fictional property. Illustrations, not site photographs or measured drawings.</span>
       </figcaption>
-      <ol className={styles.record} aria-label="Property record">
-        {RECORD.map((item, index) => (
-          <li key={item} data-state={index < stage ? "done" : index === stage ? "current" : "later"}>
-            <span aria-hidden="true">{index < stage ? <Check size={11} strokeWidth={2.4} /> : index + 1}</span>
-            {item}
-          </li>
-        ))}
-      </ol>
       <div className={styles.exampleBody}>{children}</div>
       <ol className={styles.outcome}>
         <li data-role="situation"><span className={styles.outcomeLabel}>Situation</span>{situation}</li>
         <li data-role="finding"><span className={styles.outcomeLabel}>{findingLabel}</span>{finding}</li>
         <li data-role="next"><span className={styles.outcomeLabel}>Next step for your team</span>{next}</li>
       </ol>
-      <div className={styles.boundary}><span className={styles.outcomeLabel}>Keep in mind</span>{boundary}</div>
+      <p className={styles.boundary}>{note}</p>
     </figure>
   );
 }
 
-const PLAN_VIEWS = { wide: [8, 4, 384, 296], close: [48, 10, 280, 240] } as const satisfies Record<string, Box>;
-const PLAN_LABELS: Record<Area, { at: Point; close?: Point; anchor?: Point; start?: boolean }> = {
+/* Live 3D with a static fallback, following the Equipment Rental pattern:
+   the scene loads near the viewport, renders only while visible, and the
+   2D drawing stays for reduced motion and browsers without WebGL. */
+
+function subscribeToMotion(update: () => void) {
+  const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+  media.addEventListener("change", update);
+  return () => media.removeEventListener("change", update);
+}
+const noSubscription = () => () => {};
+let webglSupport: boolean | null = null;
+function hasWebGL() {
+  if (webglSupport === null) {
+    try {
+      const canvas = document.createElement("canvas");
+      webglSupport = Boolean(canvas.getContext("webgl2") ?? canvas.getContext("webgl"));
+    } catch {
+      webglSupport = false;
+    }
+  }
+  return webglSupport;
+}
+
+function PropertyView({ scene, fallback, label }: { scene: SceneInput; fallback: ReactNode; label: string }) {
+  const reduced = useSyncExternalStore(subscribeToMotion, () => window.matchMedia("(prefers-reduced-motion: reduce)").matches, () => true);
+  const webgl = useSyncExternalStore(noSubscription, hasWebGL, () => false);
+  const ref = useRef<HTMLDivElement>(null);
+  const [near, setNear] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const nearObserver = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setNear(true); }, { rootMargin: "600px 0px" });
+    const visibleObserver = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { rootMargin: "80px 0px" });
+    nearObserver.observe(element);
+    visibleObserver.observe(element);
+    return () => { nearObserver.disconnect(); visibleObserver.disconnect(); };
+  }, []);
+  const live = near && webgl && !reduced;
+  return (
+    <div ref={ref} className={styles.viewport} role="img" aria-label={label}>
+      <div className={styles.fallback} data-hidden={live && ready} aria-hidden="true">{fallback}</div>
+      {live && <PropertyScene {...scene} active={visible} onReady={() => setReady(true)} />}
+    </div>
+  );
+}
+
+/* 2D plan: the fallback drawing, on the same layout as the 3D model. */
+
+const PLAN_BOX: Box = [8, 4, 384, 296];
+const PLAN_LABELS: Record<Area, { at: Point; anchor?: Point; start?: boolean }> = {
   driveway: { at: [182.5, 238] },
   patio: { at: [245, 66] },
-  fence: { at: [90, 24], close: [104, 24] },
+  fence: { at: [90, 24] },
   gate: { at: [156, 106], anchor: [128, 118], start: true },
   path: { at: [156, 182], anchor: [130, 182], start: true },
 };
-const PLAN_NOTES: { text: string; at: Point }[] = [
-  { text: "House", at: [262, 152] },
-  { text: "Street", at: [356, 282] },
-];
-const FENCE_RUNS: Point[][] = [
+const PLAN_FENCE: Point[][] = [
   [[116, 118], [24, 118], [24, 24], [376, 24], [376, 118], [330, 118]],
   [[144, 118], [150, 118]],
 ];
-const FENCE_POSTS = FENCE_RUNS.flatMap((run) => run.slice(1).flatMap((end, index) => {
+const PLAN_POSTS = PLAN_FENCE.flatMap((run) => run.slice(1).flatMap((end, index) => {
   const start = run[index];
   const steps = Math.max(1, Math.round(Math.hypot(end[0] - start[0], end[1] - start[1]) / 23));
   return Array.from({ length: steps + 1 }, (_, step) => [start[0] + ((end[0] - start[0]) * step) / steps, start[1] + ((end[1] - start[1]) * step) / steps] as Point);
 }));
-const PATH_SLABS = Array.from({ length: 10 }, (_, index) => 66 + index * 13.4);
+const PLAN_SLABS = Array.from({ length: 10 }, (_, index) => 66 + index * 13.4);
 const HOUSE_OUTLINE = "150,90 330,90 330,176 215,176 215,200 150,200";
 
-type PlanProps = {
-  view: keyof typeof PLAN_VIEWS;
-  label: string;
-  marked?: Area[];
-  labels?: Area[];
-  selected?: Area | null;
-  onSelect?: (area: Area) => void;
-};
-
-function PropertyPlan({ view, label, marked = ALL_AREAS, labels = ALL_AREAS, selected, onSelect }: PlanProps) {
+function PropertyPlan({ states, selected, labels }: { states: Partial<Record<Area, AreaState>>; selected: Area[]; labels: Area[] }) {
   const uid = svgId(useId());
-  const box = PLAN_VIEWS[view];
-  const inView = ([x, y]: Point) => x >= box[0] && x <= box[0] + box[2] && y >= box[1] && y <= box[1] + box[3];
-  const state = (area: Area) => (area === selected ? "selected" : marked.includes(area) ? "marked" : "plain");
-  const labelAt = (area: Area) => (view === "close" && PLAN_LABELS[area].close) || PLAN_LABELS[area].at;
-  const zone = (area: Area) => ({
-    "data-tone": AREA_TONE[area],
-    "data-state": state(area),
-    className: `${styles.zone} ${onSelect ? styles.zoneLive : ""}`,
-    onClick: onSelect ? () => onSelect(area) : undefined,
-  });
+  const zone = (area: Area) => ({ className: styles.zone, "data-tone": states[area] ?? "plain", "data-selected": selected.includes(area) || undefined });
   return (
     <div className={styles.planFrame}>
-      <svg viewBox={box.join(" ")} className={styles.plan} role="img" aria-label={label}>
+      <svg viewBox={PLAN_BOX.join(" ")} className={styles.plan} aria-hidden="true">
         <defs>
           <pattern id={`${uid}-lawn`} width="8" height="8" patternUnits="userSpaceOnUse">
             <rect width="8" height="8" fill="#efefeb" />
@@ -123,12 +140,10 @@ function PropertyPlan({ view, label, marked = ALL_AREAS, labels = ALL_AREAS, sel
             <feDropShadow dx="3" dy="4" stdDeviation="3.2" floodColor="#17191a" floodOpacity=".14" />
           </filter>
         </defs>
-
         <rect x="0" y="0" width="400" height="262" fill={`url(#${uid}-lawn)`} />
         <rect x="0" y="262" width="400" height="38" fill="#e0e1de" />
         <path d="M0 262.5H150M215 262.5H400" stroke="#b9bab6" strokeWidth="1.2" />
         <path d="M0 287H400" stroke="#f7f7f5" strokeWidth="1.2" strokeDasharray="12 9" />
-
         <g {...zone("patio")}>
           <rect x="190" y="44" width="110" height="46" fill={`url(#${uid}-pavers)`} />
           <rect x="190" y="44" width="110" height="46" className={styles.tint} />
@@ -140,11 +155,10 @@ function PropertyPlan({ view, label, marked = ALL_AREAS, labels = ALL_AREAS, sel
         </g>
         <g {...zone("path")}>
           <path d="M116 62H144V200H150V216H116Z" fill="#e7e7e3" />
-          {PATH_SLABS.map((y) => <rect key={y} x="118.5" y={y} width="23" height="10.6" fill="#f7f7f4" stroke="#d3d4d0" strokeWidth=".6" />)}
+          {PLAN_SLABS.map((y) => <rect key={y} x="118.5" y={y} width="23" height="10.6" fill="#f7f7f4" stroke="#d3d4d0" strokeWidth=".6" />)}
           <rect x="118.5" y="200.5" width="30" height="13" fill="#f7f7f4" stroke="#d3d4d0" strokeWidth=".6" />
           <path d="M116 62H144V200H150V216H116Z" className={styles.tint} />
         </g>
-
         {[[350, 64, 18], [330, 228, 14]].map(([cx, cy, r]) => (
           <g key={cx}>
             <circle cx={cx + 3} cy={cy + 4} r={r} fill="#17191a" opacity=".07" />
@@ -152,7 +166,6 @@ function PropertyPlan({ view, label, marked = ALL_AREAS, labels = ALL_AREAS, sel
             <circle cx={cx - r * .25} cy={cy - r * .25} r={r * .55} fill="#eaece6" />
           </g>
         ))}
-
         <polygon points={HOUSE_OUTLINE} fill="#fff" filter={`url(#${uid}-shadow)`} />
         <polygon points="150,90 330,90 287,133 193,133" fill="#f1f1ee" />
         <polygon points="150,176 330,176 287,133 193,133" fill="#fcfcfb" />
@@ -165,44 +178,30 @@ function PropertyPlan({ view, label, marked = ALL_AREAS, labels = ALL_AREAS, sel
         <polygon points={HOUSE_OUTLINE} fill="none" stroke="#262829" strokeWidth="1.6" strokeLinejoin="round" />
         <path d="M156 200H209" stroke="#555758" strokeWidth="3.2" />
         <rect x="238" y="84.5" width="20" height="5.5" fill="#dcdcd9" stroke="#8f908e" strokeWidth=".6" />
-
         <g {...zone("fence")}>
-          {FENCE_RUNS.map((run) => <polyline key={run.join()} points={run.join(" ")} className={styles.fenceHalo} />)}
-          {FENCE_RUNS.map((run) => <polyline key={run.join()} points={run.join(" ")} className={styles.fenceRail} />)}
-          {FENCE_POSTS.map(([x, y]) => <rect key={`${x}-${y}`} x={x - 1.7} y={y - 1.7} width="3.4" height="3.4" className={styles.fencePost} />)}
-          {FENCE_RUNS.map((run) => <polyline key={run.join()} points={run.join(" ")} className={styles.fenceHit} />)}
+          {PLAN_FENCE.map((run) => <polyline key={run.join()} points={run.join(" ")} className={styles.fenceHalo} />)}
+          {PLAN_FENCE.map((run) => <polyline key={run.join()} points={run.join(" ")} className={styles.fenceRail} />)}
+          {PLAN_POSTS.map(([x, y]) => <rect key={`${x}-${y}`} x={x - 1.7} y={y - 1.7} width="3.4" height="3.4" className={styles.fencePost} />)}
         </g>
         <g {...zone("gate")}>
-          <rect x="108" y="88" width="44" height="38" className={styles.gateHit} />
           <path d="M144 118A28 28 0 0 0 116 90" className={styles.gateSwing} />
           <line x1="116" y1="118" x2="144" y2="118" className={styles.gateHalo} />
           <line x1="116" y1="118" x2="144" y2="118" className={styles.gateLeaf} />
           <circle cx="116" cy="118" r="2" className={styles.gateHinge} />
         </g>
-
         {labels.map((area) => {
-          const { anchor } = PLAN_LABELS[area];
-          const at = labelAt(area);
-          return anchor && inView(anchor) ? (
-            <g key={area} className={styles.leader} data-state={state(area)}>
+          const { anchor, at } = PLAN_LABELS[area];
+          return anchor ? (
+            <g key={area} className={styles.leader}>
               <line x1={anchor[0]} y1={anchor[1]} x2={at[0]} y2={at[1]} />
               <circle cx={anchor[0]} cy={anchor[1]} r="2.2" />
             </g>
           ) : null;
         })}
-        {inView([30, 236]) && <path d="M30 222 35.5 238 30 234.5 24.5 238Z" fill="#555758" />}
       </svg>
-
-      {labels.filter((area) => inView(labelAt(area))).map((area) => {
-        const props = { className: styles.planChip, "data-tone": AREA_TONE[area], "data-state": state(area), "data-align": PLAN_LABELS[area].start ? "start" : undefined, style: place(box, labelAt(area)) };
-        return onSelect
-          ? <button key={area} type="button" {...props} aria-pressed={area === selected} onClick={() => onSelect(area)}>{AREA_NAME[area]}</button>
-          : <span key={area} {...props}>{AREA_NAME[area]}</span>;
-      })}
-      {PLAN_NOTES.filter((note) => inView(note.at)).map((note) => (
-        <span key={note.text} className={styles.planNote} style={place(box, note.at)} aria-hidden="true">{note.text}</span>
+      {labels.map((area) => (
+        <span key={area} className={styles.planChip} data-tone={states[area] ?? "plain"} data-selected={selected.includes(area) || undefined} data-align={PLAN_LABELS[area].start ? "start" : undefined} style={place(PLAN_BOX, PLAN_LABELS[area].at)}>{AREA_NAME[area]}</span>
       ))}
-      {inView([30, 236]) && <span className={styles.planNote} style={place(box, [30, 250])} aria-hidden="true">N</span>}
     </div>
   );
 }
@@ -338,411 +337,8 @@ function SidePathView({ label }: { label?: string }) {
   );
 }
 
-const PHOTOS = [
-  { area: "driveway" as Area, caption: "Photo 1 · Driveway", View: DrivewayView },
-  { area: "patio" as Area, caption: "Photo 2 · Rear patio and fence", View: PatioView },
-  { area: "path" as Area, caption: "Photo 3 · Side path and gate", View: SidePathView },
-];
 
-type ScopeItem = { area: Area; label: string; status: [Tone, string]; photo: number; note: string; detail: ReactNode };
-
-const SCOPE: ScopeItem[] = [
-  { area: "driveway", label: "Driveway cleaning", status: ["proposed", "Proposed"], photo: 0, note: "\u201cDriveway and rear patio.\u201d", detail: "Proposed. The area is measured on site before it is priced." },
-  { area: "patio", label: "Rear patio cleaning", status: ["proposed", "Proposed"], photo: 1, note: "\u201cDriveway and rear patio.\u201d", detail: "Proposed. The area is measured on site before it is priced." },
-  { area: "fence", label: "Painted fence", status: ["excluded", "Excluded"], photo: 1, note: "\u201cLeave the painted fence alone.\u201d", detail: "Excluded on the owner\u2019s instruction. Appearing in a photo does not add it to the work." },
-  { area: "path", label: "Side path", status: ["open", "Confirmation needed"], photo: 2, note: "\u201cConfirm the side path.\u201d", detail: <><strong>Not included in the accepted scope.</strong> It stays open unless a separate change is approved.</> },
-];
-
-const PRICING_INPUTS: [string, string][] = [
-  ["Measured area", "Site measurement"],
-  ["Selected service", "Your service catalog"],
-  ["Approved pricing rule", "Your team"],
-];
-
-const ACCEPTED: [string, Tone, string][] = [
-  ["Driveway cleaning", "accepted", "Accepted"],
-  ["Rear patio cleaning", "accepted", "Accepted"],
-  ["Painted fence", "excluded", "Excluded"],
-  ["Side path", "neutral", "Not included"],
-];
-
-const SCOPE_STAGES = ["Walkthrough", "Draft scope", "Reviewed estimate"];
-
-function StageHead({ index, title }: { index: number; title: string }) {
-  return <p className={styles.stageHead}><span>{index + 1}</span>{title}</p>;
-}
-
-export function ScopeTheWork() {
-  const [selected, setSelected] = useState(0);
-  const [stage, setStage] = useState(0);
-  const item = SCOPE[selected];
-  const select = (area: Area) => {
-    const index = SCOPE.findIndex((entry) => entry.area === area);
-    if (index >= 0) setSelected(index);
-  };
-  const nextStage = (index: number) => (
-    <button type="button" className={styles.continue} onClick={() => setStage(index)}>
-      Continue to {SCOPE_STAGES[index].toLowerCase()} <ArrowRight size={15} strokeWidth={1.6} aria-hidden="true" />
-    </button>
-  );
-  return (
-    <Example
-      stage={0}
-      title={`${PROPERTY} · Walkthrough, 4 May`}
-      situation={<p>The owner walks the property and records a spoken note and three photos.</p>}
-      findingLabel="Result for review"
-      finding={<p><strong>A reviewed scope with its reference photos.</strong> The side-path question stays outside it.</p>}
-      next={<p>Your team checks measurements and pricing before the estimate goes out.</p>}
-      boundary={<p>Ordinary photos do not establish dimensions, hidden conditions, or the right treatment method.</p>}
-    >
-      <div className={styles.scope}>
-        <div className={styles.scopePlan}>
-          <PropertyPlan view="wide" selected={item.area} onSelect={select} label={`Site plan of the fictional property: a house with a driveway to the street, a rear patio, a side path along the west wall, and a painted fence around the back garden with a side gate across the path. ${item.label} is highlighted.`} />
-          <ul className={styles.legend}>
-            <li><Status tone="proposed">Proposed work</Status></li>
-            <li><Status tone="excluded">Excluded</Status></li>
-            <li><Status tone="open">Confirmation needed</Status></li>
-          </ul>
-        </div>
-
-        <div className={styles.stageNav} role="group" aria-label="Steps in this example">
-          {SCOPE_STAGES.map((title, index) => (
-            <button key={title} type="button" aria-pressed={stage === index} onClick={() => setStage(index)}><span>{index + 1}</span>{title}</button>
-          ))}
-        </div>
-
-        <div className={styles.stage} data-stage="walkthrough" data-active={stage === 0}>
-          <StageHead index={0} title="Walkthrough information" />
-          <div className={styles.voiceNote}>
-            <span className={styles.voiceIcon} aria-hidden="true"><Mic size={16} strokeWidth={1.6} /></span>
-            <div>
-              <p className={styles.sheetLabel}>Owner&rsquo;s spoken note</p>
-              <p className={styles.quote}>&ldquo;Driveway and rear patio. Leave the painted fence alone. Confirm the side path.&rdquo;</p>
-            </div>
-          </div>
-          <ul className={styles.photos} aria-label="Walkthrough photos, shown as illustrations">
-            {PHOTOS.map((photo, index) => (
-              <li key={photo.caption} data-active={item.photo === index}>
-                <photo.View />
-                <span>{photo.caption}</span>
-              </li>
-            ))}
-          </ul>
-          {nextStage(1)}
-        </div>
-
-        <div className={styles.stage} data-stage="draft" data-active={stage === 1}>
-          <StageHead index={1} title="Structured scope" />
-          <div className={styles.sheet}>
-            <p className={styles.sheetLabel}>Draft for review</p>
-            <div className={styles.choiceList}>
-              {SCOPE.map((entry, index) => (
-                <button key={entry.area} type="button" className={styles.choice} aria-pressed={selected === index} onClick={() => setSelected(index)}>
-                  <span className={styles.choiceText}>{entry.label}</span>
-                  <Status tone={entry.status[0]}>{entry.status[1]}</Status>
-                </button>
-              ))}
-            </div>
-            <div className={styles.detail} aria-live="polite">
-              <p className={styles.detailSource}>{item.note}</p>
-              <p className={styles.detailMeta}>Walkthrough note · {PHOTOS[item.photo].caption}</p>
-              <p>{item.detail}</p>
-            </div>
-          </div>
-          {nextStage(2)}
-        </div>
-
-        <div className={styles.stage} data-stage="estimate" data-active={stage === 2}>
-          <StageHead index={2} title="Reviewed estimate" />
-          <div className={styles.sheet}>
-            <ol className={styles.reviewSteps}>
-              <li>
-                <strong>Review measurements and pricing</strong>
-                <dl className={styles.inputs}>
-                  {PRICING_INPUTS.map(([input, source]) => <div key={input}><dt>{input}</dt><dd>{source}</dd></div>)}
-                </dl>
-                <span>No price is set from an unscaled photo.</span>
-              </li>
-              <li>
-                <strong>Prepare estimate</strong>
-                <span>Driveway and rear patio cleaning, with the fence exclusion in writing.</span>
-              </li>
-              <li>
-                <strong>Customer approves the stated work</strong>
-                <span>Accepted 6 May.</span>
-              </li>
-            </ol>
-            <div className={styles.accepted}>
-              <p className={styles.sheetLabel}>Accepted scope</p>
-              <ul className={styles.rows}>
-                {ACCEPTED.map(([line, tone, status]) => <li key={line}><span>{line}</span><Status tone={tone}>{status}</Status></li>)}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Example>
-  );
-}
-
-const AREA_BRIEF: Record<Area, { status: [Tone, string]; text: string }> = {
-  driveway: { status: ["accepted", "Today\u2019s work"], text: "Driveway cleaning, from the accepted estimate." },
-  patio: { status: ["accepted", "Today\u2019s work"], text: "Rear patio cleaning, from the accepted estimate." },
-  fence: { status: ["excluded", "Excluded"], text: "\u201cLeave the painted fence alone.\u201d Recorded at the walkthrough and written into the estimate." },
-  gate: { status: ["neutral", "Access"], text: "Use the side gate to reach the rear patio." },
-  path: { status: ["open", "Not included"], text: "Not in the accepted estimate. Confirm additional work with the office." },
-};
-
-const BRIEFING: [string, string][] = [
-  ["Today\u2019s work", "Driveway and rear patio"],
-  ["Important instruction", "Painted fence excluded"],
-  ["Access", "Use the side gate"],
-  ["Reference", "Accepted estimate and walkthrough photos"],
-];
-
-type Excerpt = { title: string; lines: [string, Tone, string][]; note: string; highlight?: string };
-
-const ESTIMATE_EXCERPT: Excerpt = { title: "Accepted estimate · 6 May", lines: ACCEPTED, note: "Side-path request remains unapproved.", highlight: "Side path" };
-
-type CrewQuestion = { question: string; answer: string; status: [Tone, string]; sources: string[]; area: Area; excerpt: Excerpt };
-
-const QUESTIONS: CrewQuestion[] = [
-  {
-    question: "Is the side path included?",
-    answer: "The side path is not included in the accepted estimate. Confirm additional work with the office.",
-    status: ["done", "From the record"],
-    sources: ["Accepted estimate", "Side-path request remains unapproved"],
-    area: "path",
-    excerpt: ESTIMATE_EXCERPT,
-  },
-  {
-    question: "What was done on the previous visit?",
-    answer: "The last recorded visit, on 12 October last year, covered driveway cleaning only. Today\u2019s work comes from the accepted estimate.",
-    status: ["done", "From the record"],
-    sources: ["Service record · 12 October last year"],
-    area: "driveway",
-    excerpt: {
-      title: "Service record · 12 October last year",
-      lines: [["Driveway cleaning", "reviewed", "Completed"], ["Visit type", "neutral", "One-off"]],
-      note: "A past visit does not change today\u2019s scope.",
-    },
-  },
-  {
-    question: "The customer asked for the side path too. Can we add it today?",
-    answer: "Needs office confirmation. A request made on site does not change the accepted estimate, and no change has been approved.",
-    status: ["open", "Needs office confirmation"],
-    sources: ["Accepted estimate", "No approved change on record"],
-    area: "path",
-    excerpt: { ...ESTIMATE_EXCERPT, note: "No approved change on record. The office can prepare one for the customer to approve." },
-  },
-];
-
-export function EquipTheCrew() {
-  const [area, setArea] = useState<Area>("path");
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [showSource, setShowSource] = useState(false);
-  const question = QUESTIONS[questionIndex];
-  const brief = AREA_BRIEF[area];
-  const ask = (index: number) => {
-    setQuestionIndex(index);
-    setArea(QUESTIONS[index].area);
-    setShowSource(false);
-  };
-  return (
-    <Example
-      stage={1}
-      title={`${PROPERTY} · Day of service, 14 May`}
-      situation={<p>The assigned crew sees the approved work, instructions, access, and the records behind them, and nothing else.</p>}
-      findingLabel="Result for review"
-      finding={<p><strong>Every answer shows its source,</strong> or says it needs office confirmation.</p>}
-      next={<p>Questions without a supporting record go to the office.</p>}
-      boundary={<p>Old notes, customer messages, and crew suggestions never override the accepted scope or authorize extra work.</p>}
-    >
-      <div className={styles.crewGrid}>
-        <div className={styles.crewPlan}>
-          <p className={styles.sheetLabel}>Closer view · Side of the house</p>
-          <PropertyPlan view="close" selected={area} onSelect={setArea} label={`Closer view of the same property around the side gate, side path, rear patio, and the top of the driveway. ${AREA_NAME[area]} is highlighted.`} />
-          <div className={styles.detail} aria-live="polite">
-            <p className={styles.detailTitle}>{AREA_NAME[area]} <Status tone={brief.status[0]}>{brief.status[1]}</Status></p>
-            <p>{brief.text}</p>
-          </div>
-        </div>
-
-        <div className={styles.crewSide}>
-          <div className={styles.sheet}>
-            <p className={styles.sheetLabel}>Crew briefing · Thursday 14 May</p>
-            <dl className={styles.briefing}>
-              {BRIEFING.map(([term, value]) => <div key={term}><dt>{term}</dt><dd>{value}</dd></div>)}
-            </dl>
-          </div>
-          <div className={styles.sheet}>
-            <p className={styles.sheetLabel}>Questions from the crew</p>
-            <div className={styles.choiceList}>
-              {QUESTIONS.map((item, index) => (
-                <button key={item.question} type="button" className={styles.choice} aria-pressed={questionIndex === index} onClick={() => ask(index)}>
-                  <span className={styles.choiceText}>{item.question}</span>
-                </button>
-              ))}
-            </div>
-            <div className={styles.answer} aria-live="polite">
-              <button type="button" className={styles.answerButton} aria-expanded={showSource} onClick={() => setShowSource(!showSource)}>
-                <Status tone={question.status[0]}>{question.status[1]}</Status>
-                <span className={styles.answerText}>{question.answer}</span>
-                <span className={styles.sources}>Source: {question.sources.join(" · ")}</span>
-                <span className={styles.findingAction}>{showSource ? "Hide the record" : "Show the record"} <ArrowRight size={14} strokeWidth={1.6} aria-hidden="true" /></span>
-              </button>
-              {showSource && (
-                <div className={styles.excerpt}>
-                  <p className={styles.sheetLabel}>{question.excerpt.title}</p>
-                  <ul className={styles.rows}>
-                    {question.excerpt.lines.map(([line, tone, status]) => (
-                      <li key={line} data-marked={question.excerpt.highlight === line}><span>{line}</span><Status tone={tone}>{status}</Status></li>
-                    ))}
-                  </ul>
-                  <p className={styles.smallNote}>{question.excerpt.note}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </Example>
-  );
-}
-
-type WorkId = "driveway" | "patio";
-
-const REVIEW_STEPS = ["Check evidence against approved tasks", "Documentation ready for review", "Supervisor reviews", "Service summary prepared"];
-const STEP_ACTIONS = ["Add the example patio photo", "Supervisor reviews", "Prepare the service summary", "Replay"];
-const STEP_STATUS: [Tone, string][] = [
-  ["needed", "Rear patio completion evidence is missing."],
-  ["ready", "Documentation ready for review"],
-  ["reviewed", "Supervisor reviewed the documentation"],
-  ["reviewed", "Service summary prepared"],
-];
-
-export function ReviewTheResult() {
-  const [work, setWork] = useState<WorkId>("patio");
-  const [step, setStep] = useState(0);
-  const patioComplete = step > 0;
-  const items: { id: WorkId; label: string; evidence: [boolean, string][] }[] = [
-    { id: "driveway", label: "Driveway cleaning", evidence: [[true, "Before photo received"], [true, "After photo received"]] },
-    { id: "patio", label: "Rear patio cleaning", evidence: [[true, "Before photo received"], patioComplete ? [true, "Completion photo received"] : [false, "Completion photo needed"]] },
-  ];
-  const View = work === "driveway" ? DrivewayView : PatioView;
-  const hasAfter = work === "driveway" || patioComplete;
-  const advance = () => setStep(step === REVIEW_STEPS.length - 1 ? 0 : step + 1);
-  const selectArea = (area: Area) => { if (area === "driveway" || area === "patio") setWork(area); };
-  return (
-    <Example
-      stage={2}
-      title={`${PROPERTY} · After the 14 May visit`}
-      situation={<p>Completion photos and crew notes from 14 May, checked against the approved tasks.</p>}
-      finding={<p><strong>Rear patio completion evidence is missing.</strong></p>}
-      next={<p>Request the relevant photo or crew clarification.</p>}
-      boundary={<p>Missing evidence does not prove missing work. A photo does not certify workmanship, safety, or hidden work.</p>}
-    >
-      <div className={styles.reviewGrid}>
-        <div className={styles.workItems} style={{ gridArea: "items" }}>
-          {items.map((item) => (
-            <button key={item.id} type="button" className={styles.workItem} aria-pressed={work === item.id} onClick={() => setWork(item.id)}>
-              <span className={styles.choiceText}>{item.label}</span>
-              <span className={styles.evidenceList}>
-                {item.evidence.map(([received, text]) => (
-                  <span key={text} data-received={received}>{received ? <Check size={13} strokeWidth={2.2} aria-hidden="true" /> : <span className={styles.openMark} aria-hidden="true" />}{text}</span>
-                ))}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        <div className={styles.sheet} style={{ gridArea: "pair" }}>
-          <p className={styles.sheetLabel}>{work === "patio" ? "Rear patio" : "Driveway"} · Matched viewpoint</p>
-          <div className={styles.pair} aria-live="polite">
-            <div>
-              <View shot="before" label={`Illustration of the ${work === "patio" ? "rear patio" : "driveway"} before cleaning`} />
-              <p className={styles.photoMeta}><span className={styles.dotBefore} aria-hidden="true" />Before · 14 May, 9:10</p>
-            </div>
-            <div>
-              {hasAfter ? <View shot="after" label={`Illustration of the ${work === "patio" ? "rear patio" : "driveway"} after cleaning, from the same viewpoint`} /> : <div className={styles.missing}><span>Completion photo needed</span></div>}
-              <p className={styles.photoMeta}><span className={styles.dotAfter} aria-hidden="true" />{hasAfter ? `After · 14 May, ${work === "patio" ? "15:40" : "12:05"}` : "Nothing submitted for this task yet"}</p>
-            </div>
-          </div>
-          <p className={styles.smallNote}>Same position and landmarks: {work === "patio" ? "the back step, the painted fence, and the tree" : "the garage door, the side path, and the gate"}.</p>
-          {work === "patio" && patioComplete && (
-            <p className={styles.crewNote}><span className={styles.sheetLabel}>Crew note · 15:40</span>Patio work completed; photo added for review.</p>
-          )}
-        </div>
-
-        <div className={styles.reviewPlan} style={{ gridArea: "plan" }}>
-          <PropertyPlan view="wide" marked={["driveway", "patio"]} labels={["driveway", "patio"]} selected={work} onSelect={selectArea} label={`The same property plan with the driveway and rear patio marked as approved work. ${work === "patio" ? "The rear patio" : "The driveway"} is highlighted.`} />
-        </div>
-
-        <div className={styles.sheet} style={{ gridArea: "status" }}>
-          <div className={styles.stepperHead}>
-            <p className={styles.sheetLabel}>Documentation status</p>
-            <button type="button" className={styles.stepButton} onClick={advance}>
-              {step === REVIEW_STEPS.length - 1 ? <RotateCcw size={15} strokeWidth={1.6} aria-hidden="true" /> : <ArrowRight size={15} strokeWidth={1.6} aria-hidden="true" />}
-              {STEP_ACTIONS[step]}
-            </button>
-          </div>
-          <p className={styles.statusLine} aria-live="polite"><Status tone={STEP_STATUS[step][0]}>{STEP_STATUS[step][1]}</Status></p>
-          <ol className={styles.stepper}>
-            {REVIEW_STEPS.map((label, index) => (
-              <li key={label} data-state={index < step ? "done" : index === step ? "current" : "later"}>
-                <span aria-hidden="true">{index < step ? <Check size={12} strokeWidth={2.2} /> : index + 1}</span>
-                {label}
-              </li>
-            ))}
-          </ol>
-        </div>
-      </div>
-
-      <div className={styles.summary} data-ready={step === 3}>
-        <div className={styles.summaryHead}>
-          <p className={styles.sheetLabel}>Customer-facing service summary</p>
-          <Status tone={step === 3 ? "reviewed" : "neutral"}>{step === 3 ? "Prepared after supervisor review" : "Prepared only after supervisor review"}</Status>
-        </div>
-        <dl className={styles.summaryGrid}>
-          <div><dt>Approved services</dt><dd>Driveway cleaning<br />Rear patio cleaning</dd></div>
-          <div><dt>Reviewed photographs</dt><dd>{step >= 2 ? <>Driveway, before and after<br />Rear patio, before and after</> : "Waiting for supervisor review"}</dd></div>
-          <div><dt>Service notes</dt><dd>Painted fence excluded, as agreed.</dd></div>
-          <div><dt>Unresolved item</dt><dd>Side path: requested on site, not included. The office will follow up.</dd></div>
-        </dl>
-        <p className={styles.smallNote}>Left out of the summary: internal pricing discussion and staff notes.</p>
-      </div>
-    </Example>
-  );
-}
-
-type StopId = "birch" | "alder" | "cedar";
-type Stop = {
-  id: StopId; order: number; name: string; service: string; previous: string; access: string; duration: string;
-  window: [number, number]; windowLabel: string; slot: [number, number]; slotLabel: string;
-};
-
-const STOPS: Stop[] = [
-  { id: "birch", order: 1, name: "Birch Road property", service: "Exterior house wash, every 12 months by customer agreement", previous: "11 November last year: exterior house wash", access: "Front driveway. Outdoor tap on the left of the house.", duration: "About 2 hours", window: [8, 17], windowLabel: "Weekdays, 8:00\u201317:00", slot: [8, 10], slotLabel: "8:00\u201310:00" },
-  { id: "alder", order: 2, name: "Alder Lane property", service: "Driveway and rear patio cleaning, every 6 months by customer agreement. Painted fence excluded.", previous: "14 May: driveway and rear patio cleaning, documentation reviewed", access: "Use the side gate.", duration: "About 3 hours", window: [8, 17], windowLabel: "Weekdays, 8:00\u201317:00", slot: [10.25, 13.25], slotLabel: "10:15\u201313:15" },
-  { id: "cedar", order: 3, name: "Cedar Court property", service: "Patio cleaning, every 6 months by customer agreement", previous: "12 May: patio cleaning", access: "Afternoon access only. Park on Cedar Court.", duration: "About 1.5 hours", window: [13, 17], windowLabel: "Afternoons only, 13:00\u201317:00", slot: [13.5, 15], slotLabel: "13:30\u201315:00" },
-];
-
-const CHECKS: [string, Tone, string][] = [
-  ["Already booked?", "done", "No visit on the calendar"],
-  ["Plan paused or cancelled?", "done", "Agreement active"],
-  ["Customer confirmation needed?", "needed", "Yes, before booking"],
-];
-
-const HISTORY: [string, string, string][] = [
-  ["Previous service completed", "14 May", "Driveway and rear patio cleaning. Documentation reviewed."],
-  ["Recurring service agreed", "20 May", "The customer chose a visit every 6 months: same scope, painted fence excluded."],
-  ["Next visit approaching", "Due week of 9 November", "Same scope unless an approved change is recorded."],
-];
-
-const DAY_START = 8;
-const DAY_HOURS = 9;
-const TRAVEL: [number, number][] = [[10, 10.25], [13.25, 13.5]];
-const span = ([start, end]: [number, number]): CSSProperties => ({ left: `${((start - DAY_START) / DAY_HOURS) * 100}%`, width: `${((end - start) / DAY_HOURS) * 100}%` });
+/* 2D map: the fallback for the next-visit scene. */
 
 const MAP_BOX: Box = [0, 0, 320, 190];
 const MAP_POINTS: Record<StopId, Point> = { birch: [96, 86], alder: [170, 130], cedar: [280, 50] };
@@ -750,9 +346,7 @@ const MAP_NOTES: { text: string; at: Point }[] = [
   { text: "Birch Road", at: [52, 40] },
   { text: "Alder Lane", at: [282, 148] },
   { text: "Cedar Court", at: [290, 76] },
-  { text: "Crew starts", at: [140, 16] },
 ];
-
 const ALDER_MINI = HOUSE_OUTLINE.split(" ").map((pair) => {
   const [x, y] = pair.split(",").map(Number);
   return [160 + (x - 150) * .24, 90 + (y - 90) * .24] as Point;
@@ -770,12 +364,12 @@ function MiniHouse({ x, y, w, h }: { x: number; y: number; w: number; h: number 
   );
 }
 
-function AreaMap({ selected, onSelect }: { selected: StopId; onSelect: (id: StopId) => void }) {
+function AreaMap({ selected }: { selected: StopId | null }) {
   const uid = svgId(useId());
   const outline = (id: StopId) => ({ className: styles.mapLot, "data-state": selected === id ? "selected" : "plain" });
   return (
     <div className={styles.planFrame}>
-      <svg viewBox={MAP_BOX.join(" ")} className={styles.plan} role="img" aria-label="Simplified map of three nearby fictional properties. The proposed route runs south on Birch Road to stop 1, east along Alder Lane to stop 2, the Alder Lane property, then north to stop 3 on Cedar Court.">
+      <svg viewBox={MAP_BOX.join(" ")} className={styles.plan} aria-hidden="true">
         <defs>
           <pattern id={`${uid}-lawn`} width="8" height="8" patternUnits="userSpaceOnUse">
             <rect width="8" height="8" fill="#efefeb" />
@@ -792,109 +386,306 @@ function AreaMap({ selected, onSelect }: { selected: StopId; onSelect: (id: Stop
         <rect x="91" y="124.5" width="10" height="11" fill="#e0e1de" />
         <rect x="224.5" y="125" width="11" height="10" fill="#e0e1de" />
         <rect x="224.5" y="45" width="11" height="10" fill="#e0e1de" />
-
         <rect x="36" y="64" width="50" height="44" {...outline("birch")} />
         <rect x="80" y="82" width="10" height="9" fill="#ecece9" />
         <MiniHouse x={42} y={72} w={38} h={28} />
-
         <rect x="148" y="70" width="64" height="52" {...outline("alder")} />
         <rect x="169.6" y="79" width="26.4" height="11" fill="#f1f1ee" stroke="#b9bab6" strokeWidth=".5" />
         <rect x="160" y="116.4" width="15.6" height="7.6" fill="#e6e6e3" />
         <polygon points={ALDER_MINI.map(([x, y]) => `${x + 2},${y + 3}`).join(" ")} fill="#17191a" opacity=".08" />
         <polygon points={ALDER_MINI.join(" ")} fill="#fbfbfa" stroke="#555758" strokeWidth=".9" strokeLinejoin="round" />
-
         <rect x="256" y="6" width="52" height="36" {...outline("cedar")} />
         <rect x="274" y="36" width="10" height="8" fill="#ecece9" />
         <MiniHouse x={262} y={12} w={40} h={24} />
-
-        <polyline points="96,6 96,130 230,130 230,50 280,50" className={styles.route} />
-        <circle cx="96" cy="6" r="3.5" fill="#17191a" />
+        <polyline points="96,86 96,130 230,130 230,50 280,50" className={styles.route} />
       </svg>
-      {MAP_NOTES.map((note) => <span key={note.text} className={styles.planNote} style={place(MAP_BOX, note.at)} aria-hidden="true">{note.text}</span>)}
-      {STOPS.map((stop) => (
-        <button key={stop.id} type="button" className={styles.stopMarker} data-state={selected === stop.id ? "selected" : "plain"} style={place(MAP_BOX, MAP_POINTS[stop.id])} aria-pressed={selected === stop.id} aria-label={`Stop ${stop.order}, ${stop.name}`} onClick={() => onSelect(stop.id)}>{stop.order}</button>
+      {MAP_NOTES.map((note) => <span key={note.text} className={styles.planNote} style={place(MAP_BOX, note.at)}>{note.text}</span>)}
+      {(Object.keys(MAP_POINTS) as StopId[]).map((id, index) => (
+        <span key={id} className={styles.stopMarker} data-state={selected === id ? "selected" : "plain"} style={place(MAP_BOX, MAP_POINTS[id])}>{index + 1}</span>
       ))}
     </div>
   );
 }
 
-export function PlanTheNextVisit() {
-  const [selected, setSelected] = useState<StopId>("alder");
-  const stop = STOPS.find((item) => item.id === selected) ?? STOPS[1];
+/* 1. Scope the work */
+
+const NOTE: { text: string; areas: Area[] }[] = [
+  { text: "Driveway and rear patio.", areas: ["driveway", "patio"] },
+  { text: "Leave the painted fence alone.", areas: ["fence"] },
+  { text: "Confirm the side path.", areas: ["path"] },
+];
+const PHOTO_FOR: Record<Area, { View: (props: { label?: string }) => ReactNode; caption: string }> = {
+  driveway: { View: DrivewayView, caption: "Driveway, from the street" },
+  patio: { View: PatioView, caption: "Rear patio, fence behind" },
+  fence: { View: PatioView, caption: "Rear patio, fence behind" },
+  path: { View: SidePathView, caption: "Side path, toward the gate" },
+  gate: { View: SidePathView, caption: "Side path, toward the gate" },
+};
+
+export function ScopeTheWork() {
+  const [sentence, setSentence] = useState(0);
+  const [approved, setApproved] = useState(false);
+  const areas = NOTE[sentence].areas;
+  const photo = PHOTO_FOR[areas[0]];
+  const states: Partial<Record<Area, AreaState>> = { driveway: "scope", patio: "scope", fence: "excluded", path: approved ? "plain" : "open" };
+  const labels: SceneLabel[] = [
+    { id: "driveway", at: ANCHORS.driveway, title: "Driveway", detail: approved ? "Approved" : "Proposed", state: "ok" },
+    { id: "patio", at: ANCHORS.patio, title: "Rear patio", detail: approved ? "Approved" : "Proposed", state: "ok" },
+    { id: "fence", at: ANCHORS.fence, title: "Painted fence", detail: approved ? "Excluded" : "Leave it alone", state: "blocked", lift: 26 },
+    { id: "path", at: ANCHORS.path, title: "Side path", detail: approved ? "Not included" : "Ask the customer" },
+  ];
+  const pick = (area: Area) => {
+    const index = NOTE.findIndex((entry) => entry.areas.includes(area));
+    if (index >= 0) setSentence(index);
+  };
   return (
     <Example
-      stage={3}
-      title="Alder Lane and two nearby properties · Week of 9 November"
-      situation={<p>The next Alder Lane visit is due the week of 9 November. Two nearby properties are due around the same time.</p>}
+      title={`${PROPERTY} · Walkthrough, 4 May`}
+      situation={<p>One spoken note and three photos.</p>}
       findingLabel="Result for review"
-      finding={<p><strong>A crew schedule and customer confirmations to review.</strong></p>}
-      next={<p>Office approves the schedule before confirming visits.</p>}
-      boundary={<p>Nothing is booked and no customer is contacted. Optimized grouping is a capability to validate with your team.</p>}
+      finding={<p><strong>Driveway and patio proposed.</strong> The fence is out. The side path is still a question.</p>}
+      next={<p>Your estimator measures and prices it before the customer sees it.</p>}
+      note="Photos don’t give you measurements, hidden damage or the right cleaning method. Someone still has to look."
     >
-      <div className={styles.planGrid}>
-        <div className={styles.sheet}>
-          <p className={styles.sheetLabel}>{PROPERTY} · Service history</p>
-          <ol className={styles.history}>
-            {HISTORY.map(([title, date, text]) => (
-              <li key={title}>
-                <strong>{title}</strong>
-                <span className={styles.historyDate}>{date}</span>
-                <span>{text}</span>
-              </li>
+      <div className={styles.stage}>
+        <PropertyView
+          label={`3D model of the fictional Alder Lane property. ${approved ? "Customer-approved scope" : "Draft scope"}: driveway and rear patio in, painted fence excluded, side path ${approved ? "not included" : "to confirm"}.`}
+          scene={{ view: "wide", states, selected: areas, labels, onPick: pick }}
+          fallback={<PropertyPlan states={states} selected={areas} labels={["driveway", "patio", "fence", "path"]} />}
+        />
+        <div className={styles.side}>
+          <p className={styles.sideLabel}>Owner’s note</p>
+          <blockquote className={styles.note}>
+            {NOTE.map((entry, index) => (
+              <button key={entry.text} type="button" aria-pressed={sentence === index} onClick={() => setSentence(index)}>{entry.text}</button>
             ))}
-          </ol>
-          <p className={styles.smallNote}>The interval comes from the customer agreement, not a recommendation.</p>
-        </div>
-
-        <div className={styles.sheet}>
-          <p className={styles.question}>Can these visits fit into the same crew&rsquo;s day?</p>
-          <p className={styles.detailMeta}>Proposed for Tuesday 10 November · Crew B available 8:00&ndash;16:30</p>
-          <div className={styles.mapWrap}>
-            <AreaMap selected={selected} onSelect={setSelected} />
+          </blockquote>
+          <div className={styles.photo}>
+            <photo.View label={`Illustration of the walkthrough photo: ${photo.caption.toLowerCase()}`} />
+            <span>Walkthrough photo · {photo.caption}</span>
           </div>
-          <div className={styles.day}>
-            <div className={styles.dayAxis} aria-hidden="true">
-              {[0, 2, 4, 6, 8].map((hour) => <span key={hour} style={{ left: `${(hour / DAY_HOURS) * 100}%` }}>{DAY_START + hour}:00</span>)}
-            </div>
-            <div className={styles.dayRow}>
-              <span className={styles.dayLabel}>Crew B, proposed</span>
-              <span className={styles.dayTrack}>
-                {TRAVEL.map((segment) => <span key={segment[0]} className={styles.travel} style={span(segment)} />)}
-                {STOPS.map((item) => (
-                  <button key={item.id} type="button" className={styles.slot} data-state={selected === item.id ? "selected" : "plain"} style={span(item.slot)} onClick={() => setSelected(item.id)} aria-label={`Stop ${item.order}, ${item.name}, ${item.slotLabel}`}>{item.order}</button>
-                ))}
-              </span>
-            </div>
+          <div className={styles.toggle} role="group" aria-label="Scope">
+            <button type="button" aria-pressed={!approved} onClick={() => setApproved(false)}>Draft</button>
+            <button type="button" aria-pressed={approved} onClick={() => setApproved(true)}>Customer approved</button>
+          </div>
+          <p className={styles.sideNote}>{approved ? "The side path stays out unless the customer approves it separately." : "Priced from the measured area and your rates, never from a photo."}</p>
+        </div>
+      </div>
+    </Example>
+  );
+}
+
+/* 2. Equip the crew */
+
+type CrewQuestion = { question: string; answer: string; status: [Tone, string]; source: string; focus: Area; view: SceneInput["view"]; chip: SceneLabel };
+
+const QUESTIONS: CrewQuestion[] = [
+  {
+    question: "Is the side path included?",
+    answer: "No. The side path isn’t in the approved estimate. Check with the office before doing extra work.",
+    status: ["done", "From the record"],
+    source: "Approved estimate, 6 May · side-path request still unapproved",
+    focus: "path",
+    view: "side",
+    chip: { id: "answer", at: ANCHORS.path, title: "Side path", detail: "Not in today’s job", state: "blocked" },
+  },
+  {
+    question: "What did we do last time?",
+    answer: "Driveway only, on 12 October last year. Today’s job is the driveway and the rear patio.",
+    status: ["done", "From the record"],
+    source: "Service record, 12 October last year",
+    focus: "driveway",
+    view: "front",
+    chip: { id: "answer", at: ANCHORS.driveway, title: "Last visit, 12 Oct", detail: "Driveway only" },
+  },
+  {
+    question: "Customer wants the side path too. Can we?",
+    answer: "Needs office confirmation. A request on the day doesn’t change the approved job.",
+    status: ["open", "Needs office confirmation"],
+    source: "Approved estimate, 6 May · no approved change",
+    focus: "path",
+    view: "side",
+    chip: { id: "answer", at: ANCHORS.path, title: "Side path", detail: "Needs office confirmation" },
+  },
+];
+
+const BRIEFING: [string, string][] = [
+  ["Today’s work", "Driveway and rear patio"],
+  ["Important", "Leave the painted fence alone"],
+  ["Access", "Side gate"],
+];
+
+export function EquipTheCrew() {
+  const [index, setIndex] = useState(0);
+  const question = QUESTIONS[index];
+  const states: Partial<Record<Area, AreaState>> = { driveway: "scope", patio: "scope", fence: "excluded", path: "open" };
+  const labels: SceneLabel[] = [
+    question.chip,
+    { id: "gate", at: ANCHORS.gate, title: "Side gate", detail: "Way in", lift: 22 },
+    { id: "fence", at: SIDE_FENCE, title: "Painted fence", detail: "Leave it alone", state: "blocked", lift: 22, minor: true },
+    ...(question.focus === "driveway" ? [] : [{ id: "patio", at: ANCHORS.patio, title: "Rear patio", detail: "Today", state: "ok" as const, minor: true }]),
+  ];
+  return (
+    <Example
+      title={`${PROPERTY} · Day of service, 14 May`}
+      situation={<p>Your crew is on site and has a question.</p>}
+      findingLabel="Result for review"
+      finding={<p><strong>Every answer shows where it came from.</strong> If the record doesn’t say, it goes to the office.</p>}
+      next={<p>The office signs off any extra work.</p>}
+      note="Old notes and requests made on the day never change the approved job."
+    >
+      <div className={styles.stage}>
+        <PropertyView
+          label={`3D view of the side of the fictional Alder Lane property, showing the side path, side gate and painted fence. ${question.answer}`}
+          scene={{ view: question.view, states, selected: [question.focus], labels }}
+          fallback={<PropertyPlan states={states} selected={[question.focus]} labels={["driveway", "patio", "fence", "gate", "path"]} />}
+        />
+        <div className={styles.side}>
+          <dl className={styles.briefing}>
+            {BRIEFING.map(([term, value]) => <div key={term}><dt>{term}</dt><dd>{value}</dd></div>)}
+          </dl>
+          <div className={styles.questions} role="group" aria-label="Crew questions">
+            {QUESTIONS.map((item, itemIndex) => (
+              <button key={item.question} type="button" aria-pressed={index === itemIndex} onClick={() => setIndex(itemIndex)}>{item.question}</button>
+            ))}
+          </div>
+          <div className={styles.answer} aria-live="polite">
+            <Status tone={question.status[0]}>{question.status[1]}</Status>
+            <p>{question.answer}</p>
+            <span className={styles.source}>{question.source}</span>
+          </div>
+        </div>
+      </div>
+    </Example>
+  );
+}
+
+/* 3. Review the result */
+
+const REVIEW: { status: [Tone, string]; action: string }[] = [
+  { status: ["needed", "Rear patio: no after photo"], action: "Crew adds the photo" },
+  { status: ["ready", "Ready for supervisor review"], action: "Supervisor reviews" },
+  { status: ["done", "Reviewed. Summary ready for the customer."], action: "Replay" },
+];
+
+export function ReviewTheResult() {
+  const [work, setWork] = useState<"driveway" | "patio">("patio");
+  const [step, setStep] = useState(0);
+  const patioDone = step > 0;
+  const View = work === "driveway" ? DrivewayView : PatioView;
+  const hasAfter = work === "driveway" || patioDone;
+  const states: Partial<Record<Area, AreaState>> = { driveway: "scope", patio: "scope" };
+  const labels: SceneLabel[] = [
+    work === "driveway"
+      ? { id: "driveway", at: PIN_ANCHORS.driveway, title: "Driveway", detail: "Before and after", state: "ok", lift: 24 }
+      : { id: "patio", at: PIN_ANCHORS.patio, title: "Rear patio", detail: patioDone ? "Before and after" : "No after photo", state: patioDone ? "ok" : "blocked", lift: 24 },
+  ];
+  return (
+    <Example
+      title={`${PROPERTY} · After the visit, 14 May`}
+      situation={<p>Photos and notes from the 14 May visit.</p>}
+      finding={<p><strong>The patio has a before photo and no after photo.</strong></p>}
+      next={<p>Ask the crew for the photo.</p>}
+      note="A missing photo doesn’t mean missing work, and a photo doesn’t prove the work was done well."
+    >
+      <div className={styles.stage}>
+        <PropertyView
+          label={work === "driveway"
+            ? "3D view of the fictional Alder Lane driveway, with before and after photos on the record."
+            : `3D view of the fictional Alder Lane rear patio. ${patioDone ? "Before and after photos are on the record." : "There is a before photo and no after photo."}`}
+          scene={{ view: work === "driveway" ? "front" : "back", states, selected: [work], labels, pins: [{ id: work, state: work === "driveway" || patioDone ? "ok" : "blocked" }], onPick: (area) => { if (area === "driveway" || area === "patio") setWork(area); } }}
+          fallback={<PropertyPlan states={states} selected={[work]} labels={["driveway", "patio"]} />}
+        />
+        <div className={styles.side}>
+          <div className={styles.toggle} role="group" aria-label="Work item">
+            <button type="button" aria-pressed={work === "driveway"} onClick={() => setWork("driveway")}>Driveway</button>
+            <button type="button" aria-pressed={work === "patio"} onClick={() => setWork("patio")}>Rear patio</button>
+          </div>
+          <div className={styles.pair} aria-live="polite">
+            <figure>
+              <View shot="before" label={`Illustration of the ${work === "patio" ? "rear patio" : "driveway"} before cleaning`} />
+              <figcaption>Before</figcaption>
+            </figure>
+            <figure>
+              {hasAfter ? <View shot="after" label={`Illustration of the ${work === "patio" ? "rear patio" : "driveway"} after cleaning, from the same spot`} /> : <div className={styles.missing}><span>No after photo</span></div>}
+              <figcaption>After</figcaption>
+            </figure>
+          </div>
+          {work === "patio" && patioDone && <p className={styles.crewNote}>Crew note: &ldquo;Patio work completed; photo added for review.&rdquo;</p>}
+          <div className={styles.reviewBar}>
+            <p aria-live="polite"><Status tone={REVIEW[step].status[0]}>{REVIEW[step].status[1]}</Status></p>
+            <button type="button" className={styles.action} onClick={() => { setStep((step + 1) % REVIEW.length); setWork("patio"); }}>
+              {step === REVIEW.length - 1 ? <RotateCcw size={15} strokeWidth={1.6} aria-hidden="true" /> : <ArrowRight size={15} strokeWidth={1.6} aria-hidden="true" />}
+              {REVIEW[step].action}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Example>
+  );
+}
+
+/* 4. Plan the next visit */
+
+type Stop = { id: StopId; order: number; name: string; service: string; previous: string; access: string; duration: string; window: [number, number]; windowLabel: string; slot: [number, number]; slotLabel: string };
+
+const STOPS: Stop[] = [
+  { id: "birch", order: 1, name: "Birch Road", service: "House wash, once a year", previous: "11 November last year", access: "Front driveway, tap on the left", duration: "About 2 hours", window: [8, 17], windowLabel: "Any time", slot: [8, 10], slotLabel: "8:00–10:00" },
+  { id: "alder", order: 2, name: "Alder Lane", service: "Driveway and rear patio, every 6 months. Fence excluded.", previous: "14 May, reviewed", access: "Side gate", duration: "About 3 hours", window: [8, 17], windowLabel: "Any time", slot: [10.25, 13.25], slotLabel: "10:15–13:15" },
+  { id: "cedar", order: 3, name: "Cedar Court", service: "Patio, every 6 months", previous: "12 May", access: "Afternoons only. Park on the street.", duration: "About 1.5 hours", window: [13, 17], windowLabel: "Afternoons only", slot: [13.5, 15], slotLabel: "13:30–15:00" },
+];
+const HISTORY: [string, string][] = [["14 May", "Visit done"], ["20 May", "Every 6 months agreed"], ["Week of 9 Nov", "Next visit due"]];
+const CHECKS: [string, Tone, string][] = [["Already booked?", "done", "No"], ["Plan paused or cancelled?", "done", "No"], ["Customer confirmation needed?", "needed", "Yes"]];
+
+const DAY_START = 8;
+const DAY_HOURS = 9;
+const span = ([start, end]: [number, number]): CSSProperties => ({ left: `${((start - DAY_START) / DAY_HOURS) * 100}%`, width: `${((end - start) / DAY_HOURS) * 100}%` });
+
+export function PlanTheNextVisit() {
+  const [selected, setSelected] = useState<StopId | null>(null);
+  const stop = STOPS.find((item) => item.id === (selected ?? "alder")) ?? STOPS[1];
+  const choose = (id: StopId) => setSelected(selected === id ? null : id);
+  const states: Partial<Record<Area, AreaState>> = { driveway: "scope", patio: "scope", fence: "excluded" };
+  const labels: SceneLabel[] = STOPS.map((item) => ({ id: item.id, at: STOP_ANCHORS[item.id], title: `${item.order} · ${item.name}`, detail: item.id === "cedar" ? `${item.slotLabel}, afternoons only` : item.slotLabel, state: "ok" }));
+  return (
+    <Example
+      title="Alder Lane and two nearby jobs (fictional) · Week of 9 November"
+      situation={<p>Alder Lane is due the week of 9 November.</p>}
+      findingLabel="Result for review"
+      finding={<p><strong>A draft day for one crew:</strong> three stops, with Cedar Court last.</p>}
+      next={<p>The office approves it, then confirms with each customer.</p>}
+      note="Nothing here books a visit or messages a customer. Route grouping is something we’d test with you."
+    >
+      <div className={styles.stage}>
+        <PropertyView
+          label="3D view of the fictional Alder Lane property and two nearby properties on side roads, with a draft route: Birch Road first, then Alder Lane, then Cedar Court."
+          scene={{ view: selected ?? "street", states, selected: [], labels, neighbourhood: true, stop: selected, onPickStop: choose }}
+          fallback={<AreaMap selected={selected} />}
+        />
+        <div className={styles.side}>
+          <ol className={styles.history}>
+            {HISTORY.map(([date, text]) => <li key={date}><span>{date}</span>{text}</li>)}
+          </ol>
+          <p className={styles.sideLabel}>Can these fit in one crew’s day?</p>
+          <div className={styles.day} role="group" aria-label="Draft day">
             {STOPS.map((item) => (
-              <button key={item.id} type="button" className={styles.dayRow} data-state={selected === item.id ? "selected" : "plain"} aria-pressed={selected === item.id} onClick={() => setSelected(item.id)}>
-                <span className={styles.dayLabel}>
-                  <span className={styles.stopNumber}>{item.order}</span>{item.name}
-                  <span className={styles.dayTimes}>Window {item.windowLabel.toLowerCase()} · Proposed {item.slotLabel}</span>
-                </span>
+              <button key={item.id} type="button" className={styles.dayRow} aria-pressed={selected === item.id} onClick={() => choose(item.id)}>
+                <span className={styles.dayName}><span className={styles.stopNumber}>{item.order}</span>{item.name}<em>{item.slotLabel}</em></span>
                 <span className={styles.dayTrack}>
                   <span className={styles.window} style={span(item.window)} />
                   <span className={styles.slotBar} style={span(item.slot)} />
                 </span>
               </button>
             ))}
+            <span className={styles.dayAxis} aria-hidden="true"><span>8:00</span><span>12:00</span><span>17:00</span></span>
           </div>
-          <p className={styles.smallNote}>Hatched: the agreed window. Solid: the proposed visit. Cedar Court stays inside its afternoon-only window.</p>
-        </div>
-      </div>
-
-      <div className={styles.stopDetail} aria-live="polite">
-        <div>
-          <p className={styles.detailTitle}><span className={styles.stopNumber}>{stop.order}</span>{stop.name} <Status tone="proposed">Proposed, not booked</Status></p>
-          <dl className={styles.briefing}>
+          <dl className={styles.briefing} aria-live="polite">
             <div><dt>Agreed service</dt><dd>{stop.service}</dd></div>
             <div><dt>Previous visit</dt><dd>{stop.previous}</dd></div>
             <div><dt>Access instructions</dt><dd>{stop.access}</dd></div>
             <div><dt>Expected duration</dt><dd>{stop.duration}</dd></div>
           </dl>
-        </div>
-        <div>
-          <p className={styles.sheetLabel}>Checked before proposing</p>
-          <ul className={styles.rows}>
+          <ul className={styles.checks}>
             {CHECKS.map(([check, tone, result]) => <li key={check}><span>{check}</span><Status tone={tone}>{result}</Status></li>)}
           </ul>
         </div>
