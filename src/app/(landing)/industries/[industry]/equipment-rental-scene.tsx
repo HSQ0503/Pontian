@@ -912,14 +912,17 @@ const scratch = new THREE.Vector3();
 const EDGE = 8;
 
 // The leader stays on its anchor; the chip slides along it to stay in frame.
-function placeLabels(layer: HTMLDivElement | null, labels: SceneLabel[], project: (label: SceneLabel) => { x: number; y: number; visible: boolean }) {
+function placeLabels(layer: HTMLDivElement | null, labels: SceneLabel[], project: (label: SceneLabel) => { x: number; y: number; visible: boolean; top?: number }) {
   if (!layer) return;
   const width = layer.clientWidth;
   for (const label of labels) {
     const element = layer.querySelector<HTMLElement>(`[data-label="${label.id}"]`);
     const chip = element?.firstElementChild as HTMLElement | null;
-    if (!element || !chip) continue;
-    const { x, y, visible } = project(label);
+    const leader = element?.lastElementChild as HTMLElement | null;
+    if (!element || !chip || !leader) continue;
+    const { x, y, visible, top = 0 } = project(label);
+    const lift = Math.max(12, Math.min(label.lift ?? 30, y - top - EDGE - chip.offsetHeight));
+    leader.style.height = `${lift.toFixed(0)}px`;
     const half = chip.offsetWidth / 2;
     const shift = x - half < EDGE ? EDGE - (x - half) : x + half > width - EDGE ? width - EDGE - (x + half) : 0;
     element.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, -100%)`;
@@ -1013,7 +1016,7 @@ function SplitRig({ view, stacked, labels, layer }: { view: View; stacked: boole
       scratch.set(label.at[0] + index * SPLIT_OFFSET, label.at[1], label.at[2]).project(cameras[index]);
       const offsetX = stacked ? 0 : index * width;
       const offsetY = stacked ? index * height : 0;
-      return { x: offsetX + (scratch.x * 0.5 + 0.5) * width, y: offsetY + (-scratch.y * 0.5 + 0.5) * height, visible: scratch.z < 1 && Math.abs(scratch.x) < 1 && Math.abs(scratch.y) < 1 };
+      return { x: offsetX + (scratch.x * 0.5 + 0.5) * width, y: offsetY + (-scratch.y * 0.5 + 0.5) * height, top: offsetY, visible: scratch.z < 1 && Math.abs(scratch.x) < 1 && Math.abs(scratch.y) < 1 };
     });
     if (moving) state.invalidate();
   }, 1);
@@ -1072,10 +1075,10 @@ type Layered = { layer: RefObject<HTMLDivElement | null>; labels: SceneLabel[] }
 
 function matchLabels({ focus, documented }: Extract<SceneProps, { kind: "match" }>): SceneLabel[] {
   const labels: SceneLabel[] = [
-    { id: "ex014", at: CAB_TOP, title: EX014, detail: "Candidate match", state: "ok" },
-    { id: "ex027", at: at(EX027_MATCH, CAB_TOP), title: EX027, detail: "Awaiting inspection", state: "blocked" },
+    { id: "ex014", at: CAB_TOP, title: EX014, detail: "Inspected 6 Oct", state: "ok" },
+    { id: "ex027", at: at(EX027_MATCH, CAB_TOP), title: EX027, detail: "Not inspected", state: "blocked" },
   ];
-  if (focus === "attachment") labels.push({ id: "at112", at: [BREAKER_STAND[0] + 0.25, 0.97, BREAKER_STAND[2]], title: BREAKER, detail: documented ? "Documented for EX-014" : "Compatibility to confirm", state: documented ? "ok" : undefined, lift: 24 });
+  if (focus === "attachment") labels.push({ id: "at112", at: [BREAKER_STAND[0] + 0.25, 0.97, BREAKER_STAND[2]], title: BREAKER, detail: documented ? "Documented fit" : "Fit not checked", state: documented ? "ok" : undefined, lift: 24 });
   return labels;
 }
 
@@ -1114,15 +1117,15 @@ const DELIVERY_VIEWS: Record<DeliveryFocus, View> = {
   overview: { position: [2.5, 25, 50], target: [2.5, 1.6, -4], narrow: { position: [9, 10, 25], target: [1, 1.5, 0] } },
   machine: { position: [-10.5, 6.5, 13], target: [-18, 1.6, 0] },
   attachment: { position: [-10, 4, 10], target: [-14.2, 0.6, 3.2] },
-  transport: { position: [8, 8, 18], target: [0.5, 1.6, 0] },
+  transport: { position: [8, 8, 18], target: [0.5, 1.6, 0], narrow: { position: [10, 10, 27], target: [-0.5, 1.2, 0] } },
   site: { position: [31, 10, 18], target: [23, 1, 0] },
 };
 
 function deliveryLabels({ transport, site }: Extract<SceneProps, { kind: "delivery" }>): SceneLabel[] {
   return [
-    { id: "yard", at: [DELIVERY.yard - 2, 3.1, -0.8], title: "Main rental yard", detail: `${EX014} and ${BREAKER} ready`, state: "ok" },
-    { id: "transport", at: [DELIVERY.transport + 1.2, 3.9, 0], title: TRANSPORT, detail: transport ? "Arrangement confirmed" : "Arrangement to confirm", state: transport ? "ok" : undefined },
-    { id: "site", at: [DELIVERY.quarry - 1.5, 0.1, 2.2], title: "Quarry receiving area", detail: site ? "Window and access confirmed" : "Window and access to confirm", state: site ? "ok" : undefined, lift: 44 },
+    { id: "yard", at: [DELIVERY.yard - 2, 3.1, -0.8], title: "Yard", detail: `${EX014} ready`, state: "ok" },
+    { id: "transport", at: [DELIVERY.transport + 1.2, 3.9, 0], title: TRANSPORT, detail: transport ? "Booked" : "Not booked", state: transport ? "ok" : undefined },
+    { id: "site", at: [DELIVERY.quarry - 1.5, 0.1, 2.2], title: "Quarry gate", detail: site ? "07:00–09:00" : "No time yet", state: site ? "ok" : undefined, lift: 44 },
   ];
 }
 
@@ -1156,8 +1159,8 @@ const RENTAL_VIEWS: Record<RentalFocus, View> = {
 
 function rentalLabels({ focus, conflict }: Extract<SceneProps, { kind: "rental" }>): SceneLabel[] {
   const ex014At = at([-1, 0.03, 0], [CAB_TOP[0] * Math.cos(-0.25) + CAB_TOP[2] * Math.sin(-0.25), CAB_TOP[1], -CAB_TOP[0] * Math.sin(-0.25) + CAB_TOP[2] * Math.cos(-0.25)]);
-  const labels: SceneLabel[] = [{ id: "ex014", at: ex014At, title: `${EX014} · On rent`, detail: conflict ? "Next reservation starts during the extension" : "At the quarry", state: conflict ? "blocked" : "ok" }];
-  if (focus !== "ex014") labels.push({ id: "ex027", at: at([RENTAL_YARD_X - 1.5, 0.05, 0], CAB_TOP), title: EX027, detail: "In the yard, awaiting inspection", state: "blocked", lift: focus === "both" ? 76 : 30 });
+  const labels: SceneLabel[] = [{ id: "ex014", at: ex014At, title: `${EX014} · On rent`, detail: conflict ? "Booked again from 25 Oct" : "At the quarry", state: conflict ? "blocked" : "ok" }];
+  if (focus !== "ex014") labels.push({ id: "ex027", at: at([RENTAL_YARD_X - 1.5, 0.05, 0], CAB_TOP), title: EX027, detail: "In the yard, not inspected", state: "blocked", lift: focus === "both" ? 64 : 30 });
   return labels;
 }
 
@@ -1184,25 +1187,39 @@ const RETURN_VIEWS: Record<ReturnArea, View> = {
   meter: { position: [3.8, 3.2, -5.8], target: [0.8, 2.1, -0.8] },
 };
 
-function returnLabels(area: ReturnArea): SceneLabel[] {
+const STAGE_CHIPS: { title: string; detail?: string; state?: "ok" | "blocked" }[] = [
+  { title: "Returned" },
+  { title: "Awaiting inspection" },
+  { title: "Maintenance hold", detail: "Service due on hours", state: "blocked" },
+  { title: "Released", detail: "Signed off", state: "ok" },
+  { title: "Ready for rental", state: "ok" },
+];
+
+function returnLabels(area: ReturnArea, stage: number): SceneLabel[] {
+  const chip = STAGE_CHIPS[stage];
+  const status: SceneLabel = { id: "stage", at: CAB_TOP, title: chip.title, detail: chip.detail, state: chip.state, view: 1 };
+  return area === "overall" ? [status] : [...areaLabels(area)];
+}
+
+function areaLabels(area: ReturnArea): SceneLabel[] {
   const breakerFrame = armFrame(POSES.parked);
   const breakerAt: Point = [breakerFrame.toolPivot[0] + Math.cos(breakerFrame.toolAngle) * 1.2, breakerFrame.toolPivot[1] + Math.sin(breakerFrame.toolAngle) * 1.2, ARM_Z + 0.27];
   switch (area) {
     case "sidePanel": return [
-      { id: "before", at: [0.72, 1.62, 1.28], title: "Handoff photo", detail: "No marks recorded", view: 0 },
-      { id: "after", at: [0.72, 1.62, 1.28], title: "Possible new mark", detail: "Needs inspection", view: 1 },
+      { id: "before", at: [0.72, 1.62, 1.28], title: "No marks", view: 0 },
+      { id: "after", at: [0.72, 1.62, 1.28], title: "Possible new mark", detail: "Inspector to check", view: 1 },
     ];
     case "attachment": return [
-      { id: "before", at: breakerAt, title: BREAKER, detail: "Fitted at handoff", view: 0 },
-      { id: "after", at: breakerAt, title: BREAKER, detail: "Returned with the machine", state: "ok", view: 1 },
+      { id: "before", at: breakerAt, title: BREAKER, detail: "Fitted", view: 0 },
+      { id: "after", at: breakerAt, title: BREAKER, detail: "Back with the machine", state: "ok", view: 1 },
     ];
     case "undercarriage": return [
-      { id: "before", at: [0.4, 0.88, 1.3], title: "Tracks at handoff", view: 0 },
-      { id: "after", at: [0.4, 0.88, 1.3], title: "Tracks on return", detail: "No visible difference", view: 1 },
+      { id: "before", at: [0.4, 0.88, 1.3], title: "Tracks", view: 0 },
+      { id: "after", at: [0.4, 0.88, 1.3], title: "Tracks", detail: "No visible change", view: 1 },
     ];
     case "meter": return [
-      { id: "before", at: [1.04, 1.93, -0.45], title: "6,318 h", detail: "At handoff", view: 0 },
-      { id: "after", at: [1.04, 1.93, -0.45], title: "6,421 h", detail: "On return", view: 1 },
+      { id: "before", at: [1.04, 1.93, -0.45], title: "6,318 h", view: 0 },
+      { id: "after", at: [1.04, 1.93, -0.45], title: "6,421 h", view: 1 },
     ];
     default: return [];
   }
@@ -1246,7 +1263,7 @@ function labelsFor(props: SceneProps): SceneLabel[] {
     case "match": return matchLabels(props);
     case "delivery": return deliveryLabels(props);
     case "rental": return rentalLabels(props);
-    case "return": return returnLabels(props.area);
+    case "return": return returnLabels(props.area, props.stage);
   }
 }
 

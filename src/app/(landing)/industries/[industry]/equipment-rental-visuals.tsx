@@ -8,9 +8,8 @@ import type { DeliveryFocus, MachineId, MatchFocus, RentalFocus, ReturnArea, Sce
 import { Breaker, Elevation, LowLoaderElevation, TRANSPORT_POSE, type ElevationArea, type ElevationTone } from "./equipment-rental-elevation";
 import { POSES } from "./equipment-rental-geometry";
 import {
-  BREAKER, BREAKER_TYPE, EX014, EX027, EX027_INSPECTION_BOOKED, EX027_STATE, METER_AT_HANDOFF, METER_AT_RETURN, METER_ON_RENT,
-  METER_ON_RENT_UPDATED, NEXT_RESERVATION, NEXT_RESERVATION_START, PICKUP, RENTAL, RENTAL_END, RENTAL_PERIOD, RENTAL_START,
-  RETURN_STAGES, SOURCES, TRANSPORT, WORK_ORDER, type Source,
+  BREAKER, BREAKER_TYPE, EX014, EX027, EX027_INSPECTION_BOOKED, METER_AT_HANDOFF, METER_AT_RETURN, METER_ON_RENT, METER_ON_RENT_UPDATED,
+  NEXT_RESERVATION, NEXT_RESERVATION_START, PICKUP, RENTAL, RENTAL_END, RENTAL_PERIOD, RENTAL_START, RETURN_STAGES, SOURCES, TRANSPORT, WORK_ORDER, type Source,
 } from "./equipment-rental-fleet";
 
 const ExcavatorScene = dynamic(() => import("./equipment-rental-scene"), { ssr: false });
@@ -159,9 +158,9 @@ function SourceTag({ source }: { source: Source }) {
   return <span className={styles.source}>{SOURCES[source]}</span>;
 }
 
-type ExampleProps = { title: string; children: ReactNode; situation: ReactNode; result: ReactNode; next: ReactNode; boundary: string };
+type ExampleProps = { title: string; children: ReactNode; situation: ReactNode; finding: ReactNode; next: ReactNode; boundary: string };
 
-function Example({ title, children, situation, result, next, boundary }: ExampleProps) {
+function Example({ title, children, situation, finding, next, boundary }: ExampleProps) {
   return (
     <figure className={styles.example}>
       <figcaption className={styles.exampleBar}>
@@ -171,13 +170,10 @@ function Example({ title, children, situation, result, next, boundary }: Example
       <div className={styles.exampleBody}>{children}</div>
       <ol className={styles.outcome}>
         <li data-role="situation"><span className={styles.outcomeLabel}>Situation</span>{situation}</li>
-        <li data-role="finding"><span className={styles.outcomeLabel}>Result for review</span>{result}</li>
+        <li data-role="finding"><span className={styles.outcomeLabel}>Finding for review</span>{finding}</li>
         <li data-role="next"><span className={styles.outcomeLabel}>Next step for your team</span>{next}</li>
       </ol>
-      <div className={styles.exampleFoot}>
-        <p>{boundary}</p>
-        <p>Fictional machines, customer and site. Not a client project; no manufacturer is represented.</p>
-      </div>
+      <p className={styles.exampleFoot}>{boundary}</p>
     </figure>
   );
 }
@@ -217,114 +213,27 @@ function DrawingLabel({ x, y, title, detail, state, lift = 0.9, size = 1 }: { x:
 /* 1. Match the machine */
 
 const MATCH_STEPS: Step[] = [
-  { label: "Request", text: "A customer’s message reaches the rental desk." },
-  { label: "Brief", text: "The message becomes five structured requirements." },
-  { label: "Shortlist", text: "Two machines are compared against fleet records." },
-  { label: "Attachment check", text: "The customer confirms the attachment and the records are checked." },
+  { label: "Request", text: "An email lands at the rental desk." },
+  { label: "Shortlist", text: "Both machines are free. Only one has been inspected." },
+  { label: "Attachment", text: "The customer names a breaker. The records say it fits EX-014." },
 ];
 
 const MATCH_STEP_FOCUS: { focus: MatchFocus; machine: MachineId }[] = [
   { focus: "availability", machine: EX014 },
-  { focus: "availability", machine: EX014 },
-  { focus: "inspection", machine: EX027 },
+  { focus: "availability", machine: EX027 },
   { focus: "attachment", machine: EX014 },
 ];
 
-type BriefRow = { field: string; value: string; status: string; state: State };
-
-function briefRows(confirmed: boolean): BriefRow[] {
-  return [
-    { field: "Work to perform", value: confirmed ? "Quarry work, including breaking oversize rock" : "Quarry work", status: "Stated", state: "ok" },
-    confirmed
-      ? { field: "Required attachment", value: `${BREAKER_TYPE}; the customer has none on site`, status: "Confirmed by customer", state: "ok" }
-      : { field: "Required attachment", value: "Named only as “the required attachment”", status: "Needs confirmation", state: "pending" },
-    { field: "Rental dates", value: `${RENTAL_PERIOD}, starting next week`, status: "Stated", state: "ok" },
-    { field: "Site conditions", value: "Surface quarry; ground and working area not described", status: "Needs confirmation", state: "pending" },
-    { field: "Delivery requirements", value: "Delivery to the quarry; no receiving window yet", status: "Passed to delivery planning", state: "pending" },
-  ];
-}
-
-type MatchRecord = { label: string; requirement: string; source: Source; answer: Record<MachineId, string>; state: Record<MachineId, State>; limit: string };
-
-function matchRecords(documented: boolean): Record<MatchFocus, MatchRecord> {
-  return {
-    attachment: {
-      label: "Attachment connection",
-      requirement: documented ? `${BREAKER_TYPE} for breaking oversize rock` : "The required attachment, not yet named",
-      source: "manufacturer",
-      answer: {
-        [EX014]: documented
-          ? `${BREAKER}’s mounting interface is documented for this model and coupler. The fleet record shows an auxiliary hydraulic circuit fitted.`
-          : "Can’t be checked until the customer confirms the attachment.",
-        [EX027]: "Not assessed while the machine awaits inspection.",
-      },
-      state: { [EX014]: documented ? "ok" : "pending", [EX027]: "blocked" },
-      limit: "Compatibility comes from documented records, not from the model on screen.",
-    },
-    capability: {
-      label: "Documented operating capability",
-      requirement: documented ? "Breaking oversize rock at a surface quarry" : "Quarry work",
-      source: "manufacturer",
-      answer: {
-        [EX014]: "The model’s published specification is on file for the rental specialist. No figures are shown here.",
-        [EX027]: "The same specification is on file. Readiness is the open question, not the model.",
-      },
-      state: { [EX014]: "ok", [EX027]: "ok" },
-      limit: "A match doesn’t confirm the machine suits every task or site.",
-    },
-    transport: {
-      label: "Transport dimensions",
-      requirement: "Delivery to the quarry",
-      source: "manufacturer",
-      answer: {
-        [EX014]: "Transport length, width, height and weight for this configuration are on file for delivery planning.",
-        [EX027]: "On file, but not used until the machine is ready to commit.",
-      },
-      state: { [EX014]: "ok", [EX027]: "pending" },
-      limit: "Dimensions alone don’t establish a route or site access.",
-    },
-    availability: {
-      label: "Availability",
-      requirement: RENTAL_PERIOD,
-      source: "fleet",
-      answer: {
-        [EX014]: `No reservation for ${RENTAL_PERIOD}. The next one, ${NEXT_RESERVATION}, starts ${NEXT_RESERVATION_START}.`,
-        [EX027]: `No reservation for ${RENTAL_PERIOD}.`,
-      },
-      state: { [EX014]: "ok", [EX027]: "ok" },
-      limit: "A free calendar slot doesn’t mean a machine is ready to rent.",
-    },
-    inspection: {
-      label: "Inspection status",
-      requirement: `Ready to rent on ${RENTAL_START}`,
-      source: "fleet",
-      answer: {
-        [EX014]: "Inspected after its last return and released by an authorized reviewer on 6 Oct.",
-        [EX027]: "Returned 7 Oct. No inspection recorded, so it can’t be committed.",
-      },
-      state: { [EX014]: "ok", [EX027]: "blocked" },
-      limit: "Readiness follows the inspection and release record, not the calendar.",
-    },
-  };
-}
-
-const MATCH_FOCUS_ORDER: MatchFocus[] = ["availability", "inspection", "attachment", "capability", "transport"];
-
-function MatchFallback({ focus, machine, documented }: { focus: MatchFocus; machine: MachineId; documented: boolean }) {
-  const highlight = (id: MachineId): Partial<Record<ElevationArea, ElevationTone>> => {
-    if (id !== machine) return {};
-    if (focus === "attachment") return { coupler: "yellow" };
-    if (focus === "capability") return { arm: "yellow" };
-    return {};
-  };
+function MatchFallback({ step }: { step: number }) {
+  const attachment = step === 2;
   return (
     <Drawing viewBox="-3 -7 25 8">
-      <Elevation tool="bucket" highlight={highlight(EX014)} />
-      <Breaker x={7.4} y={0} tone={focus === "attachment" && machine === EX014 ? "yellow" : undefined} />
-      <Elevation tool="bucket" x={13.5} highlight={highlight(EX027)} />
-      <DrawingLabel x={0.55} y={3.05} title={EX014} detail="Candidate match" state="ok" />
-      {focus === "attachment" && <DrawingLabel x={8.4} y={0.85} title={BREAKER} detail={documented ? "Documented for EX-014" : "Compatibility to confirm"} state={documented ? "ok" : "pending"} lift={0.7} />}
-      <DrawingLabel x={14.05} y={3.05} title={EX027} detail="Awaiting inspection" state="blocked" />
+      <Elevation tool="bucket" highlight={attachment ? { coupler: "yellow" } : {}} />
+      <Breaker x={7.4} y={0} tone={attachment ? "yellow" : undefined} />
+      <Elevation tool="bucket" x={13.5} highlight={step === 1 ? { house: "yellow" } : {}} />
+      <DrawingLabel x={0.55} y={3.05} title={EX014} detail="Inspected 6 Oct" state="ok" />
+      {attachment && <DrawingLabel x={8.4} y={0.85} title={BREAKER} detail="Documented fit" state="ok" lift={0.7} />}
+      <DrawingLabel x={14.05} y={3.05} title={EX027} detail="Not inspected" state="blocked" />
     </Drawing>
   );
 }
@@ -336,110 +245,64 @@ export function MatchMachine() {
     setFocus(MATCH_STEP_FOCUS[step].focus);
     setMachine(MATCH_STEP_FOCUS[step].machine);
   });
-  const documented = sequence.step === 3;
-  const records = matchRecords(documented);
-  const record = records[focus];
-  const rows = briefRows(documented);
+  const documented = sequence.step === 2;
   const pick = (id: MachineId, next?: MatchFocus) => {
     setMachine(id);
     if (next) setFocus(next);
   };
   return (
     <Example
-      title="Quarry request, tracked excavator"
-      situation={<p>A customer needs an excavator, an attachment and delivery to a surface quarry. Some requirements are still unclear.</p>}
-      result={<p><strong>A candidate machine and attachment for review:</strong> {EX014} with {BREAKER}.</p>}
-      next={<p>Rental specialist confirms suitability and prepares the quote.</p>}
-      boundary="A candidate match is not professional confirmation that a machine suits every task or site. Capacities, operating limits, attachment compatibility and site acceptance come from documented records and the rental specialist’s review."
+      title="Quarry request"
+      situation={<p>A customer wants an excavator, an attachment and delivery to a quarry.</p>}
+      finding={<p><strong>{EX014} with {BREAKER}</strong>, to confirm.</p>}
+      next={<p>Your specialist checks it and quotes.</p>}
+      boundary="A match isn’t a sign-off. Your specialist decides what suits the job."
     >
       <Sequence steps={MATCH_STEPS} sequence={sequence} title="Match the machine" />
       <div className={styles.stage}>
         <MachineView
           scene={{ kind: "match", focus, machine, documented, onPick: pick }}
-          fallback={<MatchFallback focus={focus} machine={machine} documented={documented} />}
-          label={`Illustrative yard view: ${EX014}, a candidate match; ${EX027}, awaiting inspection; and ${BREAKER}, a ${BREAKER_TYPE.toLowerCase()}.`}
+          fallback={<MatchFallback step={sequence.step} />}
+          label={`Yard view: ${EX014}, inspected; ${EX027}, not inspected; and ${BREAKER}, a ${BREAKER_TYPE.toLowerCase()}.`}
         />
         <div className={styles.panel} aria-live="polite">
           {sequence.step === 0 && (
             <>
-              <p className={styles.sheetLabel}>Customer request, by email</p>
               <blockquote className={styles.quote}>“We need an excavator for quarry work next week, with the required attachment and delivery to site.”</blockquote>
-              <p className={styles.note}>Today, the rental desk turns this into a brief by hand.</p>
+              <p className={styles.sheetLabel}>Still unanswered</p>
+              <ul className={styles.openList}>
+                <li><StateText state="pending">Which attachment?</StateText></li>
+                <li><StateText state="pending">What’s the ground like?</StateText></li>
+                <li><StateText state="pending">When can the quarry take delivery?</StateText></li>
+              </ul>
             </>
           )}
           {sequence.step === 1 && (
-            <>
-              <p className={styles.sheetLabel}>Structured brief</p>
-              <ul className={styles.brief}>
-                {rows.map((row) => (
-                  <li key={row.field}>
-                    <span className={styles.briefField}>{row.field}</span>
-                    <span className={styles.briefValue}>{row.value}</span>
-                    <StateText state={row.state}>{row.status}</StateText>
-                  </li>
-                ))}
-              </ul>
-              <p className={styles.callout}>Attachment requirements need confirmation.</p>
-            </>
+            <div className={styles.candidates}>
+              <div data-state="ok">
+                <strong>{EX014}</strong>
+                <StateText state="ok">Free {RENTAL_PERIOD}</StateText>
+                <StateText state="ok">Inspected 6 Oct</StateText>
+                <span className={styles.verdict}>Can go</span>
+              </div>
+              <div data-state="blocked">
+                <strong>{EX027}</strong>
+                <StateText state="ok">Free {RENTAL_PERIOD}</StateText>
+                <StateText state="blocked">Not inspected</StateText>
+                <span className={styles.verdict}>Can’t promise it</span>
+              </div>
+            </div>
           )}
           {sequence.step === 2 && (
             <>
-              <p className={styles.sheetLabel}>Shortlist</p>
-              <div className={styles.candidates}>
-                <div data-state="ok">
-                  <strong>{EX014}</strong>
-                  <StateText state="ok">Candidate match</StateText>
-                  <span>Rental dates available</span>
-                  <span>Readiness record current</span>
-                </div>
-                <div data-state="blocked">
-                  <strong>{EX027}</strong>
-                  <StateText state="blocked">Potential alternative</StateText>
-                  <span>Rental dates available</span>
-                  <span>{EX027_STATE}; not ready to commit</span>
-                </div>
-              </div>
-              <p className={styles.note}>Both calendars are free. Only {EX014} is ready to rent.</p>
-            </>
-          )}
-          {sequence.step === 3 && (
-            <>
-              <p className={styles.sheetLabel}>Documented compatibility check</p>
+              <p className={styles.lead}>The customer wants a {BREAKER_TYPE.toLowerCase()} for oversize rock.</p>
               <ul className={styles.facts}>
-                <li><SourceTag source="customer" /><span>{BREAKER_TYPE} for breaking oversize rock; no customer-owned attachment.</span></li>
-                <li><SourceTag source="fleet" /><span>{BREAKER} is in the yard with no reservation for {RENTAL_PERIOD}.</span></li>
-                <li><SourceTag source="manufacturer" /><span>Mounting interface documented for {EX014}’s model and coupler.</span></li>
-                <li><SourceTag source="fleet" /><span>Auxiliary hydraulic circuit recorded as fitted to {EX014}.</span></li>
+                <li><SourceTag source="fleet" /><span>{BREAKER} is in the yard and unbooked.</span></li>
+                <li><SourceTag source="manufacturer" /><span>Its mount is documented for {EX014}’s coupler.</span></li>
+                <li><SourceTag source="fleet" /><span>{EX014} has the extra hydraulic lines fitted.</span></li>
               </ul>
-              <p className={styles.note}>Site conditions still need confirmation. They pass to delivery planning.</p>
             </>
           )}
-        </div>
-      </div>
-      <div className={styles.explorer}>
-        <div className={styles.explorerHead}>
-          <p className={styles.sheetLabel}>The record behind each requirement</p>
-          <div className={styles.toggle} role="group" aria-label="Machine">
-            {[EX014, EX027].map((id) => (
-              <button key={id} type="button" aria-pressed={machine === id} onClick={() => setMachine(id as MachineId)}>{id}</button>
-            ))}
-          </div>
-        </div>
-        <div className={styles.segments} role="group" aria-label="Requirements">
-          {MATCH_FOCUS_ORDER.map((key) => (
-            <button key={key} type="button" aria-pressed={focus === key} onClick={() => setFocus(key)}>{records[key].label}</button>
-          ))}
-        </div>
-        <div className={styles.record} aria-live="polite">
-          <div>
-            <SourceTag source="customer" />
-            <p className={styles.recordText}>{record.requirement}</p>
-          </div>
-          <div>
-            <SourceTag source={record.source} />
-            <p className={styles.recordText}><strong>{machine}.</strong> {record.answer[machine]}</p>
-          </div>
-          <p className={styles.recordLimit}>{record.limit}</p>
         </div>
       </div>
     </Example>
@@ -449,25 +312,20 @@ export function MatchMachine() {
 /* 2. Prepare the delivery */
 
 const DELIVERY_STEPS: Step[] = [
-  { label: "Proposed handoff", text: "Yard, transport and quarry are checked together." },
-  { label: "Transport confirmed", text: "The transport coordinator confirms the arrangement." },
-  { label: "Site confirmed", text: "The quarry contact confirms the receiving window and access." },
-  { label: "Reviewed plan", text: "All four checks are recorded and ready for dispatch." },
+  { label: "Plan", text: "The machine’s ready. The truck and the gate aren’t." },
+  { label: "Truck", text: "Your transport coordinator books a low-loader that fits." },
+  { label: "Gate", text: "The quarry confirms a time and an escort." },
 ];
-const DELIVERY_STEP_FOCUS: DeliveryFocus[] = ["overview", "transport", "site", "overview"];
+const DELIVERY_STEP_FOCUS: DeliveryFocus[] = ["overview", "transport", "site"];
 
-type DeliveryCheck = { id: Exclude<DeliveryFocus, "overview">; label: string; status: string; done: boolean; confirmStep?: number; record: string; missing?: string; owner: string };
+type DeliveryCheck = { id: Exclude<DeliveryFocus, "overview">; label: string; status: string; done: boolean; detail: string };
 
 function deliveryChecks(transport: boolean, site: boolean): DeliveryCheck[] {
   return [
-    { id: "machine", label: "Machine", status: "Inspection and preparation reviewed", done: true, owner: "Yard lead", record: `${EX014}’s readiness record is current (released 6 Oct). Dispatch preparation is reviewed for ${RENTAL_START}.` },
-    { id: "attachment", label: "Attachment", status: "Required attachment allocated", done: true, owner: "Rental desk", record: `${BREAKER} is allocated to ${RENTAL} for ${RENTAL_PERIOD}. It travels on the same load and is fitted on site.` },
-    transport
-      ? { id: "transport", label: "Transport", status: "Transport arrangement confirmed", done: true, owner: "Transport coordinator", record: `${TRANSPORT}: low-loader arrangement reviewed against ${EX014}’s recorded transport dimensions and weight. Loading at the yard agreed for ${RENTAL_START}.` }
-      : { id: "transport", label: "Transport", status: "Suitable transport arrangement to confirm", done: false, confirmStep: 1, owner: "Transport coordinator", record: `${TRANSPORT} is requested but not confirmed.`, missing: "A vehicle and trailer suited to this machine’s recorded transport dimensions and weight, the loading arrangement, and any permits that apply." },
-    site
-      ? { id: "site", label: "Site", status: "Receiving window and access confirmed", done: true, owner: "Customer site contact, recorded by the rental desk", record: `Receiving ${RENTAL_START}, 07:00–09:00, at the quarry gate. The driver needs an escort and site induction.` }
-      : { id: "site", label: "Site", status: "Receiving window and access requirements to confirm", done: false, confirmStep: 2, owner: "Customer site contact", record: "Delivery to the quarry is requested.", missing: "The receiving window, the unloading area, and the quarry’s access and induction requirements." },
+    { id: "machine", label: "Machine", status: "Ready", done: true, detail: `${EX014} was released 6 Oct. The yard lead has prepped it.` },
+    { id: "attachment", label: "Attachment", status: "Allocated", done: true, detail: `${BREAKER} rides on the same load and gets fitted on site.` },
+    { id: "transport", label: "Truck", status: transport ? `${TRANSPORT} booked` : "Not booked", done: transport, detail: transport ? `A low-loader checked against ${EX014}’s transport dimensions and weight. Loads at the yard on ${RENTAL_START}.` : "Needs a truck and trailer that fit this machine, plus any permits. Your transport coordinator signs it off." },
+    { id: "site", label: "Quarry gate", status: site ? `${RENTAL_START}, 07:00–09:00` : "No time yet", done: site, detail: site ? "The driver needs an escort and a site induction at the gate." : "The quarry contact has to give a delivery window and say where to unload." },
   ];
 }
 
@@ -481,9 +339,9 @@ function DeliveryFallback({ transport, site }: { transport: boolean; site: boole
       <Breaker x={-8.4} y={0.95} ghost />
       <polygon points="26,0 34,0 34,5 31,5 31,2.6 26,2.6" fill="#d8d4ca" stroke="#9c9a94" strokeWidth={1} vectorEffect="non-scaling-stroke" />
       <rect x={17} y={0} width={8.4} height={0.1} fill={site ? "#007dfe" : "#17191a"} opacity={site ? 1 : 0.4} />
-      <DrawingLabel x={-19} y={3.1} size={1.7} title="Main rental yard" detail="Machine and attachment ready" state="ok" />
-      <DrawingLabel x={1.5} y={3.7} size={1.7} title={TRANSPORT} detail={transport ? "Confirmed" : "To confirm"} state={transport ? "ok" : "pending"} />
-      <DrawingLabel x={21.2} y={0.1} size={1.7} lift={1.6} title="Quarry receiving area" detail={site ? "Confirmed" : "To confirm"} state={site ? "ok" : "pending"} />
+      <DrawingLabel x={-19} y={3.1} size={1.7} title="Yard" detail="Ready" state="ok" />
+      <DrawingLabel x={1.5} y={3.7} size={1.7} title={TRANSPORT} detail={transport ? "Booked" : "Not booked"} state={transport ? "ok" : "pending"} />
+      <DrawingLabel x={21.2} y={0.1} size={1.7} lift={1.6} title="Quarry gate" detail={site ? "07:00–09:00" : "No time yet"} state={site ? "ok" : "pending"} />
     </Drawing>
   );
 }
@@ -495,48 +353,32 @@ export function PrepareDelivery() {
   const site = sequence.step >= 2;
   const checks = deliveryChecks(transport, site);
   const selected = checks.find((check) => check.id === focus);
-  const reviewed = sequence.step === 3;
-  const open = checks.filter((check) => !check.done).map((check) => check.label.toLowerCase());
   return (
     <Example
-      title={`${EX014} delivery to the quarry`}
-      situation={<p>The quote is accepted and {EX014} is reserved for {RENTAL_PERIOD}. The handoff to the quarry still has to work.</p>}
-      result={reviewed ? <p><strong>A reviewed delivery plan.</strong> Machine, attachment, transport and site are all recorded.</p> : <p><strong>The machine is available. Delivery is not yet confirmed.</strong></p>}
-      next={<p>Dispatcher confirms the handoff.</p>}
-      boundary="A standard road route doesn’t establish heavy-haul access. Transport suitability, site restrictions, permits where they apply, and loading arrangements need operational review."
+      title={`${EX014} to the quarry`}
+      situation={<p>The quote’s accepted and {EX014} is reserved for {RENTAL_PERIOD}.</p>}
+      finding={site ? <p><strong>All four checks are in.</strong></p> : <p><strong>The machine’s ready. The delivery isn’t.</strong></p>}
+      next={<p>Your dispatcher confirms the handoff.</p>}
+      boundary="A road route isn’t heavy-haul clearance. Permits and loading need your own check."
     >
       <Sequence steps={DELIVERY_STEPS} sequence={sequence} title="Prepare the delivery" />
       <MachineView
         className={styles.wideView}
         scene={{ kind: "delivery", focus, transport, site, onPick: setFocus }}
         fallback={<DeliveryFallback transport={transport} site={site} />}
-        label={`Illustrative handoff from the rental yard to the quarry. ${EX014} waits in the yard with ${BREAKER}. The planned low-loader load is ${transport ? "confirmed" : "still to confirm"}; the quarry receiving area is ${site ? "confirmed" : "still to confirm"}.`}
+        label={`${EX014} waits in the yard with ${BREAKER}. The truck is ${transport ? "booked" : "not booked"} and the quarry gate ${site ? "has a delivery time" : "has no delivery time yet"}.`}
       >
-        <p className={styles.legend} aria-hidden="true">Rental yard <ArrowRight size={13} strokeWidth={1.5} /> Transport <ArrowRight size={13} strokeWidth={1.5} /> Quarry<span className={styles.legendKey}><i data-key="solid" />Recorded<i data-key="ghost" />Planned</span></p>
+        <p className={styles.legend} aria-hidden="true"><span className={styles.legendKey}><i data-key="solid" />Confirmed<i data-key="ghost" />Not confirmed</span></p>
       </MachineView>
       <div className={styles.checks} role="group" aria-label="Delivery checks">
         {checks.map((check) => (
           <button key={check.id} type="button" aria-pressed={focus === check.id} onClick={() => setFocus(focus === check.id ? "overview" : check.id)}>
             <span className={styles.checkLabel}>{check.label}</span>
-            <span className={styles.checkStatus}>{check.status}</span>
-            <StateText state={check.done ? "ok" : "pending"}>{check.done ? "Reviewed" : "Open"}</StateText>
+            <StateText state={check.done ? "ok" : "pending"}>{check.status}</StateText>
           </button>
         ))}
       </div>
-      <div className={styles.detail} aria-live="polite">
-        {selected ? (
-          <>
-            <p className={styles.detailTitle}>{selected.record}</p>
-            {selected.missing && <p className={styles.detailText}><strong>Missing:</strong> {selected.missing}</p>}
-            <p className={styles.detailText}><strong>{selected.done ? "Confirmed by" : "Needs confirmation from"}:</strong> {selected.owner}</p>
-            {selected.confirmStep !== undefined && (
-              <button type="button" className={styles.action} onClick={() => sequence.go(selected.confirmStep ?? 0)}>Record the confirmation (example) <ArrowRight size={14} strokeWidth={1.5} aria-hidden="true" /></button>
-            )}
-          </>
-        ) : (
-          <p className={styles.detailText}>{open.length ? `Still open: ${open.join(" and ")}. Select a check to see what’s missing and who confirms it.` : "All four checks are recorded. Select a check to see its record."}</p>
-        )}
-      </div>
+      {selected && <p className={styles.detail} aria-live="polite">{selected.detail}</p>}
     </Example>
   );
 }
@@ -544,10 +386,9 @@ export function PrepareDelivery() {
 /* 3. Manage the rental */
 
 const RENTAL_STEPS: Step[] = [
-  { label: "On rent", text: `${EX014} is working at the quarry under ${RENTAL}.` },
-  { label: "Extension request", text: "The customer asks for three more days." },
-  { label: "Alternatives", text: "Machine, attachment, transport and service are checked." },
-  { label: "Terms and usage", text: "Agreed terms and recorded hours, side by side." },
+  { label: "On rent", text: `${EX014} is breaking rock at the quarry until ${RENTAL_END}.` },
+  { label: "Three more days?", text: "The customer asks to keep it longer." },
+  { label: "Options", text: "What would have to change to say yes." },
 ];
 const FIRST_DAY = 12;
 const LAST_DAY = 31;
@@ -556,13 +397,13 @@ const NEXT_START_DAY = 25;
 const DAY_COUNT = LAST_DAY - FIRST_DAY + 1;
 const column = (day: number) => day - FIRST_DAY + 1;
 
-type AlternativeCheck = { id: string; question: string; answer: string; status: string; state: State; focus: RentalFocus };
+type Option = { id: string; question: string; answer: string; state: State; focus: RentalFocus };
 
-const RENTAL_CHECKS: AlternativeCheck[] = [
-  { id: "machine", question: "Another suitable machine?", answer: `${EX027} is free in the calendar for ${NEXT_RESERVATION}, but its inspection, booked for ${EX027_INSPECTION_BOOKED}, isn’t recorded.`, status: "Not ready to commit", state: "blocked", focus: "ex027" },
-  { id: "attachment", question: "Attachment available?", answer: `${BREAKER} has no booking after ${RENTAL_END}, so it can stay with ${EX014}.`, status: "Available", state: "ok", focus: "ex014" },
-  { id: "transport", question: "Transport change?", answer: `Pickup ${PICKUP} on 24 Oct would move, and ${NEXT_RESERVATION} would need a delivery from the yard.`, status: "Change required", state: "pending", focus: "both" },
-  { id: "service", question: "Service affected?", answer: `${EX014}’s next service is due by recorded hours. The maintenance supervisor confirms whether the extra days reach it.`, status: "To confirm", state: "pending", focus: "ex014" },
+const RENTAL_OPTIONS: Option[] = [
+  { id: "machine", question: `Send ${EX027} to ${NEXT_RESERVATION}?`, answer: `Not yet. It hasn’t been inspected. That’s booked for ${EX027_INSPECTION_BOOKED}.`, state: "blocked", focus: "ex027" },
+  { id: "attachment", question: `Keep ${BREAKER} on site?`, answer: `Yes. It’s free after ${RENTAL_END}.`, state: "ok", focus: "ex014" },
+  { id: "transport", question: "Move the pickup?", answer: `${PICKUP} on 24 Oct would have to move.`, state: "pending", focus: "both" },
+  { id: "service", question: "Service due?", answer: "Close, on recorded hours. The shop confirms.", state: "pending", focus: "ex014" },
 ];
 
 function RentalFallback({ conflict, focus }: { conflict: boolean; focus: RentalFocus }) {
@@ -572,19 +413,19 @@ function RentalFallback({ conflict, focus }: { conflict: boolean; focus: RentalF
       <line x1={11.4} y1={0} x2={11.4} y2={5.8} stroke="#c9cac6" strokeWidth={1} strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
       <Elevation tool="breaker" pose={POSES.parked} />
       <Elevation tool="bucket" x={16} highlight={focus === "ex027" ? { house: "yellow" } : {}} />
-      <DrawingLabel x={0.55} y={3.05} title={`${EX014} · On rent`} detail={conflict ? "Next reservation starts during the extension" : "At the quarry"} state={conflict ? "blocked" : "ok"} />
-      <DrawingLabel x={16.55} y={3.05} title={EX027} detail="Awaiting inspection" state="blocked" />
+      <DrawingLabel x={0.55} y={3.05} title={`${EX014} · On rent`} detail={conflict ? `${NEXT_RESERVATION} wants it on 25 Oct` : "At the quarry"} state={conflict ? "blocked" : "ok"} />
+      <DrawingLabel x={16.55} y={3.05} title={EX027} detail="Not inspected" state="blocked" />
     </Drawing>
   );
 }
 
 function RentalTimeline({ extension, conflict }: { extension: number; conflict: boolean }) {
   return (
-    <div className={styles.timeline} role="img" aria-label={`Calendar for ${EX014}: ${RENTAL} runs ${RENTAL_PERIOD}${extension ? `, a ${extension}-day extension is proposed` : ""}, and ${NEXT_RESERVATION} starts ${NEXT_RESERVATION_START}.`}>
+    <div className={styles.timeline} role="img" aria-label={`${EX014}’s calendar: ${RENTAL} runs ${RENTAL_PERIOD}${extension ? `, plus ${extension} requested days` : ""}. ${NEXT_RESERVATION} starts ${NEXT_RESERVATION_START}.`}>
       <div className={styles.timelineTrack} style={{ gridTemplateColumns: `repeat(${DAY_COUNT}, minmax(0, 1fr))` }}>
-        <span className={styles.span} data-kind="rent" style={{ gridColumn: `${column(FIRST_DAY)} / ${column(RENTAL_END_DAY) + 1}` }}>{RENTAL}</span>
+        <span className={styles.span} data-kind="rent" style={{ gridColumn: `${column(FIRST_DAY)} / ${column(RENTAL_END_DAY) + 1}` }}>This customer</span>
         <span className={styles.span} data-kind="turn" style={{ gridColumn: `${column(24)} / span 1` }} />
-        <span className={styles.span} data-kind={conflict ? "blocked" : "next"} style={{ gridColumn: `${column(NEXT_START_DAY)} / ${column(LAST_DAY) + 1}` }}>{NEXT_RESERVATION}</span>
+        <span className={styles.span} data-kind={conflict ? "blocked" : "next"} style={{ gridColumn: `${column(NEXT_START_DAY)} / ${column(LAST_DAY) + 1}` }}>Next customer</span>
         {extension > 0 && <span className={styles.span} data-kind="proposed" style={{ gridColumn: `${column(24)} / span ${extension}`, gridRow: 2 }}>+{extension}</span>}
       </div>
       <div className={styles.timelineAxis} style={{ gridTemplateColumns: `repeat(${DAY_COUNT}, minmax(0, 1fr))` }} aria-hidden="true">
@@ -603,91 +444,55 @@ export function ManageRental() {
     setExtension(step === 0 ? 0 : 3);
     setSelected(step === 2 ? "machine" : null);
   });
-  const lastDay = RENTAL_END_DAY + extension;
-  const conflict = lastDay >= NEXT_START_DAY;
+  const conflict = RENTAL_END_DAY + extension >= NEXT_START_DAY;
   const tight = extension === 1;
-  const check = RENTAL_CHECKS.find((item) => item.id === selected);
-  const focus: RentalFocus = check ? check.focus : conflict ? "both" : "ex014";
+  const option = RENTAL_OPTIONS.find((item) => item.id === selected);
+  const focus: RentalFocus = option ? option.focus : conflict ? "both" : "ex014";
   const extend = (days: number) => {
     setExtension(days);
     if (days > 0 && sequence.step === 0) sequence.go(1);
   };
-  const result = conflict
-    ? <p><strong>The extension needs a reviewed alternative plan.</strong></p>
+  const finding = conflict
+    ? <p><strong>The extra days run into the next booking.</strong></p>
     : tight
-      ? <p><strong>The extension uses the turnaround day before {NEXT_RESERVATION}.</strong> Return, inspection and delivery need review.</p>
-      : <p><strong>No change requested yet.</strong></p>;
-  const extensionControl = (
-    <div className={styles.extend}>
-      <p className={styles.sheetLabel} id="extension-label">Extend the rental</p>
-      <div className={styles.segments} role="group" aria-labelledby="extension-label">
-        {[0, 1, 2, 3].map((days) => <button key={days} type="button" aria-pressed={extension === days} onClick={() => extend(days)}>{days === 0 ? "No extension" : `+${days} ${days > 1 ? "days" : "day"}`}</button>)}
-      </div>
-    </div>
-  );
+      ? <p><strong>One extra day eats the turnaround</strong> before {NEXT_RESERVATION}.</p>
+      : <p>Nothing requested yet.</p>;
   return (
     <Example
-      title={`${EX014} on rent, extension request`}
-      situation={<p>{EX014} is on rent at the quarry until {RENTAL_END}. The customer asks, “Can we keep the machine for three more days?”</p>}
-      result={result}
-      next={<p>Rental team confirms the arrangement before approving the extension.</p>}
-      boundary="Engine hours, productive hours and billable hours aren’t automatically the same; billing follows the agreement and verified records. Nothing here changes a reservation, messages a customer or applies a charge."
+      title={`${EX014} on rent`}
+      situation={<p>The customer asks, “Can we keep the machine for three more days?”</p>}
+      finding={finding}
+      next={<p>Your team picks a plan, then answers the customer.</p>}
+      boundary="Meter hours aren’t billable hours. Nothing here changes a booking or adds a charge."
     >
       <Sequence steps={RENTAL_STEPS} sequence={sequence} title="Manage the rental" />
-      <div className={styles.stage}>
-        <MachineView
-          scene={{ kind: "rental", focus, conflict, onPick: (next) => setSelected(next === "ex027" ? "machine" : null) }}
-          fallback={<RentalFallback conflict={conflict} focus={focus} />}
-          label={`Illustrative view: ${EX014} on rent at the quarry with ${BREAKER}, and ${EX027} in the yard, awaiting inspection.${conflict ? ` The extension overlaps ${NEXT_RESERVATION}.` : ""}`}
-        />
-        <div className={styles.panel} aria-live="polite">
-          {sequence.step === 0 && (
-            <>
-              <p className={styles.sheetLabel}>{EX014} rental calendar</p>
-              <RentalTimeline extension={extension} conflict={conflict} />
-              <p className={styles.note}>{EX014} returns {RENTAL_END}. {NEXT_RESERVATION}, for another customer, starts {NEXT_RESERVATION_START}.</p>
-              {extensionControl}
-            </>
-          )}
-          {sequence.step === 1 && (
-            <>
-              <blockquote className={styles.quote}>“Can we keep the machine for three more days?”</blockquote>
-              {extensionControl}
-              <RentalTimeline extension={extension} conflict={conflict} />
-              {conflict && <p className={styles.conflict}>The next customer’s reservation starts during the requested extension.</p>}
-              {tight && <p className={styles.note}>One extra day leaves no turnaround before {NEXT_RESERVATION}.</p>}
-            </>
-          )}
-          {sequence.step === 2 && (
-            <>
-              <p className={styles.sheetLabel}>Before approving</p>
-              <ul className={styles.checklist}>
-                {RENTAL_CHECKS.map((item) => (
-                  <li key={item.id}>
-                    <button type="button" aria-pressed={selected === item.id} disabled={!conflict && !tight} onClick={() => setSelected(selected === item.id ? null : item.id)}>
-                      <span className={styles.checklistQuestion}>{item.question}</span>
-                      <StateText state={item.state}>{item.status}</StateText>
-                    </button>
-                    {selected === item.id && <p className={styles.checklistAnswer}>{item.answer}</p>}
-                  </li>
-                ))}
-              </ul>
-              {!conflict && !tight && <p className={styles.note}>Extend the rental to see what it affects.</p>}
-            </>
-          )}
-          {sequence.step === 3 && (
-            <>
-              <p className={styles.sheetLabel}>Terms and usage</p>
-              <dl className={styles.terms}>
-                <div><dt>Agreed rental terms</dt><dd>The rental agreement for {RENTAL}, on file. Any extension follows it.</dd></div>
-                <div><dt>Recorded operating hours</dt><dd>{METER_ON_RENT}, an example recorded reading. Last updated {METER_ON_RENT_UPDATED} from a meter photo; not live telemetry.</dd></div>
-                <div><dt>Proposed additional period</dt><dd>{extension === 0 ? "None requested" : `24–${lastDay} Oct, ${extension} ${extension > 1 ? "days" : "day"}`}</dd></div>
-                <div><dt>Charges requiring review</dt><dd>Worked out under the agreed terms after review. No price is shown or applied.</dd></div>
-              </dl>
-            </>
-          )}
+      <div className={styles.calendar}>
+        <div className={styles.segments} role="group" aria-label="Extend the rental">
+          {[0, 1, 2, 3].map((days) => <button key={days} type="button" aria-pressed={extension === days} onClick={() => extend(days)}>{days === 0 ? "As booked" : `+${days} ${days > 1 ? "days" : "day"}`}</button>)}
         </div>
+        <RentalTimeline extension={extension} conflict={conflict} />
       </div>
+      <MachineView
+        className={styles.wideView}
+        scene={{ kind: "rental", focus, conflict, onPick: (next) => setSelected(next === "ex027" ? "machine" : null) }}
+        fallback={<RentalFallback conflict={conflict} focus={focus} />}
+        label={`${EX014} on rent at the quarry with ${BREAKER}. ${EX027} is in the yard, not inspected.${conflict ? ` The extension runs into ${NEXT_RESERVATION}, which starts ${NEXT_RESERVATION_START}.` : ""}`}
+      />
+      {sequence.step === 2 && (
+        <>
+          <ul className={styles.options} aria-live="polite">
+            {RENTAL_OPTIONS.map((item) => (
+              <li key={item.id}>
+                <button type="button" aria-pressed={selected === item.id} disabled={!conflict && !tight} onClick={() => setSelected(selected === item.id ? null : item.id)}>
+                  <StateText state={item.state}>{item.question}</StateText>
+                  <span>{item.answer}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className={styles.note}>Meter: {METER_ON_RENT}, an example reading from {METER_ON_RENT_UPDATED}. Charges follow your agreement.</p>
+        </>
+      )}
     </Example>
   );
 }
@@ -695,38 +500,32 @@ export function ManageRental() {
 /* 4. Return it to service */
 
 const RETURN_STEPS: Step[] = [
-  { label: RETURN_STAGES[0], text: `${EX014} is back at the yard with ${BREAKER}.` },
-  { label: RETURN_STAGES[1], text: "Return evidence is compared with the handoff." },
-  { label: RETURN_STAGES[2], text: "The inspector records maintenance required before release." },
-  { label: RETURN_STAGES[3], text: "Maintenance is recorded and release is approved." },
-  { label: RETURN_STAGES[4], text: "The release updates availability." },
+  { label: RETURN_STAGES[0], text: `${EX014} is back in the yard with ${BREAKER}.` },
+  { label: RETURN_STAGES[1], text: "Return photos sit next to the handoff photos." },
+  { label: RETURN_STAGES[2], text: "A service is due. It stays off the board." },
+  { label: RETURN_STAGES[3], text: "Service done. A reviewer signs it off." },
+  { label: RETURN_STAGES[4], text: "Only now does it show as available." },
 ];
 
-const RETURN_ACTIONS = [
-  "Start the inspection",
-  "Record the inspection finding",
-  "Release after recorded maintenance",
-  "Apply the release to availability",
-];
+const RETURN_ACTIONS = ["Start the inspection", "Record the finding", "Release after service", "Make it available"];
 
-type AreaEvidence = { label: string; before: string; after: string; status: string; state: State; note: string };
-
-const AREAS: Record<Exclude<ReturnArea, "overall">, AreaEvidence> = {
-  sidePanel: { label: "Side panel", before: "Right side panel; no marks recorded.", after: "Possible new mark on side panel.", status: "Needs inspection", state: "pending", note: "Not a damage finding. The inspector checks it; any charge is reviewed separately under the agreed terms." },
-  attachment: { label: "Attachment", before: `${BREAKER} fitted at handoff.`, after: `${BREAKER} returned with the machine.`, status: "Returned", state: "ok", note: "The attachment has its own inspection entry." },
-  undercarriage: { label: "Undercarriage", before: "Tracks photographed at handoff.", after: "Tracks photographed on return; no visible difference.", status: "Compared", state: "ok", note: "Photos show surfaces only, not internal or mechanical condition." },
-  meter: { label: "Hour meter", before: `${METER_AT_HANDOFF} at handoff, ${RENTAL_START}.`, after: `${METER_AT_RETURN} on return.`, status: "Recorded", state: "ok", note: "Recorded operating hours. Billable hours follow the rental agreement." },
+const AREAS: Record<Exclude<ReturnArea, "overall">, { label: string; note: string }> = {
+  sidePanel: { label: "Side panel", note: "A possible new mark. The inspector checks it. Any charge is a separate conversation." },
+  attachment: { label: "Attachment", note: `${BREAKER} came back with the machine. It gets its own check.` },
+  undercarriage: { label: "Tracks", note: "No visible difference. Photos only show the surface." },
+  meter: { label: "Hour meter", note: `${METER_AT_HANDOFF} at handoff, ${METER_AT_RETURN} on return. Those are recorded hours, not billable hours.` },
 };
 const AREA_ORDER = Object.keys(AREAS) as (keyof typeof AREAS)[];
 
 function ReturnFallback({ area, stage }: { area: ReturnArea; stage: number }) {
   const highlight: Partial<Record<ElevationArea, ElevationTone>> = area === "sidePanel" ? { sidePanel: "yellow" } : area === "attachment" ? { tool: "yellow", coupler: "yellow" } : area === "undercarriage" ? { tracks: "yellow" } : area === "meter" ? { cab: "yellow" } : {};
+  const stageChip: { title: string; state?: State } = stage === 2 ? { title: "Maintenance hold", state: "blocked" } : stage >= 3 ? { title: stage === 4 ? "Ready for rental" : "Released", state: "ok" } : { title: stage === 1 ? "Awaiting inspection" : "Returned", state: "pending" };
   return (
-    <Drawing viewBox="-2.6 -5.6 22 6.4">
+    <Drawing viewBox="-2.6 -6.4 22 7.2">
       <Elevation tool="breaker" pose={POSES.parked} highlight={highlight} />
       <line x1={8.2} y1={-0.4} x2={8.2} y2={5.6} stroke="#c9cac6" strokeWidth={1} vectorEffect="non-scaling-stroke" />
       <Elevation tool="breaker" pose={POSES.parked} x={10.6} highlight={highlight} mark />
-      {stage === 2 && <rect x={10.6 - 2} y={-0.25} width={8.8} height={0.12} fill="#f51625" />}
+      <DrawingLabel x={11.15} y={3.05} title={stageChip.title} state={stageChip.state} />
     </Drawing>
   );
 }
@@ -734,27 +533,24 @@ function ReturnFallback({ area, stage }: { area: ReturnArea; stage: number }) {
 export function ReturnToService() {
   const [stage, setStage] = useState(0);
   const [area, setArea] = useState<ReturnArea>("overall");
-  const [showHold, setShowHold] = useState(false);
   const { ref, width } = useWidth<HTMLDivElement>();
   const stacked = width > 0 && width < 560;
-  const evidence = area === "overall" ? null : AREAS[area];
   const ready = stage === 4;
   const advance = () => {
     const next = Math.min(4, stage + 1);
     setStage(next);
     if (next === 1) setArea("sidePanel");
-    if (next === 2) setShowHold(true);
+    if (next === 2) setArea("overall");
   };
-  const reset = () => { setStage(0); setArea("overall"); setShowHold(false); };
-  const outcome = stage === 0 ? "Pending" : stage === 1 ? "Inspection under way" : stage === 2 ? "Maintenance required before release" : "Maintenance recorded; released by an authorized reviewer";
+  const reset = () => { setStage(0); setArea("overall"); };
   const current = RETURN_STEPS[stage];
   return (
     <Example
-      title={`${EX014} return and inspection`}
-      situation={<p>{EX014} comes back to the yard with {BREAKER}. Its next reservation, {NEXT_RESERVATION}, depends on what the return shows.</p>}
-      result={<p><strong>A documented return and reviewed readiness status.</strong></p>}
-      next={<p>{ready ? "The rental desk can offer the machine again." : "Inspector and maintenance supervisor work through the open items."}</p>}
-      boundary="Photos can support an inspection but can’t establish every defect or mechanical condition. This isn’t safety certification or predictive maintenance. Customer liability and additional charges need separate review under the agreed terms."
+      title={`${EX014} comes back`}
+      situation={<p>{EX014} is back from the quarry. {NEXT_RESERVATION} is waiting for it.</p>}
+      finding={ready ? <p><strong>Released and available.</strong></p> : <p><strong>Off the board until someone signs it off.</strong></p>}
+      next={<p>{ready ? "Your desk can offer it again." : "Inspector checks the mark. Shop does the service."}</p>}
+      boundary="Photos support an inspection. They don’t certify a machine or set a charge."
     >
       <div className={styles.sequence}>
         <ol className={styles.steps} style={{ gridTemplateColumns: "repeat(5, minmax(0, 1fr))" }} aria-label="Return stages">
@@ -780,59 +576,21 @@ export function ReturnToService() {
           className={stacked ? styles.splitStacked : styles.split}
           scene={{ kind: "return", area, stage, stacked }}
           fallback={<ReturnFallback area={area} stage={stage} />}
-          label={`Matched views of ${EX014} before rental and on return${evidence ? `, focused on the ${evidence.label.toLowerCase()}` : ""}. A possible new mark appears on the side panel in the return view.`}
+          label={`${EX014} at handoff and on return, side by side. The return view shows a possible new mark on the side panel. Status: ${current.label}.`}
         >
           <div className={styles.splitLabels} data-stacked={stacked} aria-hidden="true">
-            <span>Before rental <em>Handoff photos, {RENTAL_START}</em></span>
-            <span>On return <em>Yard check-in</em></span>
+            <span>At handoff <em>{RENTAL_START}</em></span>
+            <span>On return</span>
           </div>
         </MachineView>
       </div>
-      <div className={styles.returnGrid}>
-        <div>
-          <p className={styles.sheetLabel}>Inspection area</p>
-          <div className={styles.segments} role="group" aria-label="Inspection areas">
-            <button type="button" aria-pressed={area === "overall"} onClick={() => setArea("overall")}>Whole machine</button>
-            {AREA_ORDER.map((key) => <button key={key} type="button" aria-pressed={area === key} onClick={() => setArea(key)}>{AREAS[key].label}</button>)}
-          </div>
-          {evidence ? (
-            <div className={styles.compare} aria-live="polite">
-              <div><span className={styles.sheetLabel}>Before rental</span><p>{evidence.before}</p></div>
-              <div><span className={styles.sheetLabel}>On return</span><p>{evidence.after}</p><StateText state={evidence.state}>{evidence.status}</StateText></div>
-              <p className={styles.note}>{evidence.note}</p>
-            </div>
-          ) : (
-            <p className={styles.note}>Select an area to compare matching before and after evidence. Views are schematic, not photographs.</p>
-          )}
+      <div className={styles.areaBar}>
+        <div className={styles.segments} role="group" aria-label="Compare an area">
+          {AREA_ORDER.map((key) => <button key={key} type="button" aria-pressed={area === key} onClick={() => setArea(area === key ? "overall" : key)}>{AREAS[key].label}</button>)}
         </div>
-        <div>
-          <p className={styles.sheetLabel}>Return record</p>
-          <dl className={styles.returnRecord}>
-            <div><dt>Condition photos</dt><dd>Handoff and return sets, matched by area</dd></div>
-            <div><dt>Meter reading</dt><dd>{METER_AT_RETURN} on return ({METER_AT_HANDOFF} at handoff)</dd></div>
-            <div><dt>Attachment returned</dt><dd>{BREAKER}, with the machine</dd></div>
-            <div><dt>Reported issues</dt><dd>None reported by the customer at pickup</dd></div>
-            <div><dt>Inspection outcome</dt><dd data-state={stage === 2 ? "blocked" : undefined}>{outcome}</dd></div>
-          </dl>
-          {stage >= 2 && (
-            <div className={styles.hold} data-cleared={stage >= 3}>
-              <button type="button" aria-expanded={showHold} onClick={() => setShowHold(!showHold)}>
-                <StateText state={stage >= 3 ? "ok" : "blocked"}>{stage >= 3 ? "Maintenance hold cleared" : "Maintenance hold"}</StateText>
-                <span className={styles.disclosure}>{showHold ? "Hide reason" : "Show reason"}</span>
-              </button>
-              {showHold && (
-                <div className={styles.holdDetail}>
-                  <p><strong>Recorded reason:</strong> scheduled service due. Recorded operating hours reached the service interval during this rental. Entered by the inspector.</p>
-                  <p><strong>Required follow-up:</strong> complete {WORK_ORDER} and record the side panel outcome. An authorized reviewer then decides on release.</p>
-                </div>
-              )}
-            </div>
-          )}
-          <p className={styles.availability}>
-            <StateText state={ready ? "ok" : "blocked"}>{ready ? "Ready for rental" : stage === 3 ? "Release recorded" : "Not available"}</StateText>
-            <span>{ready ? "Released by an authorized reviewer." : stage === 3 ? "Availability updates when the release is applied." : "Blocked until an authorized release."}</span>
-          </p>
-        </div>
+        <p className={styles.note} aria-live="polite">
+          {stage === 2 && area === "overall" ? `Hold: service due on recorded hours. ${WORK_ORDER} is open.` : area !== "overall" ? AREAS[area].note : "Pick an area to compare."}
+        </p>
       </div>
     </Example>
   );
