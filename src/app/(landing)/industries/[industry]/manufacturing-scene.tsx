@@ -1,10 +1,11 @@
 "use client";
 
-import { memo, useEffect, useId, useLayoutEffect, useRef, type ReactNode, type RefObject } from "react";
+import { memo, useEffect, useId, useLayoutEffect, useMemo, useRef, type ReactNode, type RefObject } from "react";
 import { Canvas, useFrame, useThree, type RootState } from "@react-three/fiber";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { cellStatus, layout, runs, partPoses, type Configuration, type Point, type SimRun } from "./manufacturing-model";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { bottleneckAt, busySharesAt, cellStatus, layout, runs, partPoses, simulation, type Configuration, type Point, type SimRun, type Stage } from "./manufacturing-model";
 import styles from "./manufacturing.module.css";
 
 const H = layout.conveyorHeight;
@@ -89,7 +90,6 @@ const material = {
   rubber: satin("#1b1d1f", 0.9),
   motor: satin("#7b8288", 0.42, 0.35),
   gearbox: satin("#5d6469", 0.45, 0.35),
-  floor: satin("#e7e7e4", 0.96),
   kraft: satin("#c6a77b", 0.9),
   tape: satin("#dcc59c", 0.6),
   timber: satin("#d3c8b2", 0.85),
@@ -102,9 +102,8 @@ const material = {
   grille: satin("#3b4044", 0.6, 0.2),
   marker: new THREE.MeshBasicMaterial({ color: "#fed603", side: THREE.DoubleSide, toneMapped: false }),
   outline: new THREE.LineBasicMaterial({ color: "#17191a", transparent: true, opacity: 0.55 }),
-  floorTape: new THREE.MeshBasicMaterial({ color: "#ead25a", toneMapped: false }),
-  proposedTape: new THREE.MeshBasicMaterial({ color: "#4a9dfa", toneMapped: false }),
-  grid: new THREE.LineBasicMaterial({ color: "#d9d9d5", transparent: true, opacity: 0.7 }),
+  queue: new THREE.MeshBasicMaterial({ color: "#f51625", transparent: true, opacity: 0.28, depthWrite: false, toneMapped: false }),
+  alert: new THREE.MeshBasicMaterial({ color: "#f51625", toneMapped: false }),
 };
 
 function Contact({ x, z, width, depth, opacity = 0.3, y = 0.002 }: { x: number; z: number; width: number; depth: number; opacity?: number; y?: number }) {
@@ -128,12 +127,25 @@ function applyStudio({ gl, scene }: RootState) {
   generator.dispose();
 }
 
-function Lights({ span, focus = [0, 0, 0] }: { span: number; focus?: [number, number, number] }) {
-  const key: [number, number, number] = [focus[0] - span * 0.55, focus[1] + span * 1.1, focus[2] + span * 0.75];
+const ORIGIN: [number, number, number] = [0, 0, 0];
+
+function Lights({ span, focus = ORIGIN }: { span: number; focus?: [number, number, number] }) {
+  const [fx, fy, fz] = focus;
+  const key: [number, number, number] = [fx - span * 0.55, fy + span * 1.1, fz + span * 0.75];
+  const light = useRef<THREE.DirectionalLight>(null);
+  const scene = useThree((state) => state.scene);
+  useLayoutEffect(() => {
+    const current = light.current;
+    if (!current) return;
+    current.target.position.set(fx, fy, fz);
+    scene.add(current.target);
+    return () => { scene.remove(current.target); };
+  }, [scene, fx, fy, fz]);
   return (
     <>
       <hemisphereLight args={["#ffffff", "#d7d7d3", 0.5]} />
       <directionalLight
+        ref={light}
         position={key}
         intensity={1.45}
         castShadow
@@ -233,7 +245,7 @@ export function Housing({ variant = false, fasteners = 4, missing, detail = "low
 /* HTML labels with leader lines ----------------------------------------- */
 
 type Tone = "default" | "accent" | "proposed" | "alert" | "quiet";
-type SceneLabel = { id: string; at: [number, number, number]; text: ReactNode; detail?: ReactNode; tone?: Tone; place?: "above" | "below"; leader?: number; minor?: boolean; side?: "left" | "right" };
+type SceneLabel = { id: string; at: [number, number, number]; text: ReactNode; detail?: ReactNode; tone?: Tone; place?: "above" | "below"; leader?: number; minor?: boolean; brief?: boolean; side?: "left" | "right" };
 
 const scratch = new THREE.Vector3();
 
@@ -271,7 +283,7 @@ function LabelLayer({ labels, layer }: { labels: SceneLabel[]; layer: string }) 
   return (
     <div className={styles.sceneLabels} aria-hidden="true">
       {labels.map((label) => (
-        <span key={label.id} id={`${layer}-${label.id}`} className={`${styles.sceneLabel} ${label.minor ? styles.sceneLabelMinor : ""}`} data-tone={label.tone ?? "default"}>
+        <span key={label.id} id={`${layer}-${label.id}`} className={`${styles.sceneLabel} ${label.minor ? styles.sceneLabelMinor : ""} ${label.brief ? styles.sceneLabelBrief : ""}`} data-tone={label.tone ?? "default"}>
           <span className={styles.chip}>
             <strong>{label.text}</strong>
             {label.detail && <span>{label.detail}</span>}
@@ -377,11 +389,9 @@ export function ProductCanvas({ sample, showFinding, onReady }: { sample: Sample
 /* Production cell: shared structural parts ------------------------------- */
 
 function Box({ size, position, mat, rotation, cast = true }: { size: [number, number, number]; position: [number, number, number]; mat: THREE.Material; rotation?: [number, number, number]; cast?: boolean }) {
-  return (
-    <mesh position={position} rotation={rotation} material={mat} castShadow={cast} receiveShadow>
-      <boxGeometry args={size} />
-    </mesh>
-  );
+  const [width, height, depth] = size;
+  const geometry = useMemo(() => new RoundedBoxGeometry(width, height, depth, 2, Math.min(0.012, Math.min(width, height, depth) / 3)), [width, height, depth]);
+  return <mesh geometry={geometry} position={position} rotation={rotation} material={mat} castShadow={cast} receiveShadow />;
 }
 
 // Slotted aluminium extrusion: a square profile with a darker groove on each visible face.
@@ -695,63 +705,32 @@ function ConveyorDrive({ selected }: { selected: boolean }) {
   );
 }
 
-function FloorStrip({ from, to, tone, width = 0.04 }: { from: Point; to: Point; tone: THREE.Material; width?: number }) {
-  const length = Math.hypot(to[0] - from[0], to[1] - from[1]);
+/* Floor, line equipment, parts ------------------------------------------ */
+
+// Today's line sits just behind the proposed loop, close enough that both
+// bottlenecks and the queue fill one frame.
+const TODAY_Z = -3.65;
+const QUEUE_FRONT = -0.74;
+const RING = new THREE.RingGeometry(0.78, 1.02, 96).rotateX(-Math.PI / 2);
+
+const Ground = memo(function Ground() {
   return (
-    <mesh position={[(from[0] + to[0]) / 2, 0.0015, (from[1] + to[1]) / 2]} rotation={[-Math.PI / 2, 0, -Math.atan2(to[1] - from[1], to[0] - from[0])]} material={tone}>
-      <planeGeometry args={[length, width]} />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -2]} receiveShadow>
+      <planeGeometry args={[90, 70]} />
+      <shadowMaterial transparent opacity={0.14} depthWrite={false} />
     </mesh>
-  );
-}
-
-const CELL_BOUNDARY: Point[] = [[-6.15, 1.95], [6.15, 1.95], [6.15, -3.0], [-6.15, -3.0]];
-const PROPOSED_FOOTPRINT: Point[] = [[-0.75, -1.72], [0.75, -1.72], [0.75, -2.68], [-0.75, -2.68]];
-
-function dashes(outline: Point[], dash = 0.12, gap = 0.1) {
-  const segments: [Point, Point][] = [];
-  outline.forEach((start, side) => {
-    const end = outline[(side + 1) % outline.length];
-    const length = Math.hypot(end[0] - start[0], end[1] - start[1]);
-    for (let step = 0; step < length; step += dash + gap) {
-      const t0 = step / length;
-      const t1 = Math.min(1, (step + dash) / length);
-      segments.push([[start[0] + (end[0] - start[0]) * t0, start[1] + (end[1] - start[1]) * t0], [start[0] + (end[0] - start[0]) * t1, start[1] + (end[1] - start[1]) * t1]]);
-    }
-  });
-  return segments;
-}
-const FOOTPRINT_DASHES = dashes(PROPOSED_FOOTPRINT);
-
-function gridGeometry(size: number, step: number) {
-  const points: number[] = [];
-  for (let value = -size; value <= size; value += step) points.push(value, 0, -size, value, 0, size, -size, 0, value, size, 0, value);
-  return new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
-}
-const GRID = gridGeometry(16, 1);
-
-const Floor = memo(function Floor({ proposed }: { proposed: boolean }) {
-  return (
-    <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -0.5]} material={material.floor} receiveShadow>
-        <planeGeometry args={[60, 40]} />
-      </mesh>
-      <lineSegments geometry={GRID} material={material.grid} position={[0, 0.0008, -0.5]} />
-      {CELL_BOUNDARY.map((corner, index) => <FloorStrip key={index} from={corner} to={CELL_BOUNDARY[(index + 1) % 4]} tone={material.floorTape} width={0.032} />)}
-      {!proposed && FOOTPRINT_DASHES.map(([from, to], index) => <FloorStrip key={`d${index}`} from={from} to={to} tone={material.proposedTape} width={0.035} />)}
-    </group>
   );
 });
 
-const CellEquipment = memo(function CellEquipment({ proposed, selectDrive }: { proposed: boolean; selectDrive: boolean }) {
+const LineEquipment = memo(function LineEquipment({ proposed, drive = false, tail = 4.85 }: { proposed: boolean; drive?: boolean; tail?: number }) {
   return (
     <>
-      <Floor proposed={proposed} />
       <AssemblyStation />
       {proposed ? (
         <>
           <Conveyor from={[-4.85, 0]} to={[layout.head[0] - 0.25, 0]} />
           <Conveyor from={[layout.head[0] + 0.25, 0]} to={[layout.merge[0] - 0.25, 0]} />
-          <Conveyor from={[layout.merge[0] + 0.25, 0]} to={[4.85, 0]} />
+          <Conveyor from={[layout.merge[0] + 0.25, 0]} to={[tail, 0]} />
           <TransferUnit at={layout.head} />
           <TransferUnit at={layout.merge} />
           <TransferUnit at={layout.divert} />
@@ -762,22 +741,22 @@ const CellEquipment = memo(function CellEquipment({ proposed, selectDrive }: { p
           <InspectionBooth at={layout.booth.I2.center} proposed />
         </>
       ) : (
-        <Conveyor from={[-4.85, 0]} to={[4.85, 0]} />
+        <Conveyor from={[-4.85, 0]} to={[tail, 0]} />
       )}
       <InspectionBooth at={layout.booth.I1.center} />
-      <ConveyorDrive selected={selectDrive} />
+      {drive && <ConveyorDrive selected />}
     </>
   );
 });
 
-const SimulatedParts = memo(function SimulatedParts({ run, clock }: { run: SimRun; clock: RefObject<number> }) {
+const SimulatedParts = memo(function SimulatedParts({ run, clock, limitX = Infinity }: { run: SimRun; clock: RefObject<number>; limitX?: number }) {
   const groups = useRef<(THREE.Group | null)[]>([]);
   useFrame(() => {
     const poses = partPoses(run, clock.current);
     poses.forEach((pose, index) => {
       const group = groups.current[index];
       if (!group) return;
-      group.visible = pose.visible;
+      group.visible = pose.visible && pose.x <= limitX;
       group.position.set(pose.x, H, pose.z);
       for (let fastener = 0; fastener < 4; fastener++) {
         const object = group.getObjectByName(`fastener-${fastener}`);
@@ -796,16 +775,77 @@ const SimulatedParts = memo(function SimulatedParts({ run, clock }: { run: SimRu
   );
 });
 
+// A red lane under the parts standing still before inspection. Its length
+// follows the waiting count, one part spacing per housing.
+function QueueLane({ run, clock }: { run: SimRun; clock: RefObject<number> }) {
+  const fill = useRef<THREE.Mesh>(null);
+  const edge = useRef<THREE.Mesh>(null);
+  const length = useRef(0);
+  useFrame(({ invalidate }, delta) => {
+    const target = Math.min(cellStatus(run, clock.current).waitingForInspection, 7) * simulation.spacing;
+    length.current += (target - length.current) * (1 - Math.exp(-Math.min(delta, 0.1) * 10));
+    if (Math.abs(target - length.current) < 0.002) length.current = target;
+    else invalidate();
+    const visible = length.current > 0.01;
+    if (fill.current) {
+      fill.current.visible = visible;
+      fill.current.scale.x = Math.max(length.current, 0.001);
+      fill.current.position.x = QUEUE_FRONT - length.current / 2;
+    }
+    if (edge.current) {
+      edge.current.visible = visible;
+      edge.current.position.x = QUEUE_FRONT - length.current;
+    }
+  });
+  return (
+    <>
+      <mesh ref={fill} material={material.queue} rotation={[-Math.PI / 2, 0, 0]} position={[QUEUE_FRONT, 0.004, 0]} visible={false}><planeGeometry args={[1, 0.96]} /></mesh>
+      <mesh ref={edge} material={material.alert} rotation={[-Math.PI / 2, 0, 0]} position={[QUEUE_FRONT, 0.005, 0]} visible={false}><planeGeometry args={[0.04, 0.96]} /></mesh>
+    </>
+  );
+}
+
+const RING_SPOTS: Record<Stage, { x: number; z: number; sx: number; sz: number }> = {
+  assembly: { x: layout.fixture[0] - 0.075, z: 0, sx: 0.88, sz: 0.74 },
+  inspection: { x: 0, z: 0, sx: 1.08, sz: 0.76 },
+  packaging: { x: 5.4, z: 0, sx: 0.78, sz: 0.74 },
+};
+
+// A red floor ring around the stage limiting the line at the current time.
+function BottleneckRing({ run, clock }: { run: SimRun; clock: RefObject<number> }) {
+  const ring = useRef<THREE.Mesh>(null);
+  useFrame(() => {
+    const mesh = ring.current;
+    if (!mesh) return;
+    const stage = bottleneckAt(run, clock.current);
+    mesh.visible = stage !== null;
+    if (!stage) return;
+    const spot = RING_SPOTS[stage];
+    mesh.position.set(spot.x, 0.006, spot.z);
+    mesh.scale.set(spot.sx, 1, spot.sz);
+  });
+  return <mesh ref={ring} geometry={RING} material={material.alert} visible={false} />;
+}
+
 /* Camera ----------------------------------------------------------------- */
 
 export type CellView = "cell" | "drive";
+type ViewName = CellView | "compare";
 type ViewPreset = { target: [number, number, number]; direction: [number, number, number]; bounds: [[number, number, number], [number, number, number]] };
 
-const views: Record<CellView | "cellPortrait" | "drivePortrait", ViewPreset> = {
-  cell: { target: [0, 0.6, -0.45], direction: [-0.08, 1.3, 1], bounds: [[-5.95, 0, -2.7], [5.95, 1.95, 1.68]] },
-  cellPortrait: { target: [0, 0.6, -0.5], direction: [0.6, 2.3, 0], bounds: [[-6.0, 0, -2.75], [6.0, 1.95, 1.7]] },
-  drive: { target: [4.5, 0.62, 0.38], direction: [0.62, 0.42, 1], bounds: [[4.05, 0.32, 0.0], [4.95, 0.98, 0.85]] },
-  drivePortrait: { target: [4.5, 0.62, 0.38], direction: [0.62, 0.55, 1], bounds: [[4.15, 0.32, 0.05], [4.85, 0.95, 0.8]] },
+const views: Record<ViewName, { wide: ViewPreset; tall: ViewPreset }> = {
+  cell: {
+    wide: { target: [0, 0.6, -0.45], direction: [-0.08, 1.3, 1], bounds: [[-5.95, 0, -0.7], [5.95, 1.95, 1.68]] },
+    tall: { target: [0, 0.6, -0.2], direction: [0.6, 2.3, 0], bounds: [[-5.95, 0, -0.7], [5.95, 1.95, 1.68]] },
+  },
+  drive: {
+    wide: { target: [4.5, 0.62, 0.38], direction: [0.62, 0.42, 1], bounds: [[4.05, 0.32, 0.0], [4.95, 0.98, 0.85]] },
+    tall: { target: [4.5, 0.62, 0.38], direction: [0.62, 0.55, 1], bounds: [[4.15, 0.32, 0.05], [4.85, 0.95, 0.8]] },
+  },
+  compare: {
+    wide: { target: [-2.05, 0.38, -1.85], direction: [0.14, 1.72, 0.64], bounds: [[-6.55, 0, TODAY_Z - 0.95], [2.4, 1.28, 0.88]] },
+    tall: { target: [-2.0, 0.36, -1.85], direction: [1.02, 2.35, 0], bounds: [[-6.5, 0, TODAY_Z - 0.95], [2.5, 1.32, 0.9]] },
+  },
 };
 
 function fitCamera(preset: ViewPreset, fov: number, aspect: number) {
@@ -832,15 +872,13 @@ const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
 const TRANSITION_MS = 1100;
 
 // Moves between framed viewpoints with an eased tween; resizes re-fit instantly.
-function CameraRig({ view, instant }: { view: CellView; instant: boolean }) {
+function CameraRig({ view, instant }: { view: ViewName; instant: boolean }) {
   const pose = useRef<{ target: THREE.Vector3; position: THREE.Vector3 } | null>(null);
-  const tween = useRef<{ view: CellView; start: number; from: { target: THREE.Vector3; position: THREE.Vector3 } } | null>(null);
+  const tween = useRef<{ view: ViewName; start: number; from: { target: THREE.Vector3; position: THREE.Vector3 } } | null>(null);
   useFrame(({ camera, size, invalidate }) => {
     if (!(camera instanceof THREE.PerspectiveCamera)) return;
     const aspect = size.width / size.height;
-    const portrait = aspect < 0.95;
-    const preset = view === "cell" ? (portrait ? views.cellPortrait : views.cell) : portrait ? views.drivePortrait : views.drive;
-    const goal = fitCamera(preset, camera.fov, aspect);
+    const goal = fitCamera(aspect < 0.95 ? views[view].tall : views[view].wide, camera.fov, aspect);
     const now = performance.now();
     if (!pose.current) pose.current = { target: goal.target.clone(), position: goal.position.clone() };
     else if (!instant && (!tween.current || tween.current.view !== view) && pose.current.position.distanceTo(goal.position) > 0.05) {
@@ -863,68 +901,92 @@ function CameraRig({ view, instant }: { view: CellView; instant: boolean }) {
   return null;
 }
 
-/* Cell canvas ------------------------------------------------------------- */
-
-export type CellCanvasProps = {
-  configuration: Configuration;
-  clock: RefObject<number>;
-  time: number;
-  animating: boolean;
-  view: CellView;
-  instant: boolean;
-  focusDrive?: boolean;
-  showStatus?: boolean;
-  onReady?: () => void;
-};
-
-function cellLabels(configuration: Configuration, time: number, showStatus: boolean, focusDrive: boolean, view: CellView): SceneLabel[] {
-  if (view === "drive") {
-    return [
-      { id: "CD1", at: [layout.drive[0] + 0.112, 0.72, 0.262], text: "CD-1 conveyor drive", detail: "Temperature sensor on the gearbox", tone: "accent", leader: 34 },
-      { id: "P1", at: [5.4, H + 0.2, -0.05], text: "P1 Packaging", tone: "quiet", leader: 20 },
-    ];
-  }
-  const status = cellStatus(runs[configuration], time);
-  const proposed = configuration === "proposed";
-  const blocked = status.assembly === "blocked";
-  const labels: SceneLabel[] = [
-    { id: "A1", at: [layout.fixture[0], 1.0, 0], text: "A1 Assembly", detail: showStatus ? (blocked ? "Holding a part: no space" : "Assembling") : undefined, tone: showStatus && blocked ? "alert" : "default", leader: 40, side: "right" },
-    { id: "I1", at: [0, 1.0, 0], text: "I1 Inspection", detail: showStatus ? (status.inspection.I1 === "inspecting" ? "Inspecting" : "Waiting for parts") : undefined, leader: 30, side: proposed ? "left" : "right" },
-    { id: "P1", at: [5.35, 1.0, -0.05], text: "P1 Packaging", detail: showStatus ? `${status.packaged} packaged` : undefined, leader: 24, side: "right" },
-    { id: "CD1", at: [layout.drive[0], 0.66, 0.6], text: "CD-1 drive", tone: focusDrive ? "accent" : "quiet", place: "below", leader: 18, minor: !focusDrive, side: "left" },
-  ];
-  if (showStatus) {
-    labels.push({ id: "queue", at: [-2.55, H + 0.12, 0], text: `${status.waitingForInspection} waiting`, detail: "before inspection", tone: status.waitingForInspection >= 2 ? "accent" : "quiet", place: "below", leader: 26, side: "left" });
-    labels.push(proposed
-      ? { id: "I2", at: [0, 2.0, -2.2], text: "I2 Inspection, proposed", detail: status.inspection.I2 === "inspecting" ? "Inspecting" : "Waiting for parts", tone: "proposed", leader: 14, side: "right" }
-      : { id: "I2", at: [0, 0.02, -2.68], text: "Space for proposed I2", tone: "quiet", leader: 10, minor: true });
-  }
-  return labels;
+function Stage3D({ children, frameloop, onReady, span, focus }: { children: ReactNode; frameloop: "always" | "demand" | "never"; onReady?: () => void; span: number; focus: [number, number, number] }) {
+  return (
+    <Canvas
+      shadows="percentage"
+      dpr={[1, 2]}
+      frameloop={frameloop}
+      camera={{ fov: 28, near: 0.1, far: 80, position: [-4, 9, 12] }}
+      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      onCreated={(state) => { applyStudio(state); onReady?.(); }}
+    >
+      <Lights span={span} focus={focus} />
+      <Ground />
+      {children}
+    </Canvas>
+  );
 }
 
-export function CellCanvas({ configuration, clock, time, animating, view, instant, focusDrive = false, showStatus = false, onReady }: CellCanvasProps) {
+/* Investigation: conveyor drive CD-1 ------------------------------------- */
+
+const DRIVE_TIME = 330;
+
+export function DriveCanvas({ view, instant, active, temperature, onReady }: { view: CellView; instant: boolean; active: boolean; temperature: string; onReady?: () => void }) {
   const layer = useId();
-  const run = runs[configuration];
-  const labels = cellLabels(configuration, time, showStatus, focusDrive, view);
+  const clock = useRef(DRIVE_TIME);
+  const run = runs.existing;
+  const labels: SceneLabel[] = view === "drive"
+    ? [{ id: "CD1", at: [layout.drive[0] + 0.112, 0.72, 0.262], text: "CD-1 drive", detail: temperature, tone: "alert", leader: 34 }]
+    : [{ id: "CD1", at: [layout.drive[0], 0.78, 0.6], text: "CD-1 drive", detail: temperature, tone: "alert", leader: 30 }];
   return (
     <div className={styles.sceneCanvas}>
-      <Canvas
-        shadows="percentage"
-        dpr={[1, 2]}
-        frameloop={animating ? "always" : "demand"}
-        camera={{ fov: 28, near: 0.1, far: 80, position: [-4, 9, 12] }}
-        gl={{ antialias: true, powerPreference: "high-performance" }}
-        onCreated={(state) => { applyStudio(state); onReady?.(); }}
-      >
-        <color attach="background" args={[BACKGROUND]} />
-        <Lights span={7.5} focus={[0, 0, -0.5]} />
-        <CellEquipment proposed={configuration === "proposed"} selectDrive={focusDrive} />
+      <Stage3D frameloop={active ? "demand" : "never"} onReady={onReady} span={7.5} focus={[0, 0, -0.5]}>
+        <LineEquipment proposed={false} drive />
         <PackagingStation run={run} clock={clock} />
         <SimulatedParts run={run} clock={clock} />
         <CameraRig view={view} instant={instant} />
         <LabelProjector labels={labels} layer={layer} />
-        <Invalidate signal={`${configuration}-${time}-${view}-${focusDrive}`} />
-      </Canvas>
+        <Invalidate signal={`${view}-${active}`} />
+      </Stage3D>
+      <LabelLayer labels={labels} layer={layer} />
+    </div>
+  );
+}
+
+/* Test the change: both lines over the same ten minutes ------------------ */
+
+const stageLabel: Record<Stage, string> = { assembly: "A1 assembly", inspection: "Inspection", packaging: "P1 packaging" };
+
+function lineLabels(configuration: Configuration, time: number, z: number, inward: "left" | "right"): SceneLabel[] {
+  const run = runs[configuration];
+  const status = cellStatus(run, time);
+  const labels: SceneLabel[] = [
+    { id: `${configuration}-line`, at: [1.45, H + 0.1, z], text: configuration === "existing" ? "Today" : "With a second station", detail: `${status.packaged} packed`, tone: configuration === "existing" ? "quiet" : "proposed", leader: 18, minor: true },
+  ];
+  const bottleneck = bottleneckAt(run, time);
+  if (bottleneck) {
+    const spot = RING_SPOTS[bottleneck];
+    const share = Math.round(busySharesAt(run, time)[bottleneck] * 100);
+    labels.push({ id: `${configuration}-limit`, at: [spot.x, bottleneck === "inspection" ? 1.98 : 1.25, spot.z + z], text: "Bottleneck", detail: `${stageLabel[bottleneck]}, busy ${share}%`, tone: "alert", leader: 18, brief: true, side: inward });
+  }
+  const waiting = status.waitingForInspection;
+  if (waiting > 0) {
+    labels.push({ id: `${configuration}-queue`, at: [QUEUE_FRONT - Math.min(waiting, 7) * simulation.spacing, 0.02, z + 0.4], text: `${waiting} waiting`, detail: status.assembly === "blocked" ? "A1 can’t release its part" : undefined, tone: waiting >= 2 ? "alert" : "quiet", place: "below", leader: 16, minor: true });
+  }
+  return labels;
+}
+
+export function CompareCanvas({ clock, time, animating, active, instant, onReady }: { clock: RefObject<number>; time: number; animating: boolean; active: boolean; instant: boolean; onReady?: () => void }) {
+  const layer = useId();
+  const labels = [...lineLabels("existing", time, TODAY_Z, "left"), ...lineLabels("proposed", time, 0, "right")];
+  return (
+    <div className={styles.sceneCanvas}>
+      <Stage3D frameloop={!active ? "never" : animating ? "always" : "demand"} onReady={onReady} span={6.4} focus={[-2.05, 0, -1.72]}>
+        <group position={[0, 0, TODAY_Z]}>
+          <LineEquipment proposed={false} tail={2.25} />
+          <QueueLane run={runs.existing} clock={clock} />
+          <BottleneckRing run={runs.existing} clock={clock} />
+          <SimulatedParts run={runs.existing} clock={clock} limitX={2.05} />
+        </group>
+        <LineEquipment proposed tail={2.25} />
+        <QueueLane run={runs.proposed} clock={clock} />
+        <BottleneckRing run={runs.proposed} clock={clock} />
+        <SimulatedParts run={runs.proposed} clock={clock} limitX={2.05} />
+        <CameraRig view="compare" instant={instant} />
+        <LabelProjector labels={labels} layer={layer} />
+        <Invalidate signal={`${time}-${active}`} />
+      </Stage3D>
       <LabelLayer labels={labels} layer={layer} />
     </div>
   );
