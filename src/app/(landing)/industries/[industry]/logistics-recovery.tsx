@@ -13,7 +13,7 @@ type Option = "KV-2044" | "KV-2045";
 
 export function DisruptionRecovery() {
   const [mode, setMode] = useState<RecoveryMode>("recovery");
-  const [option, setOption] = useState<Option>("KV-2044");
+  const [option, setOption] = useState<Option>("KV-2045");
   const [draft, setDraft] = useState(false);
   const layout = useMemo(() => recoveryLayout(mode), [mode]);
   const free = freeSlots(layout);
@@ -36,37 +36,15 @@ export function DisruptionRecovery() {
       ? { title: `KV-2044 · stop ${movedStop} on Vehicle B`, detail: `Arrives ${moved?.arrive}, window ${moved?.window[0]}–${moved?.window[1]}`, tone: "ok" }
       : { title: `KV-2045 · ${fairholt.pallets} pallets`, detail: `Only ${free.length} ${free.length === 1 ? "space" : "spaces"} left on Vehicle B`, tone: "alert" };
 
-  const details: Record<Option, { status: string; tone: "ok" | "alert"; rows: [string, string][] }> = {
-    "KV-2044": {
-      status: "Delivery 1 can be reassigned.",
-      tone: "ok",
-      rows: [
-        ["Moves to", `Vehicle B, stop ${movedStop}, after ${places.hollin.name}`],
-        ["Window", `Arrives ${moved?.arrive}. Window ${moved?.window[0]}–${moved?.window[1]}.`],
-        ["Vehicle B", `${plans.recoveryB.loadedAtDepot} of ${vehicles.B.palletSpaces} spaces. Other stops keep their times.`],
-      ],
-    },
-    "KV-2045": {
-      status: "Delivery 2 still needs another option.",
-      tone: "alert",
-      rows: [
-        ["Moves to", `Nowhere yet. It needs ${fairholt.pallets} spaces and Vehicle B has ${vehicles.B.palletSpaces - plans.recoveryB.loadedAtDepot} left.`],
-        ["Window", `${fairholt.deliveryWindow[0]}–${fairholt.deliveryWindow[1]} at ${places.fairholt.name}, while Vehicle B is across the area.`],
-        ["Still open", "Another truck, a carrier, or a new window with the customer."],
-      ],
-    },
-  };
-  const shown = mode === "original"
+  const cards: Record<Option, { title: string; note: string; tone: "ok" | "alert" }> = mode === "original"
     ? {
-      status: `Delivery ${option === "KV-2044" ? 1 : 2} is affected.`,
-      tone: "alert" as const,
-      rows: [
-        ["Was on", "Vehicle A, now off the road"] as [string, string],
-        ["Window", `${shipments[option].deliveryWindow[0]}–${shipments[option].deliveryWindow[1]} at ${places[shipments[option].to].name}`] as [string, string],
-        ["Needs", `${shipments[option].pallets} spaces. Vehicle B has ${free.length} free.`] as [string, string],
-      ],
+      "KV-2044": { title: "On the dock", note: `Was on Vehicle A. Needs ${shipments["KV-2044"].pallets} spaces, and Vehicle B has ${free.length} free.`, tone: "alert" },
+      "KV-2045": { title: "On the dock", note: `Was on Vehicle A. Needs ${fairholt.pallets} spaces, and Vehicle B has ${free.length} free.`, tone: "alert" },
     }
-    : details[option];
+    : {
+      "KV-2044": { title: "Fits on Vehicle B", note: `Stop ${movedStop}, after Hollin Yard. Arrives ${moved?.arrive}.`, tone: "ok" },
+      "KV-2045": { title: "Stays on the dock", note: `Needs ${fairholt.pallets} spaces. Vehicle B has ${free.length} left.`, tone: "alert" },
+    };
 
   return (
     <Example
@@ -74,7 +52,7 @@ export function DisruptionRecovery() {
       note="Starts from a recorded vehicle-status update"
       outcome={{
         start: <p><strong>Vehicle A is unavailable before departure.</strong> Vehicle B has some remaining capacity.</p>,
-        finding: <p><strong>A recovery plan with the remaining gap identified.</strong> One delivery moves. One doesn’t fit.</p>,
+        finding: <p><strong>One delivery moves onto Vehicle B.</strong> Fairholt doesn’t fit.</p>,
         next: <p><strong>Dispatcher confirms the reassignment and reviews the unresolved delivery.</strong></p>,
       }}
     >
@@ -107,25 +85,22 @@ export function DisruptionRecovery() {
         <div className={styles.loadSide}>
           <div className={styles.sheet}>
             <div role="group" aria-label="Vehicle A’s deliveries" className={styles.optionList}>
-              {(Object.keys(details) as Option[]).map((id, index) => (
-                <button key={id} type="button" aria-pressed={option === id} data-tone={mode === "original" ? "alert" : details[id].tone} onClick={() => setOption(id)}>
-                  <span className={styles.optionName}>Delivery {index + 1} · {id}</span>
-                  <span className={styles.optionMeta}>{places[shipments[id].to].name} · {shipments[id].pallets} pallets</span>
+              {(Object.keys(cards) as Option[]).map((id) => (
+                <button key={id} type="button" aria-pressed={option === id} data-tone={cards[id].tone} onClick={() => setOption(id)}>
+                  <span className={styles.optionName}>{cards[id].title}</span>
+                  <span className={styles.optionMeta}>{id} · {places[shipments[id].to].name} · {shipments[id].pallets} pallets</span>
+                  <span className={styles.optionNote}>{cards[id].note}</span>
                 </button>
               ))}
             </div>
-            <p className={styles.optionStatus} data-tone={shown.tone} aria-live="polite">{shown.status}</p>
-            <dl className={styles.miniFacts}>
-              {shown.rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
-            </dl>
             <button type="button" className={styles.draftToggle} aria-expanded={draft} onClick={() => setDraft(!draft)}>
               {draft ? "Hide customer update" : "Preview customer update"} <ArrowRight size={14} aria-hidden="true" />
             </button>
             {draft && (
               <div className={styles.draft}>
-                <p className={styles.draftLabel}>Draft update — awaiting approval</p>
-                <p className={styles.draftText}>Your delivery schedule is being revised. We will confirm the updated arrival window.</p>
-                <p className={styles.draftMeta}>To the KV-2045 customer. Not sent until dispatch approves it.</p>
+                <p className={styles.draftLabel}>Draft update. Not sent.</p>
+                <p className={styles.draftText}>We’re revising your delivery time. We’ll confirm the new window.</p>
+                <p className={styles.draftMeta}>For the Fairholt customer. Dispatch has to approve it first.</p>
               </div>
             )}
           </div>

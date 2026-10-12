@@ -1,6 +1,6 @@
 /* Content sits in the homepage's 1200px measure; sections share one rhythm. */
 .operation, .offering, .start, .closing { --gutter: max(6%, calc((100% - 1200px) / 2)); padding-inline: var(--gutter); }
-.offering, .start, .closing { padding-block: clamp(96px, 10vw, 152px); scroll-margin-top: 64px; }
+.offering, .start, .closing { padding-block: clamp(96px, 10vw, 152px); scroll-margin-top: 88px; }
 
 /* Hero drawing */
 .heroFigure { position: relative; }
@@ -103,18 +103,17 @@
 .axis > span:first-child { position: sticky; left: 0; z-index: 2; align-self: stretch; background: #fff; }
 .laneHead strong { font-family: var(--font-frontier-headline), sans-serif; font-size: 20px; font-weight: 400; letter-spacing: -.035em; color: #17191a; }
 .laneHead span { font-size: 13px; color: #707273; }
-.laneTrack { position: relative; height: 112px; background-image: linear-gradient(90deg, #f0f0ee 1px, transparent 1px); background-size: 10% 100%; }
+.laneTrack { position: relative; height: 132px; background-image: linear-gradient(90deg, #f0f0ee 1px, transparent 1px); background-size: 10% 100%; }
 .shift { position: absolute; top: 36px; height: 40px; background: #f3f3f1; box-shadow: inset 0 0 0 1px #e4e4e2; }
 .drive { position: absolute; top: 55px; height: 2px; background: #a9abab; }
 .drive em { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); font-style: normal; font-size: 13px; white-space: nowrap; color: #707273; }
 .wait { position: absolute; top: 55px; height: 0; border-top: 2px dotted #c8c9c9; }
-.window { position: absolute; top: 22px; height: 8px; border: 1.5px solid #8d9093; border-bottom: 0; }
-.window[data-late] { border-color: #f51625; }
-.window em { position: absolute; right: 0; bottom: 10px; font-style: normal; font-size: 13px; white-space: nowrap; color: #555758; }
-.window[data-late] em { color: #a3101c; font-weight: 600; }
 .breakBlock { position: absolute; top: 44px; height: 24px; background: repeating-linear-gradient(135deg, #e4e4e2 0 4px, #f6f6f4 4px 8px); }
 .stopBlock { position: absolute; top: 40px; min-width: 22px; height: 32px; display: grid; place-items: center; padding: 0; background: #262829; color: #fff; font-size: 13px; font-weight: 700; transition: box-shadow 160ms; }
-.stopBlock i { position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); font-style: normal; font-size: 13px; font-weight: 600; white-space: nowrap; color: #17191a; }
+.stopBlock i, .stopBlock em { position: absolute; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.stopBlock i { top: calc(100% + 6px); color: #17191a; }
+.stopBlock em { top: calc(100% + 24px); color: #555758; }
+.stopBlock[data-late] em { color: #a3101c; }
 .stopBlock[data-new] { background: #007dfe; }
 .stopBlock[data-late] { background: #f51625; }
 .stopBlock[data-late] i { color: #a3101c; }
@@ -123,7 +122,7 @@
 .timelineFoot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; }
 .timelineKey { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: #555758; }
 .timelineKey li { display: flex; align-items: center; gap: 8px; }
-.timelineKey li::before { content: ""; width: 18px; height: 8px; border: 1.5px solid #8d9093; border-bottom: 0; }
+.timelineKey li::before { content: ""; width: 12px; height: 12px; }
 .timelineKey li[data-key="shift"]::before { height: 12px; border: 1px solid #e4e4e2; background: #f3f3f1; }
 .timelineKey li[data-key="new"]::before { width: 12px; height: 12px; border: 0; background: #007dfe; }
 .timelineKey li[data-key="late"]::before { width: 12px; height: 12px; border: 0; background: #f51625; }
@@ -142,6 +141,7 @@
 .optionList button[aria-pressed="true"] { background: #fffbea; box-shadow: inset 0 0 0 1px #17191a; }
 .optionName { font-size: 15px; font-weight: 600; color: #17191a; }
 .optionMeta { font-size: 14px; color: #555758; }
+.optionNote { font-size: 15px; line-height: 1.45; color: #17191a; }
 .optionStatus { margin: 0 0 8px; font-size: 16px; font-weight: 600; color: #a3101c; }
 .optionStatus[data-tone="ok"] { color: #0054b8; }
 .draftToggle { display: inline-flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; background: #17191a; color: #fff; font-size: 14px; transition: background 180ms; }
@@ -240,6 +240,7 @@
 .manifestStop { display: grid; place-items: center; flex-shrink: 0; width: 28px; height: 28px; background: #17191a; color: #fff; font-size: 14px; font-weight: 700; }
 .manifestId { display: grid; font-size: 15px; font-weight: 600; color: #17191a; }
 .manifestId span { font-size: 14px; font-weight: 400; color: #555758; }
+.manifestNote { margin: 4px 0 0; font-size: 15px; line-height: 1.5; color: #17191a; }
 .compareTable { width: 100%; border-collapse: collapse; font-size: 15px; }
 .compareTable th, .compareTable td { padding: 10px 0; border-top: 1px solid #e4e4e2; text-align: left; font-weight: 400; color: #17191a; }
 .compareTable thead th { border-top: 0; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: #707273; }

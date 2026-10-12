@@ -208,8 +208,8 @@ export function LoadPlan() {
         value={arrangement}
         onChange={(next) => { stopPlaying(); setArrangement(next); }}
         options={[
-          { value: "initial", label: "Initial arrangement", detail: "The first-stop shipment is blocked by other freight." },
-          { value: "proposed", label: "Proposed arrangement", detail: "The first-stop shipment can be reached without removing the later deliveries." },
+          { value: "initial", label: "As loaded" },
+          { value: "proposed", label: "Proposed" },
         ]}
       />
       <div className={styles.loadGrid}>
@@ -249,26 +249,7 @@ export function LoadPlan() {
                 </button>
               ))}
             </div>
-            <dl className={styles.miniFacts} aria-live="polite">
-              <div><dt>Delivery stop</dt><dd>{selectedStop}, {places[selectedShipment.to].name}</dd></div>
-              <div><dt>Dimensions</dt><dd>{formatSize(selectedShipment)}</dd></div>
-              <div><dt>Weight</dt><dd>{formatKg(totalWeight(selectedShipment))}</dd></div>
-              <div><dt>Can be stacked?</dt><dd>{selectedShipment.stackable}</dd></div>
-            </dl>
-          </div>
-          <div className={styles.sheet}>
-            <table className={styles.compareTable}>
-              <thead><tr><th scope="col">Pallets moved first</th><th scope="col">Initial</th><th scope="col">Proposed</th></tr></thead>
-              <tbody>
-                {loadStops.map(({ stop }) => (
-                  <tr key={stop}>
-                    <th scope="row">Stop {stop}</th>
-                    <td data-tone={blockersAt("initial", stop) > 0 ? "alert" : undefined}>{blockersAt("initial", stop)}</td>
-                    <td>{blockersAt("proposed", stop)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <p className={styles.manifestNote} aria-live="polite">{formatSize(selectedShipment)} · {formatKg(totalWeight(selectedShipment))} · {selectedShipment.stackable}</p>
           </div>
         </div>
       </div>

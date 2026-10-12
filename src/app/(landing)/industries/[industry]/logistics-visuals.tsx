@@ -5,9 +5,7 @@ import { ArrowRight, Check, CircleAlert } from "lucide-react";
 import styles from "./logistics.module.css";
 import {
   collectionDetourKm,
-  formatKg,
   formatMoney,
-  formatSize,
   operation,
   places,
   plans,
@@ -15,11 +13,9 @@ import {
   quoteRequest,
   quoteTotal,
   rateCard,
-  roadKm,
   shipments,
   stopOf,
   toMinutes,
-  totalWeight,
   vehicles,
   type PlannedRoute,
   type VehicleId,
@@ -73,7 +69,7 @@ const span = (from: string | number, to: string | number) => {
   return `${((b - a) / DAY_SPAN) * 100}%`;
 };
 const hours = Array.from({ length: 11 }, (_, index) => 7 + index);
-const shortName = (name: string) => name.replace(" Works", "");
+const placeLabel = (name: string) => name.replace(/ Works| Park| Lane| Yard| Quay/g, "");
 
 type DispatchView = "plan" | "A" | "B";
 
@@ -115,13 +111,13 @@ function Lane({ route, selected, onSelect }: { route: PlannedRoute; selected: Se
           const breakHere = route.driverBreak?.stopIndex === index ? route.driverBreak : null;
           const isNew = stop.shipment === "KV-2046";
           const isSelected = selected?.vehicle === route.vehicle && selected.index === index;
+          const showName = isSelected || stop.late || isNew;
           return (
             <Fragment key={`${stop.shipment}-${stop.action}`}>
               <span className={styles.drive} style={{ left: pct(driveStart), width: span(driveStart, arrive) }}>
-                {stop.driveMinutes >= 60 && <em>{stop.driveMinutes} min drive</em>}
+                {stop.late && stop.driveMinutes >= 45 && <em>{stop.driveMinutes} min drive</em>}
               </span>
               {start > arrive && <span className={styles.wait} style={{ left: pct(arrive), width: span(arrive, start) }} />}
-              {isSelected && <span className={styles.window} data-focus="true" data-late={stop.late || undefined} style={{ left: pct(stop.window[0]), width: span(stop.window[0], stop.window[1]) }}><em>{stop.late ? `Closes ${stop.window[1]}` : `Window ${stop.window[0]}–${stop.window[1]}`}</em></span>}
               {breakHere && breakHere.during === "after" && <span className={styles.breakBlock} style={{ left: pct(breakHere.start), width: span(breakHere.start, breakHere.end) }} />}
               <button
                 type="button"
@@ -134,7 +130,8 @@ function Lane({ route, selected, onSelect }: { route: PlannedRoute; selected: Se
                 aria-label={`${places[stop.place].name}, ${stop.action === "collect" ? "collect" : "deliver"} ${stop.shipment}, arrives ${stop.arrive}, window ${stop.window[0]} to ${stop.window[1]}${stop.late ? ", misses the window" : ""}`}
               >
                 <span>{index + 1}</span>
-                <i>{shortName(places[stop.place].name)}</i>
+                {showName && <i>{placeLabel(places[stop.place].name)}</i>}
+                {isSelected && <em>{stop.late ? `Closes ${stop.window[1]}` : `${stop.window[0]}–${stop.window[1]}`}</em>}
               </button>
             </Fragment>
           );
@@ -147,19 +144,20 @@ function Lane({ route, selected, onSelect }: { route: PlannedRoute; selected: Se
 }
 
 export function DeliveryPlan() {
-  const [view, setView] = useState<DispatchView>("B");
+  const [view, setView] = useState<DispatchView>("A");
   const [selected, setSelected] = useState<Selection | null>(null);
   const routes = viewRoutes[view];
   const request = shipments["KV-2046"];
-  const late = plans.requestOnA.lateStops[0];
+  const missed = plans.requestOnA.lateStops;
+  const late = missed[0];
   const collect = stopOf(plans.requestOnB, "KV-2046", "collect");
   const deliver = stopOf(plans.requestOnB, "KV-2046");
-  const focus = selected ?? (view === "A" ? { vehicle: "A" as const, index: plans.requestOnA.stops.indexOf(late) } : view === "B" ? { vehicle: "B" as const, index: plans.requestOnB.stops.findIndex((stop) => stop.shipment === "KV-2046") } : null);
+  const focus = selected ?? (view === "A" ? { vehicle: "A" as const, index: plans.requestOnA.stops.indexOf(late) } : view === "B" ? { vehicle: "B" as const, index: plans.requestOnB.stops.findIndex((stop) => stop.shipment === "KV-2046" && stop.action === "collect") } : null);
   const focusStop = focus ? routes[focus.vehicle].stops[focus.index] : null;
   const verdict = {
-    plan: { tone: "neutral", title: "Tomorrow’s deliveries", text: "Five drops on two trucks. Everything lands inside its window." },
-    A: { tone: "alert", title: "Vehicle A: Conflicts with an existing delivery window.", text: `It has to drive back west after the pickup. ${shortName(places[late.place].name)} slips to ${late.arrive}; its window closes at ${late.window[1]}.` },
-    B: { tone: "ok", title: "Vehicle B: Fits the example schedule and available capacity.", text: `Collect at ${collect?.arrive}, deliver at ${deliver?.start}. Its other stops don’t move.` },
+    plan: { tone: "neutral", title: "Five drops, both trucks on time.", text: "Nothing is late. Then the Glenway pickup comes in." },
+    A: { tone: "alert", title: "Two stops miss their windows.", text: `${placeLabel(places[late.place].name)} arrives at ${late.arrive} after a ${late.driveMinutes}-minute drive back west. ${placeLabel(places[missed[1].place].name)} arrives at ${missed[1].arrive}. Both windows have closed.` },
+    B: { tone: "ok", title: "Vehicle B can take it.", text: `Glenway at ${collect?.arrive}, Hollin at ${deliver?.start}. The other stops stay put.` },
   }[view];
   const changeView = (next: DispatchView) => { setView(next); setSelected(null); };
   const scroller = useRef<HTMLDivElement>(null);
@@ -169,13 +167,13 @@ export function DeliveryPlan() {
     const target = container?.querySelector<HTMLElement>("button[aria-pressed=\"true\"]");
     if (!container || !target || container.scrollWidth <= container.clientWidth) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const bracket = container.querySelector<HTMLElement>("[data-focus]");
     const block = target.getBoundingClientRect();
-    // The window label sits at the bracket's right end; keep it and the stop on screen together.
-    const label = bracket ? bracket.getBoundingClientRect().right : block.left;
-    const middle = (Math.min(block.left, label - 150) + Math.max(block.right, label)) / 2;
+    const bits = [block, ...Array.from(target.querySelectorAll("i, em"), (node) => node.getBoundingClientRect())];
+    const leftEdge = Math.min(...bits.map((box) => box.left));
+    const rightEdge = Math.max(...bits.map((box) => box.right));
+    const middle = (leftEdge + rightEdge) / 2;
     const left = middle - container.getBoundingClientRect().left + container.scrollLeft - container.clientWidth / 2;
-    container.scrollTo({ left, behavior: reduce ? "auto" : "smooth" });
+    container.scrollTo({ left: Math.max(0, left), behavior: reduce ? "auto" : "smooth" });
   }, [view, selected]);
 
   return (
@@ -184,7 +182,7 @@ export function DeliveryPlan() {
       note="Example drive times"
       outcome={{
         start: <p>Five deliveries on two trucks. Then a pickup for {request.pallets} pallets comes in.</p>,
-        finding: <p><strong>Proposed assignment: Vehicle B.</strong> Vehicle A would make Fairholt late.</p>,
+        finding: <p><strong>Proposed assignment: Vehicle B.</strong> On Vehicle A, Fairholt and Elm would both be late.</p>,
         next: <p><strong>Dispatcher reviews the updated route.</strong></p>,
       }}
     >
@@ -217,7 +215,6 @@ export function DeliveryPlan() {
       </div>
       <div className={styles.timelineFoot}>
         <ul className={styles.timelineKey} aria-label="Key">
-          <li data-key="window">Customer delivery window</li>
           <li data-key="shift">Driver availability</li>
           <li data-key="new">New job</li>
           <li data-key="late">Misses its window</li>
@@ -233,7 +230,7 @@ export function DeliveryPlan() {
 }
 
 type FieldKey = "pickup" | "delivery" | "timing" | "cargo" | "dimensions" | "handling";
-type LineKey = "base" | "detour" | "handling" | "availability";
+type LineKey = "base" | "detour" | "handling";
 
 const requestText: { text: string; field?: FieldKey }[] = [
   { text: "Can you collect " },
@@ -259,36 +256,31 @@ const replyText: { text: string; field?: FieldKey }[] = [
   { text: "." },
 ];
 
-function Message({ parts, field }: { parts: { text: string; field?: FieldKey }[]; field: FieldKey | null }) {
+function Message({ parts, fields }: { parts: { text: string; field?: FieldKey }[]; fields: FieldKey[] }) {
   return (
     <p className={styles.messageText}>
-      {parts.map((part, index) => part.field ? <mark key={index} data-active={part.field === field || undefined}>{part.text}</mark> : <span key={index}>{part.text}</span>)}
+      {parts.map((part, index) => part.field ? <mark key={index} data-active={fields.includes(part.field) || undefined}>{part.text}</mark> : <span key={index}>{part.text}</span>)}
     </p>
   );
 }
 
+const lineFields: Record<LineKey, FieldKey[]> = {
+  base: ["cargo"],
+  detour: ["pickup", "delivery"],
+  handling: ["handling"],
+};
+
 export function QuotePreparation() {
   const [replied, setReplied] = useState(true);
-  const [field, setField] = useState<FieldKey | null>("dimensions");
   const [line, setLine] = useState<LineKey>("detour");
   const shipment = shipments["KV-2046"];
-  const fields: { key: FieldKey; label: string; value: string; missing?: boolean }[] = [
-    { key: "pickup", label: "Pickup", value: "Glenway Works" },
-    { key: "delivery", label: "Delivery", value: "Hollin Yard" },
-    { key: "timing", label: "Requested timing", value: `${shipment.collectionWindow?.[0]}–${shipment.collectionWindow?.[1]}, then ${shipment.deliveryWindow[0]}–${shipment.deliveryWindow[1]}` },
-    { key: "cargo", label: "Cargo", value: `${shipment.pallets} pallets` },
-    replied
-      ? { key: "dimensions", label: "Dimensions", value: `${formatSize(shipment)}, ${formatKg(totalWeight(shipment))}` }
-      : { key: "dimensions", label: "Dimensions", value: "Confirmation needed", missing: true },
-    ...(replied ? [{ key: "handling" as const, label: "Handling", value: "Tail-lift" }] : []),
-  ];
   const lines: { key: LineKey; label: string; amount: string; why: string }[] = [
-    { key: "base", label: "Base transport charge", amount: formatMoney(quoteLines.base), why: `Rate card: ${formatMoney(rateCard.palletRate)} per standard pallet in ${rateCard.zone}. ${shipment.pallets} × ${formatMoney(rateCard.palletRate)}.` },
-    { key: "detour", label: "Additional pickup distance", amount: formatMoney(quoteLines.detour), why: `Rate card: ${formatMoney(rateCard.perExtraKm)} per extra km. Via Glenway it’s ${roadKm("depot", "glenway")} + ${roadKm("glenway", "hollin")} km against ${roadKm("depot", "hollin")} km direct, so ${collectionDetourKm} km extra.` },
-    { key: "handling", label: "Required handling", amount: formatMoney(quoteLines.handling), why: `Rate card: ${formatMoney(rateCard.tailLiftPerStop)} per tail-lift stop. The reply says there’s no forklift on site.` },
-    { key: "availability", label: "Availability check", amount: "No charge", why: "Vehicle B has room after its morning drops. Dispatch confirms before the quote goes out." },
+    { key: "base", label: "Base transport charge", amount: formatMoney(quoteLines.base), why: `${shipment.pallets} pallets at ${formatMoney(rateCard.palletRate)} each, from the ${rateCard.zone} rate card.` },
+    { key: "detour", label: "Additional pickup distance", amount: formatMoney(quoteLines.detour), why: `Glenway adds ${collectionDetourKm} km, at ${formatMoney(rateCard.perExtraKm)} a km.` },
+    { key: "handling", label: "Required handling", amount: formatMoney(quoteLines.handling), why: `No forklift at Hollin Yard. The rate card adds ${formatMoney(rateCard.tailLiftPerStop)} for the tail-lift.` },
   ];
   const active = lines.find((item) => item.key === line) ?? lines[0];
+  const fields = replied ? lineFields[active.key] : [];
   return (
     <Example
       title={`Request ${quoteRequest.reference} · ${operation.name} (fictional)`}
@@ -306,23 +298,16 @@ export function QuotePreparation() {
         <div className={styles.sheet}>
           <div className={styles.message}>
             <p className={styles.messageMeta}>{quoteRequest.from} · {quoteRequest.received}</p>
-            <Message parts={requestText} field={field} />
+            <Message parts={requestText} fields={fields} />
           </div>
           {replied ? (
             <div className={styles.message} data-reply="true">
               <p className={styles.messageMeta}>Reply · {quoteRequest.replyReceived}</p>
-              <Message parts={replyText} field={field} />
+              <Message parts={replyText} fields={fields} />
             </div>
           ) : (
             <button type="button" className={styles.supply} onClick={() => setReplied(true)}>Add the customer’s reply <ArrowRight size={14} aria-hidden="true" /></button>
           )}
-          <div role="group" aria-label="Extracted details. Select one to see where it came from." className={styles.fieldChips}>
-            {fields.map((item) => (
-              <button key={item.key} type="button" aria-pressed={field === item.key} data-missing={item.missing || undefined} onClick={() => setField(item.key)}>
-                <span>{item.label}</span>{item.value}
-              </button>
-            ))}
-          </div>
         </div>
         <div className={styles.sheet} data-locked={!replied || undefined}>
           {replied ? (
@@ -336,9 +321,8 @@ export function QuotePreparation() {
                 ))}
               </div>
               <p className={styles.lineWhy} aria-live="polite">{active.why}</p>
-              {line === "detour" && <p className={styles.consideration}>This pickup adds travel before the vehicle reaches the customer.</p>}
               <p className={styles.quoteTotal}><span>Draft total</span>{formatMoney(quoteTotal)}</p>
-              <p className={styles.quoteStatus}>Draft, not sent. Assumes the pallets as described, a tail-lift, and a vehicle dispatch confirms.</p>
+              <p className={styles.quoteStatus}>Draft, not sent. It assumes the pallets in the reply, a tail-lift, and a truck your dispatcher confirms.</p>
             </>
           ) : (
             <p className={styles.locked}><CircleAlert size={18} aria-hidden="true" /> Confirm dimensions before selecting a vehicle.</p>
