@@ -60,11 +60,15 @@ const tint = (material: THREE.MeshStandardMaterial, color: string, strength: num
 const ADDED_WALL = tint(MODEL.partition, SELECT, 0.55);
 const LEAF_SELECTED = tint(MODEL.leaf, SELECT, 0.62);
 const LEAF_OK = tint(MODEL.leaf, OK, 0.4);
-const LEAF_GHOST = new THREE.MeshStandardMaterial({ color: SELECT, roughness: 0.6, transparent: true, opacity: 0.32, depthWrite: false });
+const LEAF_GHOST = new THREE.MeshStandardMaterial({ color: SELECT, roughness: 0.6, transparent: true, opacity: 0.62, depthWrite: false });
 const EDGE_INK = new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.85 });
 const EDGE_DASHED = new THREE.LineDashedMaterial({ color: INK, dashSize: 0.1, gapSize: 0.07 });
 const SWING_LINE = new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.3 });
 const SWING_FILL = new THREE.MeshBasicMaterial({ color: SELECT, transparent: true, opacity: 0.55, depthWrite: false, toneMapped: false, side: THREE.DoubleSide });
+// The core beyond C-14 was unlit, so the capture shows a framed opening, not a door.
+const UNLIT_LOBBY = new THREE.MeshBasicMaterial({ color: "#2e3032", toneMapped: false });
+const BARE_STUD = standard("#d5d8db", 0.4, 0.45);
+const MISSING_FLOOR = new THREE.MeshBasicMaterial({ color: SELECT, transparent: true, opacity: 0.5, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 const TIMBER = standard("#a08d6d", 0.9);
 const BOARD = standard("#e8e4d9", 0.92);
 const STUD = standard("#a6a9ac", 0.45, 0.55);
@@ -122,6 +126,31 @@ function stairBoxes(): Box[] {
   return steps;
 }
 
+// Studs and a dark recess, set just inside the core so the opening reads as empty.
+function bareOpening() {
+  const face = CORE_X + 0.06;
+  // Thick enough to read from the corridor. Real studs would disappear at this distance.
+  const studs = [6.66, 6.94, 7.22];
+  const boxes: Box[] = studs.map((z): Box => ({ x: [face, face + 0.08], y: [0.08, DOOR_HEAD - 0.1], z: [z, z + 0.12] }));
+  boxes.push({ x: [face, face + 0.08], y: [0, 0.08], z: [6.58, 7.42] });
+  boxes.push({ x: [face, face + 0.08], y: [DOOR_HEAD - 0.12, DOOR_HEAD - 0.02], z: [6.58, 7.42] });
+  return {
+    studs: merged(boxes),
+    recess: block({ x: [CORE_X + 0.22, CORE_X + 2.4], y: [0.02, WALL_HEIGHT - 0.08], z: [5.7, 8.3] }),
+  };
+}
+
+function roomSlab(id: string) {
+  const door = doorById(id);
+  const x0 = door.hinge[0] - 0.5;
+  const north = door.swing === 1;
+  return block({
+    x: [x0 + 0.16, x0 + 3.84],
+    y: [0.02, 0.028],
+    z: north ? [0.16, CORRIDOR.north - 0.12] : [CORRIDOR.south + 0.12, FLOOR.depth - 0.16],
+  });
+}
+
 function boardStack() {
   const { x, z } = BOARD_STACK;
   const pallet: Box[] = [
@@ -153,7 +182,7 @@ function buildKit() {
     exterior: merged(solid(of("exterior"))),
     partition: merged(solid(of("partition"))),
     core: merged(coreBoxes),
-    caps: merged([...caps(solid(fixed)), ...caps([LIFT])]),
+    caps: merged(caps(solid(fixed))),
     frames: merged(fixed.flatMap(frameBoxes)),
     glass: merged(windows.flatMap((item) => item.glass)),
     mullions: merged(windows.flatMap((item) => item.mullions)),
@@ -168,6 +197,7 @@ function buildKit() {
     ceiling: block({ x: [0, FLOOR.length], y: [WALL_HEIGHT + 0.016, WALL_HEIGHT + 0.06], z: [0, FLOOR.depth] }),
     fixtures: merged(fixtures),
     boards: boardStack(),
+    bare: bareOpening(),
   };
 }
 type Kit = ReturnType<typeof buildKit>;
@@ -244,7 +274,7 @@ function Floor({ materials, ceiling = false }: { materials: Palette; ceiling?: b
   const k = getKit();
   return (
     <group>
-      <mesh geometry={k.slab} material={materials.slab} receiveShadow />
+      <mesh geometry={k.slab} material={materials.slab} castShadow receiveShadow />
       <mesh geometry={k.floor} material={materials.floor} receiveShadow />
       <mesh geometry={k.corridor} material={materials.corridor} receiveShadow />
       <mesh geometry={k.exterior} material={materials.exterior} castShadow receiveShadow />
@@ -294,6 +324,7 @@ function AddedRooms({ revised, instant }: { revised: boolean; instant: boolean }
   });
   return (
     <group ref={group}>
+      {ADDED_SLABS.map((slab) => <mesh key={slab.id} geometry={slab.geometry} material={MISSING_FLOOR} />)}
       <mesh geometry={k.added} material={ADDED_WALL} castShadow receiveShadow />
       <lineSegments geometry={getAddedEdges()} material={EDGE_INK} />
       <mesh geometry={k.addedCaps} material={MODEL.cap} />
@@ -413,9 +444,15 @@ function LabelLayer({ labels, layer }: { labels: SceneLabel[]; layer: RefObject<
 const scratch = new THREE.Vector3();
 const EDGE = 8;
 
+type Rect = { left: number; top: number; right: number; bottom: number };
+const GAP = 6;
+const overlaps = (a: Rect, b: Rect) => a.left < b.right + GAP && a.right > b.left - GAP && a.top < b.bottom + GAP && a.bottom > b.top - GAP;
+
+// Later chips step out of the way of earlier ones: up if there's room, else below.
 function placeLabels(layer: HTMLDivElement | null, labels: SceneLabel[], project: (point: Point, view: 0 | 1) => { x: number; y: number; visible: boolean }) {
   if (!layer) return;
   const width = layer.clientWidth;
+  const placed: Rect[] = [];
   for (const label of labels) {
     const chip = layer.querySelector<HTMLElement>(`[data-chip="${label.id}"]`);
     const leader = layer.querySelector<SVGGElement>(`[data-leader="${label.id}"]`);
@@ -427,7 +464,17 @@ function placeLabels(layer: HTMLDivElement | null, labels: SceneLabel[], project
     const chipWidth = chip.offsetWidth;
     const chipHeight = chip.offsetHeight;
     const left = Math.min(Math.max(center - chipWidth / 2, EDGE), width - chipWidth - EDGE);
-    const top = Math.max(highest - (label.lift ?? 36) - chipHeight, EDGE);
+    let top = Math.max(highest - (label.lift ?? 36) - chipHeight, EDGE);
+    if (visible) {
+      for (let attempt = 0; attempt < 4; attempt++) {
+        const rect = { left, top, right: left + chipWidth, bottom: top + chipHeight };
+        const hit = placed.find((other) => overlaps(rect, other));
+        if (!hit) break;
+        top = hit.top - chipHeight - GAP * 2 >= EDGE ? hit.top - chipHeight - GAP * 2 : hit.bottom + GAP * 2;
+      }
+      placed.push({ left, top, right: left + chipWidth, bottom: top + chipHeight });
+    }
+    const below = top > highest;
     chip.style.transform = `translate3d(${left.toFixed(1)}px, ${top.toFixed(1)}px, 0)`;
     chip.style.opacity = visible ? "1" : "0";
     leader.style.opacity = visible ? "1" : "0";
@@ -437,7 +484,7 @@ function placeLabels(layer: HTMLDivElement | null, labels: SceneLabel[], project
       const line = lines[index];
       const dot = dots[index];
       line.setAttribute("x1", Math.min(Math.max(anchor.x, left + 12), left + chipWidth - 12).toFixed(1));
-      line.setAttribute("y1", (top + chipHeight).toFixed(1));
+      line.setAttribute("y1", (below ? top : top + chipHeight).toFixed(1));
       line.setAttribute("x2", anchor.x.toFixed(1));
       line.setAttribute("y2", anchor.y.toFixed(1));
       dot.setAttribute("cx", anchor.x.toFixed(1));
@@ -552,13 +599,15 @@ function SplitRig({ view, stacked, labels, layer }: { view: Frame; stacked: bool
 /* Scenes */
 
 const VIEWS: Record<"bid" | "change", View> = {
-  bid: { position: [27, 30, 39], target: [18.5, 0, 6.4], narrow: { position: [37.5, 15.5, 24], target: [26.8, 0, 8.6] } },
-  change: { position: [-3.2, 15.5, 22.5], target: [5.6, 0.2, 5.4], narrow: { position: [-4.5, 15, 21], target: [4.8, 0.4, 6.2] } },
+  bid: { position: [25.5, 34, 44.5], target: [18, 0, 6.8], narrow: { position: [37.5, 15.5, 24], target: [26.8, 0, 8.6] } },
+  change: { position: [-4, 17, 25], target: [5.8, 0.2, 6], narrow: { position: [4, 30, 30], target: [5, 0.2, 4] } },
 };
-const SITE_VIEW: Frame = { position: [24.6, 1.6, 7.25], target: [CORE_X, 1.15, 7] };
+const SITE_VIEW: Frame = { position: [25.6, 1.6, 7.2], target: [CORE_X, 1.2, 7] };
 
 const fitoutDoors = DOORS.filter((door) => door.kind === "fitout");
 const C14 = doorById("C-14");
+const MISSING_SLABS = UNQUOTED.map((id) => ({ id, geometry: roomSlab(id) }));
+const ADDED_SLABS = ["A", "B"].map((id) => ({ id, geometry: roomSlab(id) }));
 
 function doorTop(id: string, lift = DOOR_HEAD + 0.1): Point {
   const [x, z] = doorCenter(doorById(id));
@@ -580,8 +629,8 @@ function changeLabels(revised: boolean): SceneLabel[] {
   if (!revised) return [];
   return [
     { id: "walls", at: [[6.3, WALL_HEIGHT, CORRIDOR.north]], title: "New walls and doors", detail: "Not in quote Q-2047", lift: 30 },
-    { id: "boards", at: [[BOARD_STACK.x + 1.2, 0.5, BOARD_STACK.z + 0.6]], title: "Studs and boards", detail: "Order MO-112 is for the current plan", lift: 40 },
-    { id: "power", at: [[4, WALL_HEIGHT, 1.6]], title: "Electrical first fix", detail: "Booked for the current layout", lift: 54 },
+    { id: "boards", at: [[BOARD_STACK.x + 1.2, 0.5, BOARD_STACK.z + 0.6]], title: "Studs and boards", detail: "Not on order MO-112", lift: 40 },
+    { id: "power", at: [[4, WALL_HEIGHT, 1.6]], title: "Electrical first fix", detail: "Booked for the current rooms", lift: 54 },
   ];
 }
 
@@ -603,8 +652,9 @@ function BidScene({ mode, instant, labels, layer, orbit }: { mode: BidMode; inst
       <Rig view={VIEWS.bid} labels={labels} layer={layer} instant={instant} orbit={orbit} />
       <Ground />
       <Floor materials={MODEL} />
+      {mode === "quote" && MISSING_SLABS.map((slab) => <mesh key={slab.id} geometry={slab.geometry} material={MISSING_FLOOR} />)}
       {[...fitoutDoors, C14].map((door) => <Leaf key={door.id} door={door} state={leafState(door)} materials={MODEL} />)}
-      {fitoutDoors.map((door) => <Swing key={door.id} door={door} filled={mode === "quote" && !QUOTED.has(door.id)} />)}
+      {fitoutDoors.map((door) => <Swing key={door.id} door={door} filled={false} />)}
     </>
   );
 }
@@ -634,6 +684,8 @@ function SiteScene({ stacked, labels, layer }: { stacked: boolean } & Omit<Layer
       <group position={[SPLIT_OFFSET, 0, 0]}>
         <Floor materials={CAPTURE} ceiling />
         {fitoutDoors.map((door) => <Leaf key={door.id} door={door} state="neutral" materials={CAPTURE} />)}
+        <mesh geometry={getKit().bare.studs} material={BARE_STUD} castShadow />
+        <mesh geometry={getKit().bare.recess} material={UNLIT_LOBBY} />
       </group>
     </>
   );

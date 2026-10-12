@@ -136,10 +136,10 @@ function FloorPlan({ view, revised = false, doors = () => "normal", fills = [], 
         {walls.flatMap((wall) => planPieces(wall).map((piece, index) => (
           <rect key={`${wall.kind}-${wall.axis}-${wall.at}-${wall.from}-${index}`} x={piece.x[0]} y={piece.z[0]} width={piece.x[1] - piece.x[0]} height={piece.z[1] - piece.z[0]} fill={wall.kind === "added" ? SELECT : INK} stroke={wall.kind === "added" ? INK : "none"} strokeWidth={1} vectorEffect="non-scaling-stroke" />
         )))}
-        {WALLS.flatMap((wall) => wall.openings.filter((opening) => opening.sill !== undefined).map((opening, index) => {
+        {WALLS.flatMap((wall) => wall.openings.filter((opening) => opening.sill !== undefined).map((opening) => {
           const along = [opening.from, opening.to];
           const [x1, x2, y1, y2] = wall.axis === "x" ? [along[0], along[1], wall.at, wall.at] : [wall.at, wall.at, along[0], along[1]];
-          return <line key={`${wall.at}-${index}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#9a9b9b" strokeWidth={1} vectorEffect="non-scaling-stroke" />;
+          return <line key={`${wall.axis}-${wall.at}-${wall.kind}-${opening.from}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#9a9b9b" strokeWidth={1} vectorEffect="non-scaling-stroke" />;
         }))}
         {DOORS.filter((door) => door.kind !== "added" || revised).map((door) => {
           const state = doors(door);
@@ -217,8 +217,8 @@ export function BidCheck() {
 
 const CHANGE_MARKS: PlanMark[] = [
   { at: [6.3, 6], title: "New walls and doors", detail: "Not in quote Q-2047" },
-  { at: [BOARD_STACK.x + 1.2, BOARD_STACK.z + 0.6], title: "Studs and boards", detail: "Order MO-112 is for the current plan" },
-  { at: [2, 2.6], title: "Electrical first fix", detail: "Booked for the current layout" },
+  { at: [BOARD_STACK.x + 1.2, BOARD_STACK.z + 0.6], title: "Studs and boards", detail: "Not on order MO-112" },
+  { at: [2, 2.6], title: "Electrical first fix", detail: "Booked for the current rooms" },
 ];
 
 export function ChangeImpact() {
@@ -237,11 +237,12 @@ export function ChangeImpact() {
         options={[{ value: "current", label: "Current plan" }, { value: "revised", label: "With two more rooms" }]}
       />
       <FloorView
+        className={styles.changeView}
         scene={{ kind: "change", revised }}
         label={revised
-          ? "3D model of the west end of Level 2. Two new rooms are added in the open area, highlighted. Three questions: the new walls and doors are not in quote Q-2047; material order MO-112 covers the current plan; electrical first fix is booked for the current layout."
+          ? "3D model of the west end of Level 2. Two new rooms are added in the open area, highlighted. Three questions: the new walls and doors are not in quote Q-2047; their studs and boards are not on material order MO-112; electrical first fix is booked for the current rooms."
           : "3D model of the west end of Level 2, with the open area as currently planned."}
-        fallback={<FloorPlan view={[-0.6, -0.6, 16.8, 15.2]} revised={revised} marks={revised ? CHANGE_MARKS : []} />}
+        fallback={<FloorPlan view={[-0.6, -0.6, 16.8, 15.2]} revised={revised} fills={revised ? ["A", "B"].map(roomOf) : []} marks={revised ? CHANGE_MARKS : []} />}
       />
     </Example>
   );
@@ -263,7 +264,7 @@ export function SiteCheck() {
       <FloorView
         className={styles.splitView}
         scene={{ kind: "site", stacked }}
-        label="Two matched views down the Level 2 corridor toward opening C-14. Left, the project model, with a door in C-14. Right, the 14 May site capture, where no door is visible in the opening."
+        label="Two matched views down the Level 2 corridor toward opening C-14. Left, the project model, with a door in C-14. Right, the 14 May site capture, where the opening has studs and no door."
         fallback={
           <div className={styles.sitePlans}>
             <div><FloorPlan view={corridorEnd} marks={[{ at: [CORE_X - 0.1, 6.5], title: "C-14", detail: "Door in the model", state: "ok" }]} /></div>
