@@ -49,7 +49,7 @@ const offerings: Offering[] = [
     label: "Understand the business",
     moment: "Across your stores",
     headline: "Ask a business question. Follow the evidence.",
-    body: "Ask why one store’s margin is lower, and the tool checks the usual suspects against your sales records. It tells you what differs and what the records can’t explain. This builds on retail analysis we’ve already done.",
+    body: "Ask why one store’s margin is lower. The tool runs that question on both stores’ sales records, and it says what those records can’t explain.",
     outcome: "Know which difference deserves your attention.",
     Visual: UnderstandTheBusiness,
   },

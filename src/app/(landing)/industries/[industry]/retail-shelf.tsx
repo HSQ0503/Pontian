@@ -41,12 +41,17 @@ const column = (index: number, count = BAY.slots) => (index - (count - 1) / 2) *
 
 export type BriefingBag = { key: string; product: "house" | "reserve"; at: Vec3 };
 
+// Two rows of nine. The back row sits half a slot to the side so both rows read from the front.
+const HOUSE_ROW = 9;
 export const BRIEFING_BAGS: BriefingBag[] = [
-  ...Array.from({ length: HARBOR_HOUSE_BLEND }, (_, index): BriefingBag => ({
-    key: `house-${index}`,
-    product: "house",
-    at: [column(index % 9, 9), BAY.levels[2], index < 9 ? FRONT_Z : BACK_Z],
-  })),
+  ...Array.from({ length: HARBOR_HOUSE_BLEND }, (_, index): BriefingBag => {
+    const front = index < HOUSE_ROW;
+    return {
+      key: `house-${index}`,
+      product: "house",
+      at: [column(index % HOUSE_ROW, HOUSE_ROW) + (front ? 0 : BAY.pitch / 2), BAY.levels[2], front ? FRONT_Z : BACK_Z],
+    };
+  }),
   ...Array.from({ length: location("harbor").stock }, (_, index): BriefingBag => ({
     key: `reserve-${index}`,
     product: "reserve",
@@ -285,7 +290,7 @@ export function BriefingElevation({ focus, labels, onPick }: { focus: BriefingFo
       {BREWER_BOXES.map((at) => <BoxDrawing key={at[0]} at={at} />)}
       <g onClick={() => onPick("owned")} className={styles.pickable}><BrewerDrawing at={BREWER_AT} tone={tone("brewer")} /></g>
       <g onClick={() => onPick("tasting")} className={styles.pickable}><TastingDrawing at={TASTING_AT} tone={tone("tasting")} /></g>
-      {BRIEFING_BAGS.filter((bag) => bag.at[2] === FRONT_Z).map((bag) => <BagDrawing key={bag.key} at={bag.at} product={bag.product} tone={tone(bag.product)} onPick={() => onPick(bag.product)} />)}
+      {[...BRIEFING_BAGS].toSorted((a, b) => a.at[2] - b.at[2]).map((bag) => <BagDrawing key={bag.key} at={bag.at} product={bag.product} tone={tone(bag.product)} onPick={() => onPick(bag.product)} />)}
     </Elevation>
   );
 }

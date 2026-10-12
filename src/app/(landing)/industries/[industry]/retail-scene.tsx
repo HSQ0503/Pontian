@@ -260,9 +260,9 @@ function Printed({ texture, size, position, rotation = [0, 0, 0] }: { texture: T
   );
 }
 
-let contact: THREE.CanvasTexture | null = null;
-function contactTexture() {
-  if (contact) return contact;
+let contactMaterial: THREE.MeshBasicMaterial | null = null;
+function getContactMaterial() {
+  if (contactMaterial) return contactMaterial;
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = 256;
   const context = canvas.getContext("2d");
@@ -274,15 +274,15 @@ function contactTexture() {
     context.fillStyle = gradient;
     context.fillRect(0, 0, 256, 256);
   }
-  contact = new THREE.CanvasTexture(canvas);
-  return contact;
+  const texture = new THREE.CanvasTexture(canvas);
+  contactMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, opacity: 0.45, toneMapped: false });
+  return contactMaterial;
 }
 
-function ContactShadow({ x, z, width, depth, opacity = 0.45 }: { x: number; z: number; width: number; depth: number; opacity?: number }) {
+function ContactShadow({ x, z, width, depth }: { x: number; z: number; width: number; depth: number }) {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.004, z]} renderOrder={1}>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.004, z]} renderOrder={1} material={getContactMaterial()}>
       <planeGeometry args={[width, depth]} />
-      <meshBasicMaterial map={contactTexture()} transparent depthWrite={false} opacity={opacity} toneMapped={false} />
     </mesh>
   );
 }
@@ -483,7 +483,7 @@ function CameraRig({ framing, store, reducedMotion, labels, layer }: { framing: 
 
 /* Maya's briefing: the Harbor Street coffee bay, with the suggested product lit. */
 
-const BRIEFING_FRAMING: Framing = { target: [0, 0.8, 0], halfWidth: BAY.width / 2, halfHeight: 0.84, azimuth: -14, elevation: 9, fillX: 0.6, fillY: 0.9, narrowFillX: 0.6 };
+const BRIEFING_FRAMING: Framing = { target: [0, 0.78, 0], halfWidth: BAY.width / 2 + 0.06, halfHeight: 0.86, azimuth: -20, elevation: 15, fillX: 0.64, fillY: 0.84, narrowFillX: 0.7 };
 const BRIEFING_TICKETS = PRICE_TAGS.map((tag) => ({ product: tag.product, x: tag.at[0], level: tag.at[1] }));
 
 function BriefingScene({ focus, onPick, store }: { focus: BriefingFocus; onPick: (focus: BriefingFocus) => void; store: SceneStore }) {

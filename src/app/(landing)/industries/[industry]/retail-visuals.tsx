@@ -173,7 +173,7 @@ const SUGGESTIONS: { id: Exclude<BriefingFocus, "owned">; product: ProductId; ki
     id: "reserve",
     product: "reserve",
     kind: "Something new",
-    reason: "Chocolate notes, like her usual",
+    reason: "Chocolate notes",
     why: "She told staff she likes chocolatey coffee. Both blends list chocolate notes in the catalog.",
     stock: `${location("harbor").stock} bags at Harbor Street, 08:00 count.`,
     starter: "You’ve been enjoying House Blend. Would you like to try another coffee with a similar chocolate profile?",
@@ -184,7 +184,7 @@ const SUGGESTIONS: { id: Exclude<BriefingFocus, "owned">; product: ProductId; ki
     id: "tasting",
     product: "tasting",
     kind: "Next experience",
-    reason: "Only if she wants to explore",
+    reason: "If she wants to explore",
     why: "She’s only bought one coffee so far. A tasting is worth a mention if she wants to try others.",
     stock: `${TASTING_SLOT.when}, ${TASTING_SLOT.open} of ${TASTING_SLOT.places} places open.`,
     starter: "We also have a tasting session if you’d like to explore a few different coffees.",
@@ -203,7 +203,7 @@ function briefingLabels(focus: BriefingFocus): ShelfLabel[] {
       detail: item.reason,
       state: focus === item.id ? "selected" : "ok",
     })),
-    { id: "owned", at: BRIEFING_ANCHORS.brewer, side: BRIEFING_SIDES.brewer, title: "Brewer", detail: "Not suggested — already purchased", state: "blocked" },
+    { id: "owned", at: BRIEFING_ANCHORS.brewer, side: BRIEFING_SIDES.brewer, title: "Brewer", detail: "Already owned", state: "blocked" },
   ];
 }
 
@@ -273,13 +273,13 @@ export function KnowTheCustomer() {
               </>
             ) : (
               <>
-                <p className={styles.starter}>Not suggested. Maya already owns this brewer.</p>
+                <p className={styles.starter}>Not suggested. Maya already bought this brewer.</p>
                 <p className={styles.meta}>Receipt, 8 March: {PRODUCTS.brewer.name}, {money(PRODUCTS.brewer.price)}.</p>
               </>
             )}
           </div>
           <button type="button" className={styles.excluded} aria-pressed={focus === "owned"} onClick={() => setFocus("owned")}>
-            <Glyph product="brewer" size={20} />Brewer not suggested — already purchased.
+            <Glyph product="brewer" size={20} />Brewer not suggested. She already bought it.
           </button>
         </div>
       </div>
@@ -488,7 +488,8 @@ export function PlanTheNextVisit() {
       title={`Maya’s record, checked ${CHECK_DATE}`}
       action={<Replay onClick={replay} />}
       situation={found ? <p>A newer purchase shows up in Maya’s record.</p> : <p>Six weeks since Maya’s last recorded purchase.</p>}
-      finding={found ? <p><strong>Recent purchase found — no reminder needed.</strong> Nobody contacts her.</p> : <p><strong>May be ready for a refill.</strong> A draft waits for review. Nothing has been sent.</p>}
+      finding={found ? <p><strong>Recent purchase found. No reminder needed.</strong> Nobody contacts her.</p> : <p><strong>May be ready for a refill.</strong> A draft waits for review. Nothing has been sent.</p>}
+      findingLabel="Result for review"
       next={found ? <p>No action. Her record gets checked again after her usual interval.</p> : <p>Someone on your team edits, approves or bins the draft.</p>}
     >
       <div className={styles.recordToggle}>
@@ -535,12 +536,12 @@ export function PlanTheNextVisit() {
           {found ? (
             <div className={styles.draft}>
               <p className={styles.label}>Outcome</p>
-              <p className={styles.patternText}>Recent purchase found — no reminder needed.</p>
+              <p className={styles.patternText}>Recent purchase found. No reminder needed.</p>
               <p className={styles.meta}>No draft was prepared.</p>
             </div>
           ) : (
             <div className={styles.draft}>
-              <p className={styles.draftLabel}>Draft follow-up — awaiting review</p>
+              <p className={styles.draftLabel}>Draft follow-up, awaiting review</p>
               <p className={styles.draftText}>Hi Maya, would you like help choosing your next coffee? Your usual House Blend is available.</p>
               <p className={styles.meta}>By email, her opted-in channel. House Blend: 12 bags at Harbor Street, 08:00 count on {CHECK_DATE}. Nothing is sent from this page.</p>
             </div>
@@ -558,6 +559,8 @@ const market = location("market");
 const riverside = location("riverside");
 const harborForecast = forecastOf(harbor);
 
+const STOCK_SHORT = { harbor: "Harbor", market: "Market", riverside: "Riverside" } as const;
+
 function stockLabels(option: StockOption, counts: ReturnType<typeof shelfCounts>): ShelfLabel[] {
   const filled = counts.harbor >= harborForecast.expected;
   const top = (id: "harbor" | "market" | "riverside") => [STOCK_BAY_X[id], STOCK_ANCHOR_Y, 0.2] as [number, number, number];
@@ -566,16 +569,16 @@ function stockLabels(option: StockOption, counts: ReturnType<typeof shelfCounts>
       id: "harbor",
       at: top("harbor"),
       side: "top",
-      title: harbor.name,
+      title: STOCK_SHORT.harbor,
       detail: `${counts.harbor} bags`,
-      note: option === "reorder" ? `out in about ${DAYS_OF_COVER} days` : filled ? "if approved" : `needs about ${harborForecast.expected}`,
+      note: option === "reorder" ? `about ${DAYS_OF_COVER} days left` : filled ? "if approved" : `needs about ${harborForecast.expected}`,
       state: option === "transfer" && filled ? "ok" : "blocked",
     },
-    { id: "market", at: top("market"), side: "top", title: market.name, detail: `${counts.market} bags`, note: counts.market < market.stock ? `keeps its ${market.reserve} reserve` : `${MARKET_SPARE} above reserve` },
-    { id: "riverside", at: top("riverside"), side: "top", title: riverside.name, detail: `${counts.riverside} bags`, note: "covers its forecast" },
-    { id: "incoming", at: [INCOMING_CARTON.at[0] + INCOMING_CARTON.size[0] / 2, INCOMING_CARTON.size[1], INCOMING_CARTON.at[2]], side: "right", title: `${riverside.incoming} due in ${riverside.incomingDays} days`, detail: "Stays at Riverside", lead: 20 },
+    { id: "market", at: top("market"), side: "top", title: STOCK_SHORT.market, detail: `${counts.market} bags`, note: counts.market < market.stock ? `keeps ${market.reserve}` : `${MARKET_SPARE} spare` },
+    { id: "riverside", at: top("riverside"), side: "top", title: STOCK_SHORT.riverside, detail: `${counts.riverside} bags`, note: "covers its forecast" },
+    { id: "incoming", at: [INCOMING_CARTON.at[0], INCOMING_CARTON.size[1] + 0.04, INCOMING_CARTON.at[2]], side: "top", title: `${riverside.incoming} incoming`, detail: `${riverside.incomingDays} days`, lead: 16 },
   ];
-  if (option === "reorder") labels.push({ id: "reorder", at: [REORDER_CARTON.at[0] - REORDER_CARTON.size[0] / 2, REORDER_CARTON.size[1], REORDER_CARTON.at[2]], side: "left", title: `${REORDER.quantity} from the roaster`, detail: `Arrives in ${REORDER.leadDays} days`, state: "ok", lead: 20 });
+  if (option === "reorder") labels.push({ id: "reorder", at: [REORDER_CARTON.at[0], REORDER_CARTON.size[1] + 0.04, REORDER_CARTON.at[2]], side: "top", title: `${REORDER.quantity} ordered`, detail: `${REORDER.leadDays} days`, state: "ok", lead: 16 });
   return labels;
 }
 

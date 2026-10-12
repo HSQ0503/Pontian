@@ -176,7 +176,7 @@
 .draftText { margin: 0; padding: 18px 20px; border-left: 3px solid #007dfe; background: #f5f5f2; font-family: var(--font-frontier-headline), sans-serif; font-size: clamp(19px, 1.7vw, 22px); line-height: 1.4; letter-spacing: -.02em; color: #17191a; }
 
 /* 4. Stock for demand */
-.stockView { height: clamp(380px, 36vw, 500px); }
+.stockView { height: clamp(440px, 42vw, 540px); }
 .caption { margin: 0; padding: 14px 16px; border-left: 4px solid #007dfe; background: #f2f7fe; font-size: 15px; line-height: 1.5; color: #17191a; }
 .caption[data-tone="alert"] { border-left-color: #f51625; background: #fdf3f4; }
 .ledger { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0; padding: 16px 20px; border-radius: 2px; background: #fff; font-size: 15px; color: #555758; font-variant-numeric: tabular-nums; }
@@ -251,8 +251,9 @@
   .questionRow, .stockHead, .recordToggle { padding-inline: 4px; }
   .panel, .mixPanel, .records { padding: 16px; }
   .briefing { padding: 18px 16px; }
-  .briefingView { height: 400px; }
-  .stockView { height: 300px; }
+  .briefingView { height: 440px; }
+  .stockView { height: 280px; }
+  .chip { max-width: 112px; white-space: normal; }
   .fallbackLayer { padding: 6px; }
   .chip { padding: 5px 8px 6px; }
   .chip em { display: none; }
