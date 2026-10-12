@@ -1,295 +1,766 @@
 "use client";
 
-import { useEffect, useMemo, useRef, type CSSProperties, type RefObject } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
+import { useEffect, useMemo, useRef, type CSSProperties, type ReactNode, type RefObject } from "react";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { BUILDING, WALL_HEIGHT, WALLS, wallById, type Wall } from "./design-engineering-model";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import {
+  ACCESS_DEPTH, BEAMS, BUILDING, CLASH, CORRIDOR, DUCT, HOUSE, ISOLATOR_X, MISSING_WINDOW, PIPE_HEIGHT, PIPE_RUNS, PLINTH, ROOM, TANK, UNITS,
+  WALL_HEIGHT, WALLS, WINDOWS, accessGap, wallById, type WindowMark,
+} from "./design-engineering-model";
 import styles from "./design-engineering.module.css";
 
-const BACKGROUND = "#f3f3f1";
-const ease = (t: number) => 1 - Math.pow(1 - t, 4);
-const toScene = (x: number, y: number): [number, number] => [x - BUILDING.width / 2, y - BUILDING.depth / 2];
+type Vec = [number, number];
+type Point = [number, number, number];
 
-function roundedRect(width: number, depth: number, radius: number) {
-  const shape = new THREE.Shape();
-  const x = -width / 2;
-  const y = -depth / 2;
-  shape.moveTo(x + radius, y);
-  shape.lineTo(x + width - radius, y);
-  shape.quadraticCurveTo(x + width, y, x + width, y + radius);
-  shape.lineTo(x + width, y + depth - radius);
-  shape.quadraticCurveTo(x + width, y + depth, x + width - radius, y + depth);
-  shape.lineTo(x + radius, y + depth);
-  shape.quadraticCurveTo(x, y + depth, x, y + depth - radius);
-  shape.lineTo(x, y + radius);
-  shape.quadraticCurveTo(x, y, x + radius, y);
-  return shape;
+export type PlantFocus = "space" | "connections" | "support";
+export type SceneProps = { active: boolean; onReady: () => void } & (
+  | { kind: "model"; selected: string; confirmed: boolean; onSelect: (id: string) => void }
+  | { kind: "clash"; structure: boolean; ventilation: boolean; reroute: boolean }
+  | { kind: "plant"; focus: PlantFocus; unit: "approved" | "proposed" }
+  | { kind: "windows"; selected: string | null; corrected: boolean; onSelect: (mark: string) => void }
+);
+
+/* Shared conventions: yellow tint plus ink edges for selection, blue for
+   proposed or OK, red for blocked, white HTML chips with an ink leader. */
+
+const INK = "#17191a";
+const SELECT = "#fed603";
+const OK = "#007dfe";
+const BLOCKED = "#f51625";
+
+const physical = (color: string, roughness: number, extra: THREE.MeshPhysicalMaterialParameters = {}) => new THREE.MeshPhysicalMaterial({ color, roughness, metalness: 0, ...extra });
+const standard = (color: string, roughness: number, metalness = 0, extra: THREE.MeshStandardMaterialParameters = {}) => new THREE.MeshStandardMaterial({ color, roughness, metalness, ...extra });
+
+const M = {
+  wall: standard("#e4e3df", 0.8),
+  slab: standard("#c9c9c5", 0.9),
+  concrete: standard("#b7b2a8", 0.94),
+  cut: standard("#7d786f", 0.95),
+  plaster: standard("#ecebe7", 0.88),
+  floor: standard("#dcdbd6", 0.95),
+  duct: standard("#c9d4de", 0.28, 0.72),
+  seam: standard("#8e98a1", 0.35, 0.65),
+  rod: standard("#7d8185", 0.45, 0.6),
+  unit: physical("#d5d8da", 0.42, { clearcoat: 0.25, clearcoatRoughness: 0.5 }),
+  slat: standard("#9da2a6", 0.5, 0.3),
+  grille: standard("#4c5054", 0.55, 0.35),
+  pipe: standard("#a8acaf", 0.38, 0.65),
+  tank: standard("#b6babd", 0.55, 0.2),
+  isolator: standard("#3c3f41", 0.6, 0.2),
+  render: standard("#eeede9", 0.86),
+  base: standard("#a3a5a3", 0.85),
+  coping: standard("#c4c5c2", 0.75),
+  frame: standard("#3a3d40", 0.5, 0.35),
+  interior: standard("#2c3135", 0.9),
+  glass: physical("#a9bccb", 0.06, { transparent: true, opacity: 0.45, envMapIntensity: 1.3 }),
+  sill: standard("#d9d6cf", 0.7),
+  ghost: physical("#dfe3e8", 0.6, { transparent: true, opacity: 0.28, depthWrite: false }),
+  proposed: standard(OK, 0.6, 0, { transparent: true, opacity: 0.45, depthWrite: false }),
+  zone: standard(OK, 0.7, 0, { transparent: true, opacity: 0.18, depthWrite: false }),
+  zoneSelected: standard(SELECT, 0.7, 0, { transparent: true, opacity: 0.45, depthWrite: false }),
+  clash: new THREE.MeshBasicMaterial({ color: BLOCKED, transparent: true, opacity: 0.86, depthWrite: false }),
+};
+type MaterialKey = keyof typeof M;
+
+const tintCache = new Map<THREE.Material, THREE.Material>();
+function tinted(material: THREE.Material) {
+  const cached = tintCache.get(material);
+  if (cached) return cached;
+  const copy = (material as THREE.MeshStandardMaterial).clone();
+  // Large surfaces take a lighter tint so they read as highlighted, not repainted.
+  const strength = material === M.unit || material === M.wall || material === M.concrete ? 0.55 : 0.75;
+  copy.color.lerp(new THREE.Color(SELECT), strength);
+  copy.polygonOffset = true;
+  copy.polygonOffsetFactor = 1;
+  copy.polygonOffsetUnits = 1;
+  tintCache.set(material, copy);
+  return copy;
 }
 
-// A box with softened edges, sitting on y = 0, so lighting picks out each edge.
-function bevelledBox(width: number, depth: number, height: number, radius: number) {
-  const geometry = new THREE.ExtrudeGeometry(roundedRect(width, depth, radius), {
-    depth: height - radius * 2, bevelEnabled: true, bevelThickness: radius, bevelSize: radius, bevelOffset: -radius, bevelSegments: 2, curveSegments: 3,
-  });
-  geometry.rotateX(-Math.PI / 2);
-  geometry.translate(0, radius, 0);
-  geometry.computeVertexNormals();
-  return geometry;
-}
-
-function boxEdges(width: number, depth: number, height: number) {
-  const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(width, height, depth));
-  edges.translate(0, height / 2, 0);
+const EDGE_INK = new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.85 });
+const EDGE_GHOST = new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.25 });
+const edgeCache = new WeakMap<THREE.BufferGeometry, THREE.EdgesGeometry>();
+function edgesOf(geometry: THREE.BufferGeometry) {
+  let edges = edgeCache.get(geometry);
+  if (!edges) {
+    edges = new THREE.EdgesGeometry(geometry, 32);
+    edgeCache.set(geometry, edges);
+  }
   return edges;
 }
 
-function contactShadowTexture() {
-  const size = 256;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const context = canvas.getContext("2d");
-  if (context) {
-    const gradient = context.createRadialGradient(size / 2, size / 2, size * 0.18, size / 2, size / 2, size / 2);
-    gradient.addColorStop(0, "rgba(23, 25, 26, 0.55)");
-    gradient.addColorStop(0.55, "rgba(23, 25, 26, 0.22)");
-    gradient.addColorStop(1, "rgba(23, 25, 26, 0)");
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, size, size);
-  }
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
+/* Geometry helpers */
+
+function bx(x: Vec, y: Vec, z: Vec, radius = 0.02) {
+  const width = x[1] - x[0];
+  const height = y[1] - y[0];
+  const depth = z[1] - z[0];
+  const r = Math.min(radius, width / 2.2, height / 2.2, depth / 2.2);
+  return new RoundedBoxGeometry(width, height, depth, 2, r).translate((x[0] + x[1]) / 2, (y[0] + y[1]) / 2, (z[0] + z[1]) / 2);
 }
 
-const material = {
-  wall: new THREE.MeshStandardMaterial({ color: "#e4e3df", roughness: 0.78 }),
-  selected: new THREE.MeshStandardMaterial({ color: "#fed603", emissive: "#fed603", emissiveIntensity: 0.22, roughness: 0.7, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }),
-  slab: new THREE.MeshStandardMaterial({ color: "#c9c9c5", roughness: 0.9 }),
-  proposed: new THREE.MeshStandardMaterial({ color: "#007dfe", roughness: 0.6, transparent: true, opacity: 0.55 }),
-  edge: new THREE.LineBasicMaterial({ color: "#17191a" }),
-  ground: new THREE.ShadowMaterial({ opacity: 0.12 }),
-};
-
-function roomLighting(gl: THREE.WebGLRenderer, scene: THREE.Scene) {
-  const generator = new THREE.PMREMGenerator(gl);
-  const room = new RoomEnvironment();
-  const environment = generator.fromScene(room, 0.04).texture;
-  room.dispose();
-  generator.dispose();
-  scene.environment = environment;
-  scene.environmentIntensity = 0.6;
-  return environment;
+function cylinder(radius: number, length: number, axis: "x" | "y" | "z", center: Point, segments = 24) {
+  const geometry = new THREE.CylinderGeometry(radius, radius, length, segments);
+  if (axis === "x") geometry.rotateZ(-Math.PI / 2);
+  if (axis === "z") geometry.rotateX(Math.PI / 2);
+  return geometry.translate(...center);
 }
 
-function KeyLight() {
+// A straight run between two points in the x/y plane, depth along z.
+function run(a: Vec, b: Vec, height: number, z: Vec, overlap = 0) {
+  const length = Math.hypot(b[0] - a[0], b[1] - a[1]) + overlap;
+  const geometry = new THREE.BoxGeometry(length, height, z[1] - z[0]);
+  geometry.rotateZ(Math.atan2(b[1] - a[1], b[0] - a[0]));
+  return geometry.translate((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (z[0] + z[1]) / 2);
+}
+
+function setCursor(event: ThreeEvent<PointerEvent>, cursor: string) {
+  const target = event.nativeEvent.target;
+  if (target instanceof HTMLElement) target.style.cursor = cursor;
+}
+
+function pickHandlers(onPick?: () => void) {
+  if (!onPick) return {};
+  return {
+    onClick: (event: ThreeEvent<MouseEvent>) => { event.stopPropagation(); onPick(); },
+    onPointerOver: (event: ThreeEvent<PointerEvent>) => { event.stopPropagation(); setCursor(event, "pointer"); },
+    onPointerOut: (event: ThreeEvent<PointerEvent>) => setCursor(event, ""),
+  };
+}
+
+type PartProps = { geometry: THREE.BufferGeometry; material: MaterialKey; selected?: boolean; ghost?: boolean; edges?: boolean; shadow?: boolean };
+
+function Part({ geometry, material, selected, ghost, edges, shadow = true }: PartProps) {
+  const base = M[material];
+  const resolved = ghost ? M.ghost : selected ? tinted(base) : base;
   return (
-    <directionalLight
-      position={[-8, 13, 6]}
-      intensity={1.9}
-      castShadow
-      shadow-mapSize={[2048, 2048]}
-      shadow-radius={5}
-      shadow-bias={-0.0004}
-      shadow-normalBias={0.02}
-      shadow-camera-left={-9}
-      shadow-camera-right={9}
-      shadow-camera-top={9}
-      shadow-camera-bottom={-9}
-      shadow-camera-near={1}
-      shadow-camera-far={40}
-    />
+    <>
+      <mesh geometry={geometry} material={resolved} castShadow={shadow && !ghost} receiveShadow={!ghost} />
+      {(selected || edges || ghost) && <lineSegments geometry={edgesOf(geometry)} material={ghost ? EDGE_GHOST : EDGE_INK} />}
+    </>
   );
 }
 
-type WallPart = { wall: Wall; position: [number, number, number]; size: [number, number]; body: THREE.BufferGeometry; edges: THREE.BufferGeometry; footprint: THREE.BufferGeometry; footprintEdges: THREE.BufferGeometry };
-
-function useWallParts() {
-  return useMemo<WallPart[]>(() => WALLS.map((wall) => {
-    const width = wall.x1 - wall.x0;
-    const depth = wall.y1 - wall.y0;
-    const [x, z] = toScene((wall.x0 + wall.x1) / 2, (wall.y0 + wall.y1) / 2);
-    const radius = Math.min(0.018, depth / 5, width / 5);
-    return {
-      wall,
-      position: [x, 0, z],
-      size: [width, depth],
-      body: bevelledBox(width, depth, WALL_HEIGHT, radius),
-      edges: boxEdges(width, depth, WALL_HEIGHT),
-      footprint: bevelledBox(width, depth, 0.03, 0.006),
-      footprintEdges: boxEdges(width, depth, 0.03),
-    };
-  }), []);
+let contact: THREE.CanvasTexture | null = null;
+function contactTexture() {
+  if (contact) return contact;
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 256;
+  const context = canvas.getContext("2d");
+  if (context) {
+    const gradient = context.createRadialGradient(128, 128, 10, 128, 128, 128);
+    gradient.addColorStop(0, "rgba(23, 25, 26, 0.55)");
+    gradient.addColorStop(0.55, "rgba(23, 25, 26, 0.2)");
+    gradient.addColorStop(1, "rgba(23, 25, 26, 0)");
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, 256, 256);
+  }
+  contact = new THREE.CanvasTexture(canvas);
+  return contact;
 }
 
-type Pin = { id: string; at: [number, number, number]; title: string; detail: string; state?: "blocked" | "proposed" | "selected"; place?: "above" | "below" };
-
-function pinsFor(selected: string, confirmed: boolean): Pin[] {
-  const wall = wallById(selected);
-  const [x, z] = toScene((wall.x0 + wall.x1) / 2, (wall.y0 + wall.y1) / 2);
-  const pins: Pin[] = [{
-    id: "wall",
-    at: [x, confirmed ? WALL_HEIGHT : 0.03, z],
-    title: `${wall.id} ${wall.name}`,
-    detail: confirmed ? `${wall.length}, ${wall.thickness}, 3.00 m high` : `${wall.length}, ${wall.thickness}, height not set`,
-    state: "selected",
-  }];
-  if (!confirmed) pins.push({ id: "height", at: [BUILDING.width / 2 - 0.15, 0.03, BUILDING.depth / 2 - 0.15], title: "Wall height", detail: "Needs confirmation", state: "blocked", place: "below" });
-  return pins;
+function ContactShadow({ width, depth, position = [0, 0.006, 0], opacity = 0.5 }: { width: number; depth: number; position?: Point; opacity?: number }) {
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={position} renderOrder={1}>
+      <planeGeometry args={[width, depth]} />
+      <meshBasicMaterial map={contactTexture()} transparent depthWrite={false} opacity={opacity} toneMapped={false} />
+    </mesh>
+  );
 }
 
-const VIEWS = {
-  pending: { elevation: 62, azimuth: 24 },
-  confirmed: { elevation: 31, azimuth: 36 },
-};
+function Ground({ size = 240 }: { size?: number }) {
+  return (
+    <>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+        <planeGeometry args={[size, size]} />
+        <shadowMaterial transparent opacity={0.14} depthWrite={false} />
+      </mesh>
+      <gridHelper args={[size, size / 2, "#e2e2de", "#e2e2de"]} position={[0, 0.001, 0]} />
+    </>
+  );
+}
+
+function DashedOutline({ x0, x1, z0, z1, y = 0.012, color }: { x0: number; x1: number; z0: number; z1: number; y?: number; color: string }) {
+  const line = useMemo(() => {
+    const points = [[x0, z0], [x1, z0], [x1, z1], [x0, z1], [x0, z0]].map(([px, pz]) => new THREE.Vector3(px, y, pz));
+    const outline = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineDashedMaterial({ color, dashSize: 0.12, gapSize: 0.08 }));
+    outline.computeLineDistances();
+    return outline;
+  }, [x0, x1, z0, z1, y, color]);
+  return <primitive object={line} />;
+}
+
+/* Labels: HTML chips positioned every rendered frame from 3D anchors. */
+
+type SceneLabel = { id: string; at: Point; title: string; detail?: string; state?: "ok" | "blocked"; lift?: number };
+
+function LabelLayer({ labels, layer }: { labels: SceneLabel[]; layer: RefObject<HTMLDivElement | null> }) {
+  return (
+    <div ref={layer} className={styles.sceneLabels} aria-hidden="true">
+      {labels.map((label) => (
+        <div key={label.id} className={styles.sceneLabel} data-label={label.id} data-state={label.state} style={{ "--lift": `${label.lift ?? 30}px` } as CSSProperties}>
+          <span className={styles.labelChip}><strong>{label.title}</strong>{label.detail && <span>{label.detail}</span>}</span>
+          <i className={styles.labelLeader} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const scratch = new THREE.Vector3();
-const corners = [-1, 1].flatMap((sx) => [-1, 1].flatMap((sz) => [0, 1].map((sy) => new THREE.Vector3(sx * BUILDING.width / 2, sy, sz * BUILDING.depth / 2))));
+const EDGE = 8;
 
-// Camera, wall extrusion, and label positions all advance here; the loop only
-// runs while something is moving because the canvas renders on demand.
-function Director({ confirmed, reduced, pins, pinNodes }: { confirmed: boolean; reduced: boolean; pins: Pin[]; pinNodes: RefObject<Map<string, HTMLSpanElement>> }) {
-  const invalidate = useThree((state) => state.invalidate);
-  const size = useThree((state) => state.size);
-  const progress = useRef(confirmed ? 1 : 0);
-  const from = useRef(confirmed ? 1 : 0);
-  const started = useRef(0);
-  useEffect(() => {
-    from.current = progress.current;
-    started.current = performance.now();
-    invalidate();
-  }, [confirmed, invalidate]);
-  useEffect(() => { invalidate(); }, [pins, size, invalidate]);
+// The leader stays on its anchor; the chip slides along it to stay in frame.
+function placeLabels(layer: HTMLDivElement | null, labels: SceneLabel[], project: (label: SceneLabel) => { x: number; y: number; visible: boolean }) {
+  if (!layer) return;
+  const width = layer.clientWidth;
+  for (const label of labels) {
+    const element = layer.querySelector<HTMLElement>(`[data-label="${label.id}"]`);
+    const chip = element?.firstElementChild as HTMLElement | null;
+    if (!element || !chip) continue;
+    const { x, y, visible } = project(label);
+    const half = chip.offsetWidth / 2;
+    const shift = x - half < EDGE ? EDGE - (x - half) : x + half > width - EDGE ? width - EDGE - (x + half) : 0;
+    element.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, -100%)`;
+    chip.style.transform = `translateX(${shift.toFixed(1)}px)`;
+    element.style.opacity = visible ? "1" : "0";
+  }
+}
 
+/* Camera: eased transitions between framed viewpoints (homepage ease-out). */
+
+type Frame = { position: Point; target: Point };
+type View = Frame & { narrow?: Frame };
+const TRANSITION_MS = 900;
+const easeOut = (t: number) => 1 - Math.pow(1 - t, 4);
+
+function fit(view: View, aspect: number) {
+  const frame = aspect < 1.5 && view.narrow ? view.narrow : view;
+  const target = new THREE.Vector3(...frame.target);
+  const offset = new THREE.Vector3(...frame.position).sub(target);
+  if (aspect < 1.5 && !view.narrow) offset.multiplyScalar(Math.min(2.1, Math.pow(1.5 / aspect, 0.85)));
+  return { position: target.clone().add(offset), target };
+}
+
+type Goal = ReturnType<typeof fit>;
+type Tween = { from: Goal; to: Goal; start: number; current: Goal };
+
+function step(tween: { current: Tween | null }, goal: Goal) {
+  const now = performance.now();
+  if (!tween.current) tween.current = { from: goal, to: goal, start: now - TRANSITION_MS, current: { position: goal.position.clone(), target: goal.target.clone() } };
+  const state = tween.current;
+  if (state.to !== goal) {
+    state.from = { position: state.current.position.clone(), target: state.current.target.clone() };
+    state.to = goal;
+    state.start = now;
+  }
+  const t = Math.min(1, (now - state.start) / TRANSITION_MS);
+  const e = easeOut(t);
+  state.current.position.lerpVectors(state.from.position, state.to.position, e);
+  state.current.target.lerpVectors(state.from.target, state.to.target, e);
+  return { current: state.current, moving: t < 1 };
+}
+
+function Rig({ view, labels, layer }: { view: View; labels: SceneLabel[]; layer: RefObject<HTMLDivElement | null> }) {
+  const { camera, size, invalidate } = useThree();
+  const tween = useRef<Tween | null>(null);
+  const goal = useMemo(() => fit(view, size.width / size.height), [view, size.width, size.height]);
+  useEffect(() => { invalidate(); }, [goal, labels, invalidate]);
   useFrame((state) => {
-    const { camera, scene } = state;
-    const target = confirmed ? 1 : 0;
-    if (progress.current !== target) {
-      const t = reduced ? 1 : Math.min(1, (performance.now() - started.current) / 1100);
-      progress.current = from.current + (target - from.current) * ease(t);
-      if (t >= 1) progress.current = target;
-      else state.invalidate();
-    }
-    const p = progress.current;
-    const extrude = confirmed ? Math.min(1, Math.max(0, (p - 0.25) / 0.75)) : 0;
-    const walls = scene.getObjectByName("walls");
-    if (walls) {
-      walls.scale.y = Math.max(extrude, 0.0001);
-      walls.visible = extrude > 0.001;
-    }
-    const elevation = THREE.MathUtils.degToRad(VIEWS.pending.elevation + (VIEWS.confirmed.elevation - VIEWS.pending.elevation) * p);
-    const azimuth = THREE.MathUtils.degToRad(VIEWS.pending.azimuth + (VIEWS.confirmed.azimuth - VIEWS.pending.azimuth) * p);
-    const height = WALL_HEIGHT * extrude;
-    camera.position.set(Math.sin(azimuth) * Math.cos(elevation) * 30, Math.sin(elevation) * 30, Math.cos(azimuth) * Math.cos(elevation) * 30);
-    camera.lookAt(0, height * 0.4, 0);
+    const { current, moving } = step(tween, goal);
+    camera.position.copy(current.position);
+    camera.lookAt(current.target);
     camera.updateMatrixWorld();
-    if (camera instanceof THREE.OrthographicCamera) {
-      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-      for (const corner of corners) {
-        scratch.set(corner.x, corner.y * Math.max(height, 0.25) - (corner.y ? 0 : BUILDING.slab), corner.z).applyMatrix4(camera.matrixWorldInverse);
-        minX = Math.min(minX, scratch.x); maxX = Math.max(maxX, scratch.x);
-        minY = Math.min(minY, scratch.y); maxY = Math.max(maxY, scratch.y);
-      }
-      const zoom = Math.min(state.size.width / ((maxX - minX) * 1.18), state.size.height / ((maxY - minY) * (1.75 - 0.25 * p)));
-      camera.zoom = zoom;
-      camera.updateProjectionMatrix();
-    }
-    for (const pin of pins) {
-      const node = pinNodes.current.get(pin.id);
-      if (!node) continue;
-      scratch.set(...pin.at);
-      if (pin.id === "wall") scratch.y = pin.at[1] > 0.1 ? height : 0.03;
-      scratch.project(camera);
-      const x = ((scratch.x + 1) / 2) * size.width;
-      const y = ((1 - scratch.y) / 2) * size.height;
-      const chip = node.lastElementChild as HTMLElement | null;
-      const half = (chip?.offsetWidth ?? 0) / 2;
-      const shift = Math.min(Math.max(x, half + 10), size.width - half - 10) - x;
-      const reach = 26 + (chip?.offsetHeight ?? 0) + 8;
-      const preferred = pin.place ?? "above";
-      const place = preferred === "below" ? (y + reach > size.height ? "above" : "below") : (y - reach < 0 ? "below" : "above");
-      node.dataset.place = place;
-      node.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
-      node.style.setProperty("--shift", `${shift.toFixed(1)}px`);
-      node.style.visibility = "visible";
-    }
+    placeLabels(layer.current, labels, (label) => {
+      scratch.set(...label.at).project(camera);
+      return { x: (scratch.x * 0.5 + 0.5) * size.width, y: (-scratch.y * 0.5 + 0.5) * size.height, visible: scratch.z < 1 && Math.abs(scratch.x) < 1.05 && Math.abs(scratch.y) < 1.05 };
+    });
+    if (moving) state.invalidate();
   });
   return null;
 }
 
-type SceneProps = { selected: string; confirmed: boolean; reduced: boolean; onSelect: (id: string) => void; onReady?: () => void };
-
-export default function PlanModelScene({ selected, confirmed, reduced, onSelect, onReady }: SceneProps) {
-  const parts = useWallParts();
-  const pinNodes = useRef(new Map<string, HTMLSpanElement>());
-  const environment = useRef<THREE.Texture | null>(null);
-  const pins = useMemo(() => pinsFor(selected, confirmed), [selected, confirmed]);
-  const slab = useMemo(() => ({ body: bevelledBox(BUILDING.width, BUILDING.depth, BUILDING.slab, 0.03) }), []);
-  const shadow = useMemo(() => contactShadowTexture(), []);
-  useEffect(() => () => {
-    document.body.style.cursor = "";
-    environment.current?.dispose();
-    shadow.dispose();
-  }, [shadow]);
-  const pick = (id: string) => (event: ThreeEvent<MouseEvent>) => { event.stopPropagation(); onSelect(id); };
-  const hover = (on: boolean) => () => { document.body.style.cursor = on ? "pointer" : ""; };
-
+function Studio({ extent, center = [0, 0, 0] }: { extent: number; center?: Point }) {
+  const { gl } = useThree();
+  const environment = useMemo(() => {
+    const pmrem = new THREE.PMREMGenerator(gl);
+    const texture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    pmrem.dispose();
+    return texture;
+  }, [gl]);
+  useEffect(() => () => environment.dispose(), [environment]);
+  const light = useMemo(() => {
+    const directional = new THREE.DirectionalLight("#ffffff", 2.1);
+    directional.position.set(center[0] + 9, 16, center[2] + 11);
+    directional.target.position.set(...center);
+    directional.castShadow = true;
+    directional.shadow.mapSize.set(2048, 2048);
+    directional.shadow.radius = 7;
+    directional.shadow.bias = -0.0004;
+    directional.shadow.normalBias = 0.02;
+    Object.assign(directional.shadow.camera, { left: -extent, right: extent, top: extent, bottom: -extent, near: 1, far: 70 });
+    directional.shadow.camera.updateProjectionMatrix();
+    return directional;
+  }, [extent, center]);
   return (
-    <div className={styles.sceneCanvas}>
-      <Canvas
-        orthographic
-        shadows="percentage"
-        dpr={[1, 2]}
-        frameloop="demand"
-        gl={{ antialias: true, toneMapping: THREE.NeutralToneMapping, toneMappingExposure: 1 }}
-        camera={{ position: [10, 20, 20], zoom: 40, near: 0.1, far: 100 }}
-        onCreated={({ gl, scene }) => {
-          environment.current = roomLighting(gl, scene);
-          onReady?.();
-        }}
-      >
-        <color attach="background" args={[BACKGROUND]} />
-        <KeyLight />
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -BUILDING.slab, 0]} receiveShadow material={material.ground}>
-          <planeGeometry args={[60, 60]} />
-        </mesh>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -BUILDING.slab + 0.002, 0]}>
-          <planeGeometry args={[BUILDING.width * 1.28, BUILDING.depth * 1.45]} />
-          <meshBasicMaterial map={shadow} transparent depthWrite={false} opacity={0.42} />
-        </mesh>
-        <mesh geometry={slab.body} material={material.slab} position={[0, -BUILDING.slab, 0]} castShadow receiveShadow />
+    <>
+      <primitive object={environment} attach="environment" />
+      <primitive object={light} />
+      <primitive object={light.target} />
+    </>
+  );
+}
+
+/* 1. Plan to model ------------------------------------------------------- */
+
+const toModel = (x: number, y: number): Vec => [x - BUILDING.width / 2, y - BUILDING.depth / 2];
+const MODEL_VIEWS: Record<"pending" | "confirmed", View> = {
+  pending: { position: [5, 23.5, 14.5], target: [0, 0.2, 0.3] },
+  confirmed: { position: [15, 12, 18.5], target: [0, 1.4, 0] },
+};
+
+function modelLabels({ selected, confirmed }: Extract<SceneProps, { kind: "model" }>): SceneLabel[] {
+  const wall = wallById(selected);
+  const [x, z] = toModel((wall.x0 + wall.x1) / 2, (wall.y0 + wall.y1) / 2);
+  const floor = BUILDING.slab + 0.04;
+  const labels: SceneLabel[] = [{ id: "wall", at: [x, confirmed ? BUILDING.slab + WALL_HEIGHT : floor, z], title: `${wall.id} · ${wall.name}`, detail: confirmed ? `${wall.length}, 3.00 m high` : `${wall.length}, height not set` }];
+  if (!confirmed) labels.push({ id: "height", at: [BUILDING.width / 2 - 0.15, floor, -BUILDING.depth / 2 + 0.15], title: "Wall height", detail: "Not on the drawing", state: "blocked", lift: 34 });
+  return labels;
+}
+
+function ModelScene({ selected, confirmed, onSelect, layer, labels }: Extract<SceneProps, { kind: "model" }> & Layered) {
+  const parts = useMemo(() => WALLS.map((wall) => {
+    const [x0, z0] = toModel(wall.x0, wall.y0);
+    const [x1, z1] = toModel(wall.x1, wall.y1);
+    return { wall, body: bx([x0, x1], [0, WALL_HEIGHT], [z0, z1], 0.02), footprint: bx([x0, x1], [0, 0.035], [z0, z1], 0.006) };
+  }), []);
+  const slab = useMemo(() => bx([-BUILDING.width / 2, BUILDING.width / 2], [-BUILDING.slab, 0], [-BUILDING.depth / 2, BUILDING.depth / 2], 0.03), []);
+  const walls = useRef<THREE.Group>(null);
+  const growth = useRef({ value: confirmed ? 1 : 0, start: 0 });
+  const invalidate = useThree((state) => state.invalidate);
+  useEffect(() => {
+    growth.current.start = performance.now();
+    if (!confirmed) growth.current.value = 0;
+    invalidate();
+  }, [confirmed, invalidate]);
+  useFrame((state) => {
+    const group = walls.current;
+    if (!group) return;
+    if (confirmed && growth.current.value < 1) {
+      const t = Math.min(1, Math.max(0, (performance.now() - growth.current.start - 250) / 800));
+      growth.current.value = easeOut(t);
+      if (t < 1) state.invalidate();
+    }
+    group.scale.y = Math.max(growth.current.value, 0.0001);
+    group.visible = growth.current.value > 0.001;
+  });
+  return (
+    <>
+      <Studio extent={12} />
+      <Rig view={MODEL_VIEWS[confirmed ? "confirmed" : "pending"]} labels={labels} layer={layer} />
+      <Ground />
+      <ContactShadow width={BUILDING.width * 1.3} depth={BUILDING.depth * 1.45} position={[0, 0.004, 0]} opacity={0.4} />
+      <group position={[0, BUILDING.slab, 0]}>
+        <Part geometry={slab} material="slab" />
         {!confirmed && parts.map((part) => (
-          <group key={part.wall.id} position={part.position} onClick={pick(part.wall.id)} onPointerOver={hover(true)} onPointerOut={hover(false)}>
-            <mesh geometry={part.footprint} material={part.wall.id === selected ? material.selected : material.proposed} receiveShadow />
-            {part.wall.id === selected && <lineSegments geometry={part.footprintEdges} material={material.edge} />}
+          <group key={part.wall.id} {...pickHandlers(() => onSelect(part.wall.id))}>
+            <mesh geometry={part.footprint} material={part.wall.id === selected ? tinted(M.wall) : M.proposed} receiveShadow />
+            {part.wall.id === selected && <lineSegments geometry={edgesOf(part.footprint)} material={EDGE_INK} />}
           </group>
         ))}
-        <group name="walls">
+        <group ref={walls}>
           {parts.map((part) => (
-            <group key={part.wall.id} position={part.position} onClick={pick(part.wall.id)} onPointerOver={hover(true)} onPointerOut={hover(false)}>
-              <mesh geometry={part.body} material={part.wall.id === selected ? material.selected : material.wall} castShadow receiveShadow />
-              {part.wall.id === selected && <lineSegments geometry={part.edges} material={material.edge} />}
+            <group key={part.wall.id} {...pickHandlers(() => onSelect(part.wall.id))}>
+              <Part geometry={part.body} material="wall" selected={part.wall.id === selected} />
             </group>
           ))}
         </group>
-        <Director confirmed={confirmed} reduced={reduced} pins={pins} pinNodes={pinNodes} />
+      </group>
+    </>
+  );
+}
+
+/* 2. Duct and beam ------------------------------------------------------- */
+
+// A section box cut at z = 0, so the duct and beam meet on the cut face.
+const toCorridor = (x: number) => x - CORRIDOR.length / 2;
+const level = (depth: number) => CORRIDOR.soffit - depth;
+const SPAN: Vec = [-3.2, 3.2];
+const BACK = -1.8;
+const DUCT_Z: Vec = [-DUCT.width / 2, 0];
+const HANGERS = [-2.6, -0.4, 2.7];
+
+const CLASH_X = toCorridor((CLASH.x0 + CLASH.x1) / 2);
+const CLASH_VIEW: View = { position: [CLASH_X + 1.85, 2.72, 3.15], target: [CLASH_X, 2.32, -0.22], narrow: { position: [CLASH_X + 2.15, 2.95, 4.05], target: [CLASH_X, 2.38, -0.18] } };
+
+const DUCT_HIGH = level(DUCT.top + DUCT.height / 2);
+const DUCT_LOW = level(DUCT.loweredTop + DUCT.height / 2);
+const DROP_AT = toCorridor(CLASH.x0) - 0.72;
+const RISE_AT = toCorridor(CLASH.x1) + 0.72;
+
+function straightDuct() {
+  return [run([SPAN[0], DUCT_HIGH], [SPAN[1], DUCT_HIGH], DUCT.height, DUCT_Z)];
+}
+
+function clashLabels({ structure, ventilation, reroute }: Extract<SceneProps, { kind: "clash" }>): SceneLabel[] {
+  const x = toCorridor((CLASH.x0 + CLASH.x1) / 2);
+  if (structure && ventilation && !reroute) return [{ id: "clash", at: [x, level(CLASH.top), 0.02], title: `${DUCT.id} runs through B-13`, detail: "Same space in both models", state: "blocked", lift: 58 }];
+  if (ventilation && reroute) return [{ id: "reroute", at: [x, level(DUCT.loweredTop), 0], title: "Possible revision", detail: "Needs both teams to review", lift: 40 }];
+  return [];
+}
+
+function ductBox(x0: number, x1: number, y0: number, y1: number) {
+  return new THREE.BoxGeometry(x1 - x0, y1 - y0, DUCT_Z[1] - DUCT_Z[0]).translate((x0 + x1) / 2, (y0 + y1) / 2, (DUCT_Z[0] + DUCT_Z[1]) / 2);
+}
+
+// Five boxes union into one offset: the duct drops, runs under B-13, and rises again.
+function loweredDuct() {
+  const half = DUCT.height / 2;
+  const highTop = DUCT_HIGH + half;
+  const highBottom = DUCT_HIGH - half;
+  const lowTop = DUCT_LOW + half;
+  const lowBottom = DUCT_LOW - half;
+  const elbow = DUCT.height;
+  const drop0 = DROP_AT - elbow / 2;
+  const drop1 = DROP_AT + elbow / 2;
+  const rise0 = RISE_AT - elbow / 2;
+  const rise1 = RISE_AT + elbow / 2;
+  return [
+    ductBox(SPAN[0], drop0, highBottom, highTop),
+    ductBox(drop0, drop1, lowBottom, highTop),
+    ductBox(drop1, rise0, lowBottom, lowTop),
+    ductBox(rise0, rise1, lowBottom, highTop),
+    ductBox(rise1, SPAN[1], highBottom, highTop),
+  ];
+}
+
+function ClashScene({ structure, ventilation, reroute, layer, labels }: Extract<SceneProps, { kind: "clash" }> & Layered) {
+  const geometry = useMemo(() => {
+    const beams = BEAMS.map((beam) => ({ id: beam.id, body: bx([toCorridor(beam.x0), toCorridor(beam.x1)], [level(beam.depth), CORRIDOR.soffit + 0.01], [BACK, 0], 0.012), cut: bx([toCorridor(beam.x0), toCorridor(beam.x1)], [level(beam.depth), CORRIDOR.soffit], [-0.004, 0.003], 0.001) }));
+    const ductTop = level(DUCT.top);
+    const ductBottom = level(DUCT.top + DUCT.height);
+    const beamBottom = level(CLASH.bottom);
+    const clashX0 = toCorridor(CLASH.x0);
+    const clashX1 = toCorridor(CLASH.x1);
+    return {
+      floor: bx([SPAN[0] - 0.2, SPAN[1] + 0.2], [-0.12, 0], [BACK - 0.15, 0], 0.01),
+      wall: bx([SPAN[0] - 0.2, SPAN[1] + 0.2], [0, CORRIDOR.soffit + CORRIDOR.slab], [BACK - 0.15, BACK], 0.01),
+      slab: bx([SPAN[0] - 0.2, SPAN[1] + 0.2], [CORRIDOR.soffit, CORRIDOR.soffit + CORRIDOR.slab], [BACK, 0], 0.015),
+      slabCut: bx([SPAN[0] - 0.2, SPAN[1] + 0.2], [CORRIDOR.soffit, CORRIDOR.soffit + CORRIDOR.slab], [-0.004, 0.003], 0.001),
+      beams,
+      duct: straightDuct(),
+      lowered: loweredDuct(),
+      // The straight duct runs into B-13. Only the lip below the beam continues, and the shared space is the red volume.
+      notch: [
+        ductBox(SPAN[0], clashX0 + 0.012, ductBottom, ductTop),
+        ductBox(clashX1 - 0.012, SPAN[1], ductBottom, ductTop),
+        ductBox(clashX0, clashX1, ductBottom, beamBottom + 0.008),
+      ],
+      flanges: [-2.0, 0.1, 2.6].map((x) => bx([x - 0.02, x + 0.02], [ductBottom - 0.03, ductTop + 0.03], [DUCT_Z[0] - 0.03, 0], 0.005)),
+      hangers: HANGERS.flatMap((x) => [
+        cylinder(0.009, CORRIDOR.soffit - ductBottom + 0.05, "y", [x, (CORRIDOR.soffit + ductBottom - 0.05) / 2, DUCT_Z[0] - 0.08], 10),
+        bx([x - 0.035, x + 0.035], [ductBottom - 0.07, ductBottom - 0.03], [DUCT_Z[0] - 0.12, 0], 0.006),
+      ]),
+      clash: ductBox(clashX0, clashX1, beamBottom, ductTop).translate(0, 0, 0.006),
+    };
+  }, []);
+  const clash = structure && ventilation && !reroute;
+  return (
+    <>
+      <Studio extent={7} center={[0, 1.5, -0.8]} />
+      <Rig view={CLASH_VIEW} labels={labels} layer={layer} />
+      <Ground />
+      <Part geometry={geometry.floor} material="floor" />
+      <Part geometry={geometry.wall} material="plaster" />
+      <Part geometry={geometry.slab} material="concrete" ghost={!structure} />
+      {structure && <mesh geometry={geometry.slabCut} material={M.cut} />}
+      {geometry.beams.map((beam) => (
+        <group key={beam.id}>
+          <Part geometry={beam.body} material="concrete" ghost={!structure} edges={clash && beam.id === "B-13"} />
+          {structure && <mesh geometry={beam.cut} material={M.cut} />}
+        </group>
+      ))}
+      {(clash ? geometry.notch : reroute ? geometry.lowered : geometry.duct).map((piece, index) => <Part key={index} geometry={piece} material="duct" ghost={!ventilation} edges={clash} />)}
+      {ventilation && !reroute && geometry.flanges.map((flange, index) => <Part key={index} geometry={flange} material="seam" />)}
+      {ventilation && geometry.hangers.map((hanger, index) => <Part key={index} geometry={hanger} material="rod" />)}
+      {clash && (
+        <>
+          <mesh geometry={geometry.clash} material={M.clash} renderOrder={3} />
+          <lineSegments geometry={edgesOf(geometry.clash)} material={EDGE_INK} renderOrder={4} />
+        </>
+      )}
+    </>
+  );
+}
+
+/* 3. Plant room ---------------------------------------------------------- */
+
+const toRoom = (x: number, y: number): Vec => [x - ROOM.width / 2, y - ROOM.depth / 2];
+const PLANT_VIEWS: Record<PlantFocus, View> = {
+  space: { position: [3.6, 6.2, 8.4], target: [-0.8, 0.45, 0.25], narrow: { position: [4.2, 7.4, 10], target: [-0.6, 0.45, 0.2] } },
+  connections: { position: [5.6, 3.4, 4.6], target: [0, 0.6, -0.75], narrow: { position: [7.6, 4.6, 7], target: [-0.2, 0.6, -0.6] } },
+  support: { position: [3.6, 1.35, 4.6], target: [-0.5, 0.45, -0.6], narrow: { position: [5, 1.9, 6.6], target: [-0.5, 0.5, -0.5] } },
+};
+
+type UnitKey = "approved" | "proposed";
+
+function unitBox(unit: UnitKey) {
+  const footprint = UNITS[unit];
+  const [x0, z0] = toRoom(footprint.x0, footprint.y0);
+  const [x1, z1] = toRoom(footprint.x1, footprint.y1);
+  return { x: [x0, x1] as Vec, z: [z0, z1] as Vec, y: [PLINTH.height, PLINTH.height + footprint.height] as Vec };
+}
+
+function unitGeometry(unit: UnitKey) {
+  const { x, y, z } = unitBox(unit);
+  const slats = Array.from({ length: 7 }, (_, index) => {
+    const h = y[0] + 0.25 + index * 0.14;
+    return bx([x[0] + 0.12, x[1] - 0.12], [h, h + 0.05], [z[1], z[1] + 0.025], 0.008);
+  });
+  const fanRadius = Math.min(x[1] - x[0], z[1] - z[0]) * 0.32;
+  return {
+    body: bx(x, y, z, 0.035),
+    slats,
+    fan: cylinder(fanRadius, 0.03, "y", [(x[0] + x[1]) / 2, y[1] + 0.012, (z[0] + z[1]) / 2], 48),
+    hub: cylinder(fanRadius * 0.28, 0.05, "y", [(x[0] + x[1]) / 2, y[1] + 0.02, (z[0] + z[1]) / 2], 24),
+    stubs: UNITS[unit].connections.map((y0) => cylinder(0.045, 0.14, "x", [x[1] + 0.07, PIPE_HEIGHT, y0 - ROOM.depth / 2], 20)),
+    collars: UNITS[unit].connections.map((y0) => cylinder(0.06, 0.03, "x", [x[1] + 0.015, PIPE_HEIGHT, y0 - ROOM.depth / 2], 20)),
+  };
+}
+
+function plantLabels({ focus, unit }: Extract<SceneProps, { kind: "plant" }>): SceneLabel[] {
+  const box = unitBox(unit);
+  const proposed = unit === "proposed";
+  const gap = Math.round(accessGap(unit) * 100) / 100;
+  switch (focus) {
+    case "space": return [{ id: "space", at: [box.x[1], 0.02, box.z[1] + ACCESS_DEPTH / 2], title: "Access space", detail: `${gap.toFixed(2)} m left before the tank`, state: proposed ? undefined : "ok", lift: 52 }];
+    case "connections": return [{ id: "connections", at: [box.x[1] + 0.14, PIPE_HEIGHT + 0.05, UNITS[unit].connections[1] - ROOM.depth / 2], title: proposed ? "Connections moved" : "Pipes meet the unit", detail: proposed ? "Pipes stop at the old positions" : "As designed", state: proposed ? undefined : "ok", lift: 46 }];
+    case "support": {
+      const [px, pz] = toRoom(PLINTH.x1, PLINTH.y1);
+      return [{ id: "support", at: [px, PLINTH.height, pz], title: proposed ? "Base sized for the old unit" : "Base fits the unit", detail: proposed ? "The new unit overhangs it" : "As designed", state: proposed ? undefined : "ok", lift: 40 }];
+    }
+  }
+}
+
+function PlantScene({ focus, unit, layer, labels }: Extract<SceneProps, { kind: "plant" }> & Layered) {
+  const geometry = useMemo(() => {
+    const half = { x: ROOM.width / 2, z: ROOM.depth / 2 };
+    const [doorX0] = toRoom(ROOM.door.x0, 0);
+    const [doorX1] = toRoom(ROOM.door.x1, 0);
+    const [tx0, tz0] = toRoom(TANK.x0, TANK.y0);
+    const [tx1, tz1] = toRoom(TANK.x1, TANK.y1);
+    const [px0, pz0] = toRoom(PLINTH.x0, PLINTH.y0);
+    const [px1, pz1] = toRoom(PLINTH.x1, PLINTH.y1);
+    const [ix] = toRoom(ISOLATOR_X, 0);
+    return {
+      floor: bx([-half.x - 0.15, half.x + 0.15], [-0.12, 0], [-half.z - 0.15, half.z + 0.15], 0.01),
+      walls: [
+        bx([-half.x - 0.15, half.x + 0.15], [0, ROOM.height], [-half.z - 0.15, -half.z], 0.01),
+        bx([-half.x - 0.15, -half.x], [0, ROOM.height], [-half.z, half.z + 0.15], 0.01),
+        bx([-half.x, doorX0], [0, 0.45], [half.z, half.z + 0.15], 0.01),
+        bx([doorX1, half.x + 0.15], [0, 0.45], [half.z, half.z + 0.15], 0.01),
+        bx([half.x, half.x + 0.15], [0, 0.45], [-half.z, half.z], 0.01),
+      ],
+      tank: bx([tx0, tx1], [0, TANK.height], [tz0, tz1], 0.06),
+      ribs: [0.25, 0.55, 0.85, 1.15, 1.45].map((offset) => bx([tx0 + offset, tx0 + offset + 0.04], [0.05, TANK.height - 0.05], [tz1, tz1 + 0.02], 0.006)),
+      hatch: cylinder(0.18, 0.04, "y", [tx0 + 0.45, TANK.height + 0.02, (tz0 + tz1) / 2], 32),
+      plinth: bx([px0, px1], [0, PLINTH.height], [pz0, pz1], 0.015),
+      isolator: bx([ix - 0.12, ix + 0.12], [1.15, 1.45], [-half.z, -half.z + 0.11], 0.015),
+      conduit: cylinder(0.018, 1.15, "y", [ix, 0.575, -half.z + 0.05], 12),
+      approved: unitGeometry("approved"),
+      proposed: unitGeometry("proposed"),
+      pipes: (end: number) => PIPE_RUNS.map((y0) => cylinder(0.042, half.x - end, "x", [(half.x + end) / 2, PIPE_HEIGHT, y0 - half.z], 20)),
+      caps: (end: number) => PIPE_RUNS.map((y0) => cylinder(0.058, 0.03, "x", [end + 0.015, PIPE_HEIGHT, y0 - half.z], 20)),
+      stands: [1.1, 2.0].flatMap((x) => PIPE_RUNS.map((y0) => cylinder(0.014, PIPE_HEIGHT - 0.04, "y", [x, (PIPE_HEIGHT - 0.04) / 2, y0 - half.z], 10))),
+    };
+  }, []);
+  const proposed = unit === "proposed";
+  const box = unitBox(unit);
+  const parts = proposed ? geometry.proposed : geometry.approved;
+  const pipeEnd = proposed ? box.x[1] + 0.24 : box.x[1] + 0.14;
+  const pipes = useMemo(() => ({ runs: geometry.pipes(pipeEnd), caps: geometry.caps(pipeEnd) }), [geometry, pipeEnd]);
+  const zoneGeometry = useMemo(() => {
+    const b = unitBox(unit);
+    return bx(b.x, [0.002, 0.012], [b.z[1], b.z[1] + ACCESS_DEPTH], 0.002);
+  }, [unit]);
+  return (
+    <>
+      <Studio extent={6} />
+      <Rig view={PLANT_VIEWS[focus]} labels={labels} layer={layer} />
+      <Ground />
+      <Part geometry={geometry.floor} material="floor" />
+      {geometry.walls.map((wall, index) => <Part key={index} geometry={wall} material="plaster" />)}
+      <Part geometry={geometry.tank} material="tank" edges={focus === "space"} />
+      {geometry.ribs.map((rib, index) => <Part key={index} geometry={rib} material="slat" />)}
+      <Part geometry={geometry.hatch} material="grille" />
+      <Part geometry={geometry.plinth} material="concrete" selected={focus === "support"} />
+      <Part geometry={geometry.isolator} material="isolator" selected={focus === "support"} />
+      <Part geometry={geometry.conduit} material="rod" />
+      <mesh geometry={zoneGeometry} material={focus === "space" ? M.zoneSelected : M.zone} renderOrder={2} />
+      <DashedOutline x0={box.x[0]} x1={box.x[1]} z0={box.z[1]} z1={box.z[1] + ACCESS_DEPTH} y={0.016} color={focus === "space" ? INK : OK} />
+      {proposed && (() => {
+        const old = unitBox("approved");
+        return <DashedOutline x0={old.x[0]} x1={old.x[1]} z0={old.z[0]} z1={old.z[1]} y={box.y[1] + 0.012} color={INK} />;
+      })()}
+      <Part geometry={parts.body} material="unit" />
+      {parts.slats.map((slat, index) => <Part key={index} geometry={slat} material="slat" />)}
+      <Part geometry={parts.fan} material="grille" />
+      <Part geometry={parts.hub} material="slat" />
+      {parts.stubs.map((stub, index) => <Part key={index} geometry={stub} material="pipe" selected={focus === "connections"} />)}
+      {parts.collars.map((collar, index) => <Part key={index} geometry={collar} material="slat" />)}
+      {pipes.runs.map((pipe, index) => <Part key={index} geometry={pipe} material="pipe" selected={focus === "connections"} />)}
+      {pipes.caps.map((cap, index) => <Part key={index} geometry={cap} material="slat" />)}
+      {geometry.stands.map((stand, index) => <Part key={index} geometry={stand} material="rod" />)}
+      <ContactShadow width={2.4} depth={1.6} position={[(box.x[0] + box.x[1]) / 2, 0.006, (box.z[0] + box.z[1]) / 2]} opacity={0.35} />
+    </>
+  );
+}
+
+/* 4. Four-window building ------------------------------------------------ */
+
+const toHouse = (x: number, y: number): Vec => [x - HOUSE.length / 2, y - HOUSE.depth / 2];
+const WINDOWS_VIEW: View = { position: [14.2, 7.2, 16.8], target: [0.4, 1.6, 0], narrow: { position: [15, 7.8, 17.6], target: [0.7, 1.6, 0] } };
+const PROUD = 0.05;
+
+function windowGeometry(item: WindowMark) {
+  const { sill, head } = HOUSE;
+  const frame = 0.06;
+  const south = item.side === "South";
+  // Faces are built in a local frame (u along the wall, v up, w out of the wall), then placed.
+  const place = (u: Vec, v: Vec, w: Vec) => {
+    if (south) {
+      const [a] = toHouse(u[0], 0);
+      const [b] = toHouse(u[1], 0);
+      return bx([a, b], v, [HOUSE.depth / 2 + w[0], HOUSE.depth / 2 + w[1]], 0.006);
+    }
+    const [, a] = toHouse(0, u[0]);
+    const [, b] = toHouse(0, u[1]);
+    return bx([HOUSE.length / 2 + w[0], HOUSE.length / 2 + w[1]], v, [a, b], 0.006);
+  };
+  const width = item.to - item.from;
+  const bars = [
+    place([item.from, item.to], [head - frame, head], [0, PROUD]),
+    place([item.from, item.to], [sill, sill + frame], [0, PROUD]),
+    place([item.from, item.from + frame], [sill, head], [0, PROUD]),
+    place([item.to - frame, item.to], [sill, head], [0, PROUD]),
+  ];
+  if (width > 1) bars.push(place([item.from + width / 2 - 0.025, item.from + width / 2 + 0.025], [sill, head], [0, PROUD - 0.01]));
+  return {
+    frame: bars,
+    interior: place([item.from + frame, item.to - frame], [sill + frame, head - frame], [0.001, 0.004]),
+    glass: place([item.from + frame, item.to - frame], [sill + frame, head - frame], [0.018, 0.026]),
+    sill: place([item.from - 0.06, item.to + 0.06], [sill - 0.05, sill], [0, 0.12]),
+  };
+}
+
+function windowAnchor(item: WindowMark): Point {
+  const middle = (item.from + item.to) / 2;
+  if (item.side === "South") return [toHouse(middle, 0)[0], HOUSE.head + 0.05, HOUSE.depth / 2 + PROUD];
+  return [HOUSE.length / 2 + PROUD, HOUSE.head + 0.05, toHouse(0, middle)[1]];
+}
+
+function windowLabels({ selected, corrected }: Extract<SceneProps, { kind: "windows" }>): SceneLabel[] {
+  const missing = WINDOWS.find((item) => item.mark === MISSING_WINDOW) ?? WINDOWS[2];
+  const labels: SceneLabel[] = [{ id: MISSING_WINDOW, at: windowAnchor(missing), title: MISSING_WINDOW, detail: corrected ? "Now in the schedule" : "Not in the schedule", state: corrected ? "ok" : "blocked", lift: 40 }];
+  const other = WINDOWS.find((item) => item.mark === selected && item.mark !== MISSING_WINDOW);
+  if (other) labels.push({ id: other.mark, at: windowAnchor(other), title: other.mark, detail: "In the schedule", state: "ok", lift: 32 });
+  return labels;
+}
+
+function WindowsScene({ selected, onSelect, layer, labels }: Extract<SceneProps, { kind: "windows" }> & Layered) {
+  const geometry = useMemo(() => {
+    const half = { x: HOUSE.length / 2, z: HOUSE.depth / 2 };
+    return {
+      base: bx([-half.x - 0.06, half.x + 0.06], [0, 0.3], [-half.z - 0.06, half.z + 0.06], 0.015),
+      body: bx([-half.x, half.x], [0.3, HOUSE.height], [-half.z, half.z], 0.02),
+      roof: bx([-half.x + 0.12, half.x - 0.12], [HOUSE.height, HOUSE.height + 0.04], [-half.z + 0.12, half.z - 0.12], 0.01),
+      coping: [
+        bx([-half.x - 0.04, half.x + 0.04], [HOUSE.height, HOUSE.height + 0.28], [half.z - 0.12, half.z + 0.04], 0.012),
+        bx([-half.x - 0.04, half.x + 0.04], [HOUSE.height, HOUSE.height + 0.28], [-half.z - 0.04, -half.z + 0.12], 0.012),
+        bx([half.x - 0.12, half.x + 0.04], [HOUSE.height, HOUSE.height + 0.28], [-half.z + 0.12, half.z - 0.12], 0.012),
+        bx([-half.x - 0.04, -half.x + 0.12], [HOUSE.height, HOUSE.height + 0.28], [-half.z + 0.12, half.z - 0.12], 0.012),
+      ],
+      windows: WINDOWS.map((item) => ({ item, ...windowGeometry(item) })),
+    };
+  }, []);
+  return (
+    <>
+      <Studio extent={10} />
+      <Rig view={WINDOWS_VIEW} labels={labels} layer={layer} />
+      <Ground />
+      <ContactShadow width={HOUSE.length * 1.35} depth={HOUSE.depth * 1.5} position={[0, 0.004, 0]} opacity={0.42} />
+      <Part geometry={geometry.base} material="base" />
+      <Part geometry={geometry.body} material="render" />
+      <Part geometry={geometry.roof} material="coping" />
+      {geometry.coping.map((piece, index) => <Part key={index} geometry={piece} material="coping" />)}
+      {geometry.windows.map(({ item, frame, interior, glass, sill }) => {
+        const active = item.mark === selected;
+        return (
+          <group key={item.mark} {...pickHandlers(() => onSelect(item.mark))}>
+            <mesh geometry={interior} material={M.interior} />
+            <mesh geometry={glass} material={active ? tinted(M.glass) : M.glass} />
+            {frame.map((bar, index) => <Part key={index} geometry={bar} material="frame" selected={active} />)}
+            <Part geometry={sill} material="sill" selected={active} />
+          </group>
+        );
+      })}
+    </>
+  );
+}
+
+/* Entry ------------------------------------------------------------------- */
+
+type Layered = { layer: RefObject<HTMLDivElement | null>; labels: SceneLabel[] };
+
+function labelsFor(props: SceneProps): SceneLabel[] {
+  switch (props.kind) {
+    case "model": return modelLabels(props);
+    case "clash": return clashLabels(props);
+    case "plant": return plantLabels(props);
+    case "windows": return windowLabels(props);
+  }
+}
+
+function SceneContent(props: SceneProps & Layered): ReactNode {
+  switch (props.kind) {
+    case "model": return <ModelScene {...props} />;
+    case "clash": return <ClashScene {...props} />;
+    case "plant": return <PlantScene {...props} />;
+    case "windows": return <WindowsScene {...props} />;
+  }
+}
+
+function Ready({ onReady }: { onReady: () => void }) {
+  const done = useRef(false);
+  useFrame(() => {
+    if (done.current) return;
+    done.current = true;
+    requestAnimationFrame(onReady);
+  });
+  return null;
+}
+
+export default function DesignScene(props: SceneProps): ReactNode {
+  const layer = useRef<HTMLDivElement>(null);
+  const labels = labelsFor(props);
+  return (
+    <>
+      <Canvas
+        frameloop={props.active ? "demand" : "never"}
+        shadows="percentage"
+        dpr={[1, 2]}
+        camera={{ fov: 24, near: 0.1, far: 300, position: [14, 9, 16] }}
+        gl={{ antialias: true, alpha: true, powerPreference: "low-power", toneMapping: THREE.NeutralToneMapping, toneMappingExposure: 0.92 }}
+        style={{ position: "absolute", inset: 0 }}
+        aria-hidden="true"
+      >
+        <SceneContent {...props} layer={layer} labels={labels} />
+        <Ready onReady={props.onReady} />
       </Canvas>
-      <div className={styles.pins} aria-hidden="true">
-        {pins.map((pin) => (
-          <span
-            key={pin.id}
-            ref={(node) => { if (node) pinNodes.current.set(pin.id, node); else pinNodes.current.delete(pin.id); }}
-            className={styles.pin}
-            data-state={pin.state}
-            data-place={pin.place ?? "above"}
-            style={{ visibility: "hidden", "--leader": "26px" } as CSSProperties}
-          >
-            <i className={styles.pinDot} />
-            <i className={styles.pinLeader} />
-            <span className={styles.pinChip}><strong>{pin.title}</strong><span>{pin.detail}</span></span>
-          </span>
-        ))}
-      </div>
-    </div>
+      <LabelLayer labels={labels} layer={layer} />
+    </>
   );
 }

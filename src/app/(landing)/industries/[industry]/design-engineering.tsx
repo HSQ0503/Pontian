@@ -13,8 +13,7 @@ import { HeroDrawing, IndustryHero } from "./industry-hero";
 
 const SLUG = "design-engineering";
 const headline = "Move designs forward with less repetitive work.";
-const summary =
-  "We build AI tools around your team’s design process: creating initial models, finding potential conflicts, tracing the effects of revisions, and preparing documents for review.";
+const summary = "We build tools for the repetitive parts of design work. Your engineers keep the decisions.";
 
 export const designEngineeringMetadata: Metadata = {
   title: "Design & Engineering",
@@ -30,7 +29,6 @@ type Offering = {
   moment: string;
   headline: string;
   body: string;
-  capabilities: string[];
   outcome: string;
   Visual: ComponentType;
 };
@@ -39,57 +37,46 @@ const offerings: Offering[] = [
   {
     id: "create-the-first-model",
     label: "Create the first model",
-    moment: "From a dimensioned plan",
+    moment: "From a plan",
     headline: "Turn a plan into a first model.",
-    body: "We can build workflows that turn clearly defined plans and project inputs into an initial, editable building model. Your team reviews the interpretation and develops the design from there.",
-    capabilities: ["Interpret supported plan elements", "Apply approved project templates", "Create a model your team can continue editing"],
-    outcome: "Give the team a starting point they can inspect and develop.",
+    body: "Give it a clean, dimensioned plan and it builds the walls and floor as an editable model. If the drawing leaves something out, it asks.",
+    outcome: "Your team starts with a model to check and build on.",
     Visual: FirstModel,
   },
   {
     id: "check-how-designs-fit",
     label: "Check how designs fit",
-    moment: "Across discipline models",
-    headline: "Find where designs don’t fit together.",
-    body: "Different teams design different parts of the same building. We can connect their models and project requirements to help identify potential conflicts and bring the relevant evidence to the people who can resolve them.",
-    capabilities: ["Compare discipline models", "Locate potential conflicts", "Bring the right references into the review"],
-    outcome: "Give teams a specific conflict to resolve before releasing the design.",
+    moment: "Across disciplines",
+    headline: "Find where the designs collide.",
+    body: "Structure and ventilation live in separate models. We can line them up and flag anywhere two things take the same space, with both elements named.",
+    outcome: "Fix it in the model, before the design goes out.",
     Visual: DesignFit,
   },
   {
     id: "understand-revisions",
     label: "Understand revisions",
-    moment: "When an input changes",
+    moment: "When things change",
     headline: "See what else needs checking when a design changes.",
-    body: "A revised requirement can affect several disciplines. We can connect the change to related drawings, equipment information, and project decisions so each team can review its part.",
-    capabilities: ["Compare the old and new information", "Identify related design dependencies", "Prepare a review with supporting sources"],
-    outcome: "Help each discipline understand its part of the change.",
+    body: "A supplier swaps in a bigger unit. We can trace what that touches and give each discipline its own question.",
+    outcome: "Each discipline knows exactly what to check.",
     Visual: RevisionScope,
   },
   {
     id: "prepare-the-deliverables",
     label: "Prepare the deliverables",
-    moment: "From a reviewed model",
+    moment: "Before issue",
     headline: "Prepare drawings and schedules for review.",
-    body: "We can automate repeatable document work using reviewed model information and your firm’s templates, then check the resulting package for missing or inconsistent information before your team reviews it.",
-    capabilities: ["Create drafts from approved templates", "Check consistency with model information", "Prepare a package for professional review"],
-    outcome: "Spend less time assembling the package and more time reviewing the design.",
+    body: "We can draft schedules and sheets from your reviewed model and templates, then check them against the model before your reviewers see them.",
+    outcome: "Less time assembling the set. More time reviewing the design.",
     Visual: Deliverables,
   },
 ];
 
-const foundation = [
-  "Use the current project information",
-  "Keep answers connected to their sources",
-  "Respect project and team access",
-  "Keep technical approval with the responsible professionals",
-];
-
 const startingScopes = [
-  { area: "Modeling", text: "Create walls and a floor from a clearly dimensioned plan." },
-  { area: "Coordination", text: "Check a defined set of models for a specific conflict type." },
-  { area: "Revisions", text: "Trace an equipment revision across affected design references." },
-  { area: "Documents", text: "Prepare one document type using an approved template." },
+  "Walls and a floor from one plan",
+  "One clash type, one set of models",
+  "One equipment revision",
+  "One document type",
 ];
 
 const HERO = isometric(26, 236, 118);
@@ -158,12 +145,7 @@ export function DesignEngineeringPage() {
                   </p>
                   <h2 id={`${offering.id}-title`} className={styles.offeringTitle}>{offering.headline}</h2>
                 </div>
-                <div>
-                  <p className={styles.offeringBody}>{offering.body}</p>
-                  <ul className={styles.capabilities}>
-                    {offering.capabilities.map((capability) => <li key={capability}>{capability}</li>)}
-                  </ul>
-                </div>
+                <p className={styles.offeringBody}>{offering.body}</p>
               </div>
               <offering.Visual />
               <p className={styles.outcomeLine}>{offering.outcome}</p>
@@ -175,10 +157,7 @@ export function DesignEngineeringPage() {
           <div className={styles.column}>
             <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
             <h2 id="foundation-title" className={styles.foundationTitle}>Built around your firm’s way of working.</h2>
-            <p className={styles.foundationBody}>The tools need to understand your templates, current requirements, and approved decisions. We connect that project context to the work, so the team can see which sources support an output and where information still needs confirmation.</p>
-            <ul className={styles.foundationList}>
-              {foundation.map((point) => <li key={point}>{point}</li>)}
-            </ul>
+            <p className={styles.foundationBody}>The tools work from your templates, current requirements and approved decisions. Every output shows its sources and stays inside your project. Approval stays with your engineers.</p>
           </div>
         </section>
 
@@ -189,18 +168,16 @@ export function DesignEngineeringPage() {
               <h2 id="how-we-start-title" className={styles.startTitle}>Start with one repeatable task.</h2>
             </div>
             <div>
-              <p className={styles.startBody}>We choose a defined workflow with your team, gather representative inputs, and agree on what a useful result looks like. Then we test the output against your existing process before expanding its scope.</p>
-              <p className={styles.scopesLabel}>Possible first engagements</p>
+              <p className={styles.startBody}>Pick one job your team repeats. We test it on your real examples, against how you do it now.</p>
               <ol className={styles.startSteps}>
                 {startingScopes.map((scope, scopeIndex) => (
-                  <li key={scope.area}>
+                  <li key={scope}>
                     <span>{String(scopeIndex + 1).padStart(2, "0")}</span>
-                    <strong>{scope.area}</strong>
-                    <p>{scope.text}</p>
+                    <p>{scope}</p>
                   </li>
                 ))}
               </ol>
-              <p className={styles.scopesNote}>Starting scopes, not delivery commitments.</p>
+              <p className={styles.scopesNote}>Examples, not commitments.</p>
             </div>
           </div>
         </section>
@@ -209,7 +186,7 @@ export function DesignEngineeringPage() {
           <div className={styles.column}>
             <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
             <h2 id="talk-title" className={styles.closingTitle}>What would your team rather spend less time doing?</h2>
-            <p className={styles.closingBody}>Tell us about a repetitive modeling task, a difficult coordination problem, or a document workflow that slows down delivery.</p>
+            <p className={styles.closingBody}>Bring one modeling chore, coordination headache or document job that slows you down.</p>
             <Link href="/get-started" className={styles.closingButton}>Talk through a workflow <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
           </div>
         </section>
