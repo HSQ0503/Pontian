@@ -590,7 +590,7 @@ export function ReviewTheResult() {
       <div className={styles.stage}>
         <PropertyView
           label={`3D view of the fictional Alder Lane property with the two photo positions. Driveway: before and after photos. Rear patio: ${patioDone ? "before and after photos" : "before photo only"}.`}
-          scene={{ view: work === "driveway" ? "front" : "back", states, selected: [work], labels, pins: [{ id: "driveway", state: "ok" }, { id: "patio", state: patioDone ? "ok" : "blocked" }], onPick: (area) => { if (area === "driveway" || area === "patio") setWork(area); } }}
+          scene={{ view: work === "driveway" ? "front" : "back", states, selected: [work], labels, pins: [{ id: work, state: work === "driveway" || patioDone ? "ok" : "blocked" }], onPick: (area) => { if (area === "driveway" || area === "patio") setWork(area); } }}
           fallback={<PropertyPlan states={states} selected={[work]} labels={["driveway", "patio"]} />}
         />
         <div className={styles.side}>
