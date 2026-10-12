@@ -183,7 +183,7 @@ export function BidCheck() {
   return (
     <Example
       title="Level 2 fit-out bid"
-      situation={<p>The drawing shows 12 doors. The door sub’s quote covers 10.</p>}
+      situation={<p>You’re pricing the Level 2 doors.</p>}
       finding={<p><strong>D11 and D12 may be missing from the quote.</strong> It could be deliberate. Your estimator decides.</p>}
       next={<p>Ask the sub to confirm the door count before the bid goes out.</p>}
     >
@@ -226,7 +226,7 @@ export function ChangeImpact() {
   return (
     <Example
       title="Client asks for two more rooms"
-      situation={<p>The client wants two more rooms. The quote and the orders are already placed.</p>}
+      situation={<p>The quote and the orders are already placed.</p>}
       finding={<p><strong>Three open questions for the change review.</strong> Nothing is approved.</p>}
       next={<p>Review the impact and send the client a change proposal.</p>}
     >
@@ -257,7 +257,7 @@ export function SiteCheck() {
   return (
     <Example
       title="Level 2 corridor, door C-14"
-      situation={<p>The model shows a door at C-14. A site capture from 14 May shows the same spot.</p>}
+      situation={<p>The 14 May capture shows the same opening.</p>}
       finding={<p><strong>No door visible in this capture.</strong> That doesn’t mean it’s missing.</p>}
       next={<p>Ask the site team to check C-14.</p>}
     >
@@ -315,7 +315,7 @@ export function WayForward() {
   return (
     <Example
       title="Flooring delivery is late"
-      situation={<p>The flooring is late, and the finishes were queued behind it.</p>}
+      situation={<p>The finishes were queued behind it.</p>}
       findingLabel="Result for review"
       finding={<p><strong>A different order of work to review.</strong> It rests on assumptions the planner hasn’t checked.</p>}
       next={<p>The planner checks it before anything is rescheduled.</p>}
@@ -351,8 +351,8 @@ export function WayForward() {
         </ul>
         <p className={styles.tradeoff}>
           {plan === "wait"
-            ? "Nothing moves. The floor crew waits, then the finishes follow."
-            : "Ceilings and painting go first. Finished walls may need protecting while the floor goes in. Assumes the rooms, materials and crew are free."}
+            ? "The floor crew waits, then the finishes follow."
+            : "Finished walls may need protecting while the floor goes in. Assumes the rooms, materials and crew are free."}
         </p>
       </div>
     </Example>

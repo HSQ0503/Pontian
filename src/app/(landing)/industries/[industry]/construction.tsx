@@ -11,7 +11,7 @@ import { HeroPhoto, IndustryHero } from "./industry-hero";
 
 export const constructionHeadline = "Catch costly surprises before they reach the jobsite.";
 export const constructionSummary =
-  "We build AI tools that read your drawings, quotes, schedules and site photos side by side, and show your team what doesn’t line up.";
+  "We build AI tools that read your drawings, quotes, schedules and site photos, and show what doesn’t line up.";
 
 type Offering = {
   id: string;
@@ -29,7 +29,7 @@ const offerings: Offering[] = [
     label: "Check the bid",
     moment: "Before you price",
     headline: "Find what the bid missed.",
-    body: "A door left off a sub’s quote is a door you pay for later. We build tools that check each quote against the drawings and flag what doesn’t match for your estimator.",
+    body: "A door left off a sub’s quote is a door you pay for later. We flag it against the drawing for your estimator.",
     outcome: "Know what to check before you commit to a price.",
     Visual: BidCheck,
   },
@@ -38,7 +38,7 @@ const offerings: Offering[] = [
     label: "Understand the change",
     moment: "When the client changes it",
     headline: "See what a change affects.",
-    body: "Two extra rooms on the drawing also land in the quote, the board order and the electrician’s week. A tool can line those up, so you see the knock-on effects before you say yes.",
+    body: "Two extra rooms also land in the quote, the board order and the electrician’s week.",
     outcome: "Agree to the change knowing what it touches.",
     Visual: ChangeImpact,
   },
@@ -47,7 +47,7 @@ const offerings: Offering[] = [
     label: "Check what’s built",
     moment: "While it goes up",
     headline: "Compare the plan with the site.",
-    body: "Your site photos and scans already show most of what’s in place. We match them to the model and mark what looks different while the walls are still open.",
+    body: "We match your photos and scans to the model while the walls are still open.",
     outcome: "Give the site team a specific place to look.",
     Visual: SiteCheck,
   },
@@ -56,7 +56,7 @@ const offerings: Offering[] = [
     label: "Find a way forward",
     moment: "When a delivery slips",
     headline: "Test the next move before moving the crew.",
-    body: "The flooring’s late. A tool that knows which work doesn’t need the floor lets your planner try a new order before anyone moves.",
+    body: "The flooring’s late. Your planner can try the work that doesn’t need it before anyone moves.",
     outcome: "Weigh the tradeoffs before you change the plan.",
     Visual: WayForward,
   },
