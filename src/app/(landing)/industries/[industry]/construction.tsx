@@ -29,7 +29,7 @@ const offerings: Offering[] = [
     label: "Check the bid",
     moment: "Before you price",
     headline: "Find what the bid missed.",
-    body: "A door left off a sub’s quote is a door you pay for later. We flag it against the drawing for your estimator.",
+    body: "A door left off a sub’s quote is a door you pay for later.",
     outcome: "Know what to check before you commit to a price.",
     Visual: BidCheck,
   },
@@ -56,16 +56,16 @@ const offerings: Offering[] = [
     label: "Find a way forward",
     moment: "When a delivery slips",
     headline: "Test the next move before moving the crew.",
-    body: "The flooring’s late. Your planner can try the work that doesn’t need it before anyone moves.",
+    body: "The flooring’s late. The work that doesn’t need it can move up.",
     outcome: "Weigh the tradeoffs before you change the plan.",
     Visual: WayForward,
   },
 ];
 
 const startSteps = [
-  { title: "Pick one problem", text: "A bid, a change, a site check or a schedule, on one project." },
-  { title: "Gather what it uses", text: "The drawings, quotes, orders or captures behind it." },
-  { title: "Run it alongside", text: "Next to how you work today. Your team decides if it helps." },
+  { title: "Pick one problem", text: "One bid, change, site check or schedule." },
+  { title: "Gather what it uses", text: "The drawings, quotes, orders or captures." },
+  { title: "Run it alongside", text: "Beside how you work today. Your team decides." },
 ];
 
 export function ConstructionPage({ industry, index, next }: { industry: Industry; index: number; next: Industry }) {

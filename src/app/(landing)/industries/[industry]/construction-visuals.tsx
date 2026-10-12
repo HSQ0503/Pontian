@@ -185,7 +185,7 @@ export function BidCheck() {
       title="Level 2 fit-out bid"
       situation={<p>You’re pricing the Level 2 doors.</p>}
       finding={<p><strong>D11 and D12 may be missing from the quote.</strong> It could be deliberate. Your estimator decides.</p>}
-      next={<p>Ask the sub to confirm the door count before the bid goes out.</p>}
+      next={<p>Confirm the count with the sub.</p>}
     >
       <div className={styles.counts} role="group" aria-label="Compare the drawing with the quote">
         <button type="button" aria-pressed={mode === "drawing"} onClick={() => setMode("drawing")}>
@@ -228,7 +228,7 @@ export function ChangeImpact() {
       title="Client asks for two more rooms"
       situation={<p>The quote and the orders are already placed.</p>}
       finding={<p><strong>Three open questions for the change review.</strong> Nothing is approved.</p>}
-      next={<p>Review the impact and send the client a change proposal.</p>}
+      next={<p>Send the client a change proposal.</p>}
     >
       <Toggle
         label="Plan version"
@@ -352,7 +352,7 @@ export function WayForward() {
         <p className={styles.tradeoff}>
           {plan === "wait"
             ? "The floor crew waits, then the finishes follow."
-            : "Finished walls may need protecting while the floor goes in. Assumes the rooms, materials and crew are free."}
+            : "Finished walls may need protecting. Assumes the rooms, materials and crew are free."}
         </p>
       </div>
     </Example>
