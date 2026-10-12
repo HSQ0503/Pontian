@@ -576,8 +576,9 @@ export function ReviewTheResult() {
   const hasAfter = work === "driveway" || patioDone;
   const states: Partial<Record<Area, AreaState>> = { driveway: "scope", patio: "scope" };
   const labels: SceneLabel[] = [
-    { id: "driveway", at: PIN_ANCHORS.driveway, title: "Driveway", detail: "Before and after", state: "ok", lift: 24 },
-    { id: "patio", at: PIN_ANCHORS.patio, title: "Rear patio", detail: patioDone ? "Before and after" : "No after photo", state: patioDone ? "ok" : "blocked", lift: 24 },
+    work === "driveway"
+      ? { id: "driveway", at: PIN_ANCHORS.driveway, title: "Driveway", detail: "Before and after", state: "ok", lift: 24 }
+      : { id: "patio", at: PIN_ANCHORS.patio, title: "Rear patio", detail: patioDone ? "Before and after" : "No after photo", state: patioDone ? "ok" : "blocked", lift: 24 },
   ];
   return (
     <Example
@@ -589,7 +590,9 @@ export function ReviewTheResult() {
     >
       <div className={styles.stage}>
         <PropertyView
-          label={`3D view of the fictional Alder Lane property with the two photo positions. Driveway: before and after photos. Rear patio: ${patioDone ? "before and after photos" : "before photo only"}.`}
+          label={work === "driveway"
+            ? "3D view of the fictional Alder Lane driveway, with before and after photos on the record."
+            : `3D view of the fictional Alder Lane rear patio. ${patioDone ? "Before and after photos are on the record." : "There is a before photo and no after photo."}`}
           scene={{ view: work === "driveway" ? "front" : "back", states, selected: [work], labels, pins: [{ id: work, state: work === "driveway" || patioDone ? "ok" : "blocked" }], onPick: (area) => { if (area === "driveway" || area === "patio") setWork(area); } }}
           fallback={<PropertyPlan states={states} selected={[work]} labels={["driveway", "patio"]} />}
         />
