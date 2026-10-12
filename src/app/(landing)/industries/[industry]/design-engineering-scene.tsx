@@ -36,12 +36,12 @@ const standard = (color: string, roughness: number, metalness = 0, extra: THREE.
 const M = {
   wall: standard("#e4e3df", 0.8),
   slab: standard("#c9c9c5", 0.9),
-  concrete: standard("#cfcfcb", 0.92),
-  cut: standard("#8c8d89", 0.95),
+  concrete: standard("#b7b2a8", 0.94),
+  cut: standard("#7d786f", 0.95),
   plaster: standard("#ecebe7", 0.88),
   floor: standard("#dcdbd6", 0.95),
-  duct: standard("#c6cbcf", 0.36, 0.55),
-  seam: standard("#a6abaf", 0.4, 0.6),
+  duct: standard("#c9d4de", 0.28, 0.72),
+  seam: standard("#8e98a1", 0.35, 0.65),
   rod: standard("#7d8185", 0.45, 0.6),
   unit: physical("#d5d8da", 0.42, { clearcoat: 0.25, clearcoatRoughness: 0.5 }),
   slat: standard("#9da2a6", 0.5, 0.3),
@@ -60,7 +60,7 @@ const M = {
   proposed: standard(OK, 0.6, 0, { transparent: true, opacity: 0.45, depthWrite: false }),
   zone: standard(OK, 0.7, 0, { transparent: true, opacity: 0.18, depthWrite: false }),
   zoneSelected: standard(SELECT, 0.7, 0, { transparent: true, opacity: 0.45, depthWrite: false }),
-  clash: new THREE.MeshBasicMaterial({ color: BLOCKED, transparent: true, opacity: 0.55, depthWrite: false }),
+  clash: new THREE.MeshBasicMaterial({ color: BLOCKED, transparent: true, opacity: 0.86, depthWrite: false }),
 };
 type MaterialKey = keyof typeof M;
 
@@ -171,12 +171,15 @@ function ContactShadow({ width, depth, position = [0, 0.006, 0], opacity = 0.5 }
   );
 }
 
-function Ground() {
+function Ground({ size = 240 }: { size?: number }) {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-      <planeGeometry args={[240, 240]} />
-      <shadowMaterial transparent opacity={0.14} depthWrite={false} />
-    </mesh>
+    <>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+        <planeGeometry args={[size, size]} />
+        <shadowMaterial transparent opacity={0.14} depthWrite={false} />
+      </mesh>
+      <gridHelper args={[size, size / 2, "#e2e2de", "#e2e2de"]} position={[0, 0.001, 0]} />
+    </>
   );
 }
 
@@ -390,22 +393,48 @@ const BACK = -1.8;
 const DUCT_Z: Vec = [-DUCT.width / 2, 0];
 const HANGERS = [-2.6, -0.4, 2.7];
 
-const CLASH_VIEW: View = { position: [4.6, 1.15, 9.4], target: [0.35, 2.5, -0.7], narrow: { position: [4.4, 1.1, 8.6], target: [1.0, 2.45, -0.6] } };
+const CLASH_X = toCorridor((CLASH.x0 + CLASH.x1) / 2);
+const CLASH_VIEW: View = { position: [CLASH_X + 1.85, 2.72, 3.15], target: [CLASH_X, 2.32, -0.22], narrow: { position: [CLASH_X + 2.15, 2.95, 4.05], target: [CLASH_X, 2.38, -0.18] } };
 
-function ductRoute(lowered: boolean) {
-  const top = DUCT.top + DUCT.height / 2;
-  const high = level(top);
-  const low = level(DUCT.loweredTop + DUCT.height / 2);
-  if (!lowered) return [run([SPAN[0], high], [SPAN[1], high], DUCT.height, DUCT_Z)];
-  const path: Vec[] = [[SPAN[0], high], [0.55, high], [0.95, low], [1.85, low], [2.25, high], [SPAN[1], high]];
-  return path.slice(1).map((point, index) => run(path[index], point, DUCT.height, DUCT_Z, index % 2 === 1 ? 0.2 : 0));
+const DUCT_HIGH = level(DUCT.top + DUCT.height / 2);
+const DUCT_LOW = level(DUCT.loweredTop + DUCT.height / 2);
+const DROP_AT = toCorridor(CLASH.x0) - 0.72;
+const RISE_AT = toCorridor(CLASH.x1) + 0.72;
+
+function straightDuct() {
+  return [run([SPAN[0], DUCT_HIGH], [SPAN[1], DUCT_HIGH], DUCT.height, DUCT_Z)];
 }
 
 function clashLabels({ structure, ventilation, reroute }: Extract<SceneProps, { kind: "clash" }>): SceneLabel[] {
   const x = toCorridor((CLASH.x0 + CLASH.x1) / 2);
-  if (structure && ventilation && !reroute) return [{ id: "clash", at: [x, level(CLASH.top), 0], title: `${DUCT.id} runs through B-13`, detail: "Same space in both models", state: "blocked", lift: 44 }];
-  if (ventilation && reroute) return [{ id: "reroute", at: [x, level(DUCT.loweredTop + DUCT.height), 0], title: "Possible revision", detail: "Needs both teams to review", lift: 36 }];
+  if (structure && ventilation && !reroute) return [{ id: "clash", at: [x, level(CLASH.top), 0.02], title: `${DUCT.id} runs through B-13`, detail: "Same space in both models", state: "blocked", lift: 58 }];
+  if (ventilation && reroute) return [{ id: "reroute", at: [x, level(DUCT.loweredTop), 0], title: "Possible revision", detail: "Needs both teams to review", lift: 40 }];
   return [];
+}
+
+function ductBox(x0: number, x1: number, y0: number, y1: number) {
+  return new THREE.BoxGeometry(x1 - x0, y1 - y0, DUCT_Z[1] - DUCT_Z[0]).translate((x0 + x1) / 2, (y0 + y1) / 2, (DUCT_Z[0] + DUCT_Z[1]) / 2);
+}
+
+// Five boxes union into one offset: the duct drops, runs under B-13, and rises again.
+function loweredDuct() {
+  const half = DUCT.height / 2;
+  const highTop = DUCT_HIGH + half;
+  const highBottom = DUCT_HIGH - half;
+  const lowTop = DUCT_LOW + half;
+  const lowBottom = DUCT_LOW - half;
+  const elbow = DUCT.height;
+  const drop0 = DROP_AT - elbow / 2;
+  const drop1 = DROP_AT + elbow / 2;
+  const rise0 = RISE_AT - elbow / 2;
+  const rise1 = RISE_AT + elbow / 2;
+  return [
+    ductBox(SPAN[0], drop0, highBottom, highTop),
+    ductBox(drop0, drop1, lowBottom, highTop),
+    ductBox(drop1, rise0, lowBottom, lowTop),
+    ductBox(rise0, rise1, lowBottom, highTop),
+    ductBox(rise1, SPAN[1], highBottom, highTop),
+  ];
 }
 
 function ClashScene({ structure, ventilation, reroute, layer, labels }: Extract<SceneProps, { kind: "clash" }> & Layered) {
@@ -413,20 +442,29 @@ function ClashScene({ structure, ventilation, reroute, layer, labels }: Extract<
     const beams = BEAMS.map((beam) => ({ id: beam.id, body: bx([toCorridor(beam.x0), toCorridor(beam.x1)], [level(beam.depth), CORRIDOR.soffit + 0.01], [BACK, 0], 0.012), cut: bx([toCorridor(beam.x0), toCorridor(beam.x1)], [level(beam.depth), CORRIDOR.soffit], [-0.004, 0.003], 0.001) }));
     const ductTop = level(DUCT.top);
     const ductBottom = level(DUCT.top + DUCT.height);
+    const beamBottom = level(CLASH.bottom);
+    const clashX0 = toCorridor(CLASH.x0);
+    const clashX1 = toCorridor(CLASH.x1);
     return {
       floor: bx([SPAN[0] - 0.2, SPAN[1] + 0.2], [-0.12, 0], [BACK - 0.15, 0], 0.01),
       wall: bx([SPAN[0] - 0.2, SPAN[1] + 0.2], [0, CORRIDOR.soffit + CORRIDOR.slab], [BACK - 0.15, BACK], 0.01),
       slab: bx([SPAN[0] - 0.2, SPAN[1] + 0.2], [CORRIDOR.soffit, CORRIDOR.soffit + CORRIDOR.slab], [BACK, 0], 0.015),
       slabCut: bx([SPAN[0] - 0.2, SPAN[1] + 0.2], [CORRIDOR.soffit, CORRIDOR.soffit + CORRIDOR.slab], [-0.004, 0.003], 0.001),
       beams,
-      duct: ductRoute(false),
-      lowered: ductRoute(true),
+      duct: straightDuct(),
+      lowered: loweredDuct(),
+      // The straight duct runs into B-13. Only the lip below the beam continues, and the shared space is the red volume.
+      notch: [
+        ductBox(SPAN[0], clashX0 + 0.012, ductBottom, ductTop),
+        ductBox(clashX1 - 0.012, SPAN[1], ductBottom, ductTop),
+        ductBox(clashX0, clashX1, ductBottom, beamBottom + 0.008),
+      ],
       flanges: [-2.0, 0.1, 2.6].map((x) => bx([x - 0.02, x + 0.02], [ductBottom - 0.03, ductTop + 0.03], [DUCT_Z[0] - 0.03, 0], 0.005)),
       hangers: HANGERS.flatMap((x) => [
         cylinder(0.009, CORRIDOR.soffit - ductBottom + 0.05, "y", [x, (CORRIDOR.soffit + ductBottom - 0.05) / 2, DUCT_Z[0] - 0.08], 10),
         bx([x - 0.035, x + 0.035], [ductBottom - 0.07, ductBottom - 0.03], [DUCT_Z[0] - 0.12, 0], 0.006),
       ]),
-      clash: bx([toCorridor(CLASH.x0) - 0.008, toCorridor(CLASH.x1) + 0.008], [level(CLASH.bottom) - 0.008, level(CLASH.top) + 0.008], [DUCT_Z[0] - 0.008, 0.006], 0.004),
+      clash: ductBox(clashX0, clashX1, beamBottom, ductTop).translate(0, 0, 0.006),
     };
   }, []);
   const clash = structure && ventilation && !reroute;
@@ -445,8 +483,7 @@ function ClashScene({ structure, ventilation, reroute, layer, labels }: Extract<
           {structure && <mesh geometry={beam.cut} material={M.cut} />}
         </group>
       ))}
-      {(reroute ? geometry.lowered : geometry.duct).map((piece, index) => <Part key={index} geometry={piece} material="duct" ghost={!ventilation} edges={clash} />)}
-      {reroute && ventilation && geometry.duct.map((piece, index) => <Part key={`was-${index}`} geometry={piece} material="duct" ghost />)}
+      {(clash ? geometry.notch : reroute ? geometry.lowered : geometry.duct).map((piece, index) => <Part key={index} geometry={piece} material="duct" ghost={!ventilation} edges={clash} />)}
       {ventilation && !reroute && geometry.flanges.map((flange, index) => <Part key={index} geometry={flange} material="seam" />)}
       {ventilation && geometry.hangers.map((hanger, index) => <Part key={index} geometry={hanger} material="rod" />)}
       {clash && (
