@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { describeCode, intensityLabels, isRelatedOwner, trackStatuses, yearsHeld, type Scored, type TrackStatus } from "./parcels";
+import { ArrowUpRight, X } from "lucide-react";
+import { decisionTitle, describeCode, intensityLabels, isRelatedOwner, outcomeNote, trackStatuses, yearsHeld, type Decision, type Scored, type TrackStatus } from "./parcels";
 import { setTracking, useTracking } from "./store";
+import styles from "./tracker.module.css";
 
 type Brief = {
   verdict: string;
@@ -15,34 +17,79 @@ type Brief = {
 
 const money = (value: number) => (value ? `$${value.toLocaleString()}` : "—");
 
+export const googleEmbed = (lat: number, lng: number, zoom = 18) => `https://maps.google.com/maps?q=${lat},${lng}&t=k&z=${zoom}&output=embed`;
+const streetView = (lat: number, lng: number) => `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
+const googleMaps = (lat: number, lng: number) => `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
 function levelText(level: Scored["zoningLevel"]) {
-  if (level === null) return "Not classified";
-  if (level === "public") return "Public or institutional";
-  return intensityLabels[level];
+  if (level === null) return "not classified";
+  if (level === "public") return "public or institutional";
+  return intensityLabels[level].toLowerCase();
 }
 
 function Fact({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[8.5rem_1fr] gap-2 py-1.5 text-sm">
-      <dt className="text-zinc-500">{label}</dt>
-      <dd className="break-words text-zinc-200">{value || "—"}</dd>
+    <div className="grid grid-cols-[8rem_1fr] gap-3 py-2 text-[13px]">
+      <dt className="text-[#8a8a88]">{label}</dt>
+      <dd className="break-words text-[#eeeeec]">{value || "—"}</dd>
     </div>
   );
 }
 
-function List({ title, items, tone }: { title: string; items: string[]; tone?: "warn" }) {
+function Points({ title, items, tone }: { title: string; items: string[]; tone: "good" | "warn" | "info" }) {
   if (items.length === 0) return null;
+  const bar = tone === "good" ? "bg-[#fdd907]" : tone === "warn" ? "bg-[#f51625]" : "bg-[#3d9bff]";
   return (
-    <div>
-      <h4 className="mb-1.5 text-xs font-medium uppercase tracking-wide text-zinc-500">{title}</h4>
-      <ul className="flex flex-col gap-1.5 text-sm">
+    <section>
+      <h3 className="mb-2 text-[12px] text-[#a6a6a6]">{title}</h3>
+      <ul className="flex flex-col gap-2">
         {items.map((item) => (
-          <li key={item} className={`border-l-2 pl-3 ${tone === "warn" ? "border-orange-400/60 text-orange-100" : "border-yellow-300/60 text-zinc-200"}`}>
+          <li key={item} className="flex gap-3 text-[13px] leading-relaxed text-[#d4d4d2]">
+            <span className={`mt-[7px] block size-1.5 shrink-0 rotate-45 ${bar}`} aria-hidden />
             {item}
           </li>
         ))}
       </ul>
-    </div>
+    </section>
+  );
+}
+
+export function DecisionCard({ decision, note }: { decision: Decision; note?: string | null }) {
+  return (
+    <article className="border border-[#3a2023] bg-[#f51625]/[0.06] p-4">
+      <p className="text-[12px] text-[#f8a3a9]">
+        {decision.government}
+        {decision.caseNumber && ` · ${decision.caseNumber}`}
+        {decision.date && ` · ${decision.date}`}
+      </p>
+      <h4 className={`${styles.headline} mt-1 text-[17px] text-[#eeeeec]`}>{decisionTitle(decision)}</h4>
+      {decision.request && <p className="mt-2 text-[13px] leading-relaxed text-[#b8b8b6]">{decision.request}</p>}
+      <ul className="mt-3 flex flex-col gap-1.5 text-[13px] text-[#eeeeec]">
+        {decision.reasons.map((reason) => (
+          <li key={reason} className="flex gap-2.5">
+            <span className="mt-[7px] block size-1.5 shrink-0 rotate-45 bg-[#f51625]" aria-hidden />
+            {reason}
+          </li>
+        ))}
+      </ul>
+      {(decision.fromZoning || decision.toZoning) && (
+        <p className="mt-3 text-[12px] text-[#a6a6a6]">
+          Requested zoning: {decision.fromZoning || "?"} → {decision.toZoning || "?"}
+        </p>
+      )}
+      {decision.meetings.length > 1 && <p className="mt-1 text-[12px] text-[#a6a6a6]">Heard on {decision.meetings.join(", ")}</p>}
+      {note && <p className="mt-2 text-[12px] text-[#eeeeec]">{note}</p>}
+      {decision.located && decision.located !== "parcel number in the record" && (
+        <p className="mt-2 text-[12px] text-[#a6a6a6]">Located by {decision.located}. Confirm the boundary before relying on it.</p>
+      )}
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+        {decision.sources.map((source) => (
+          <a key={source.url} href={source.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] text-[#eeeeec] underline decoration-[#5a5a58] underline-offset-4 hover:decoration-[#fdd907]">
+            {source.label} <ArrowUpRight size={12} />
+          </a>
+        ))}
+      </div>
+    </article>
   );
 }
 
@@ -52,8 +99,9 @@ export function ParcelDetail({ parcel, onClose }: { parcel: Scored; onClose: () 
   const [note, setNote] = useState(track?.note ?? "");
   const [research, setResearch] = useState<{ status: "idle" | "loading" | "done" | "error"; brief?: Brief; error?: string }>({ status: "idle" });
 
-  const positives = parcel.signals.filter((signal) => signal.points > 0);
-  const cautions = parcel.signals.filter((signal) => signal.points <= 0);
+  const positives = parcel.signals.filter((signal) => signal.points > 0 && signal.id !== "rejected-here");
+  const cautions = parcel.signals.filter((signal) => signal.points < 0);
+  const notes = parcel.signals.filter((signal) => signal.points === 0);
   const held = yearsHeld(parcel);
 
   async function runResearch() {
@@ -81,7 +129,7 @@ export function ParcelDetail({ parcel, onClose }: { parcel: Scored; onClose: () 
           distanceMiles: parcel.distanceMiles,
           wetlandPct: parcel.wetlandPct,
           floodPct: parcel.floodPct,
-          signals: parcel.signals.map((signal) => signal.detail),
+          signals: parcel.signals.map((signal) => signal.detail).slice(0, 20),
         }),
         signal: AbortSignal.timeout(70_000),
       });
@@ -94,137 +142,144 @@ export function ParcelDetail({ parcel, onClose }: { parcel: Scored; onClose: () 
   }
 
   return (
-    <article className="flex flex-col gap-5">
-      <header className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs uppercase tracking-wide text-zinc-500">{parcel.jurisdiction}</p>
-          <h2 className="mt-1 text-lg font-semibold leading-snug text-zinc-50">{parcel.address || parcel.propertyName || parcel.parcelNumber}</h2>
-          <p className="mt-1 text-sm text-zinc-400">
-            {parcel.acres.toFixed(1)} acres · {parcel.distanceMiles.toFixed(1)} mi from Crooked Can
-          </p>
-        </div>
-        <div className="flex shrink-0 items-start gap-1">
-          <div className="rounded-lg border border-yellow-300/40 px-3 py-1.5 text-center">
-            <p className="text-xl font-semibold tabular-nums text-yellow-200">{parcel.score}</p>
-            <p className="text-[10px] uppercase tracking-wide text-zinc-500">Score</p>
-          </div>
-          <button type="button" onClick={onClose} aria-label="Close parcel" className="grid size-11 place-items-center rounded-lg text-zinc-400 hover:bg-white/5 hover:text-zinc-100">
-            <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          </button>
-        </div>
-      </header>
-
-      {isRelatedOwner(parcel) && (
-        <p className="rounded-lg border border-white/15 p-3 text-sm text-zinc-300">This owner appears to hold Hills City Center land. Confirm with Max before treating it as a lead.</p>
-      )}
-
-      <List title="Why it appeared" items={positives.map((signal) => signal.detail)} />
-      <List title="Watch outs" items={cautions.map((signal) => signal.detail)} tone="warn" />
-
-      <section className="rounded-xl border border-white/10 p-4">
-        <h3 className="mb-3 text-sm font-medium text-zinc-200">Track this parcel</h3>
-        <div className="flex flex-wrap gap-2">
-          {trackStatuses.map((status) => (
-            <button
-              key={status}
-              type="button"
-              aria-pressed={track?.status === status}
-              onClick={() => setTracking(parcel.id, track?.status === status ? null : (status as TrackStatus), note)}
-              className={`min-h-9 rounded-full border px-3 text-xs ${track?.status === status ? "border-yellow-300 bg-yellow-300/10 text-yellow-200" : "border-white/10 text-zinc-400 hover:border-white/25"}`}
-            >
-              {status}
-            </button>
-          ))}
-        </div>
-        <textarea
-          value={note}
-          onChange={(event) => setNote(event.target.value)}
-          onBlur={() => setTracking(parcel.id, track?.status ?? null, note)}
-          rows={3}
-          placeholder="Notes, who to call, what you learned…"
-          aria-label="Notes"
-          className="mt-3 w-full rounded-md border border-white/10 bg-zinc-900 px-3 py-2 text-[15px] text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-400 focus:outline-none"
+    <article className="flex flex-col">
+      <div className="relative aspect-[16/10] w-full shrink-0 border-b border-[#262626] bg-[#111]">
+        <iframe
+          key={parcel.id}
+          title={`Google satellite view of ${parcel.address || parcel.parcelNumber}`}
+          src={googleEmbed(parcel.lat, parcel.lng, parcel.acres > 40 ? 16 : parcel.acres > 8 ? 17 : 18)}
+          className="absolute inset-0 h-full w-full"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
         />
-      </section>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close parcel"
+          className="absolute right-3 top-3 grid size-10 place-items-center bg-[#f8f8f6] text-[#252525] hover:bg-[#dcdcd9]"
+        >
+          <X size={18} strokeWidth={1.5} />
+        </button>
+      </div>
 
-      <section className="rounded-xl border border-white/10 p-4">
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="text-sm font-medium text-zinc-200">AI research brief</h3>
-          <button
-            type="button"
-            onClick={runResearch}
-            disabled={research.status === "loading"}
-            className="min-h-9 rounded-md bg-zinc-100 px-3 text-sm font-medium text-zinc-950 hover:bg-white disabled:opacity-60"
-          >
-            {research.status === "loading" ? "Researching…" : research.status === "done" ? "Run again" : "Research"}
-          </button>
-        </div>
-        <p className="mt-2 text-xs text-zinc-500">
-          Checks this parcel&apos;s sale history, nearby land sales, and nearby county applications, then writes a short brief. It can be wrong. Verify before acting.
-        </p>
-        {research.status === "error" && <p className="mt-3 text-sm text-red-300">{research.error}</p>}
-        {research.brief && (
-          <div className="mt-4 flex flex-col gap-4">
-            <p className="text-sm text-zinc-100">
-              <span className="mr-2 rounded bg-yellow-300/15 px-2 py-0.5 text-xs font-medium text-yellow-200">{research.brief.verdict}</span>
-              {research.brief.summary}
-            </p>
-            <List title="Why it may fit" items={research.brief.whyItMayFit} />
-            <List title="Obstacles" items={research.brief.obstacles} tone="warn" />
-            <List title="Nearby activity" items={research.brief.nearbyActivity} />
-            <List title="Questions to verify" items={research.brief.questionsToVerify} />
+      <div className="flex flex-col gap-6 p-5">
+        <header>
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-[12px] text-[#a6a6a6]">
+                {parcel.jurisdiction} · {parcel.acres.toFixed(1)} acres · {parcel.distanceMiles.toFixed(1)} mi from Crooked Can
+              </p>
+              <h2 className={`${styles.headline} mt-1.5 text-[24px] leading-tight text-[#eeeeec]`}>
+                {parcel.address && parcel.address !== "UNASSIGNED" ? parcel.address : parcel.propertyName || `Parcel ${parcel.parcelNumber}`}
+              </h2>
+              <p className="mt-1 truncate text-[13px] text-[#b8b8b6]">{parcel.owner}</p>
+            </div>
+            <div className="shrink-0 text-right">
+              <p className={`${styles.headline} text-[40px] leading-none text-[#fdd907]`}>{parcel.score}</p>
+              <p className="mt-1 text-[11px] text-[#8a8a88]">score</p>
+            </div>
           </div>
-        )}
-      </section>
-
-      <section>
-        <h3 className="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500">Property record</h3>
-        <dl className="divide-y divide-white/5">
-          <Fact label="Owner" value={parcel.owner} />
-          <Fact label="Mailing address" value={[parcel.ownerAddress, parcel.ownerCity, parcel.ownerState, parcel.ownerZip].filter(Boolean).join(", ")} />
-          <Fact label="Parcel number" value={parcel.parcelNumber} />
-          <Fact label="Zoning" value={`${describeCode(parcel.zoning, parcel.zoningName)} (${levelText(parcel.zoningLevel)})`} />
-          <Fact label="Land-use plan" value={`${describeCode(parcel.flu, parcel.fluName)} (${levelText(parcel.planLevel)})`} />
-          <Fact label="Current use" value={parcel.landUse} />
-          <Fact label="Assessed value" value={`${money(parcel.justValue)} (land ${money(parcel.landValue)}, buildings ${money(parcel.buildingValue)})`} />
-          <Fact label="Last sale" value={parcel.lastSaleDate ? `${parcel.lastSaleDate} for ${money(parcel.lastSalePrice)}${held !== null ? ` · ${held} years ago` : ""}` : "No sale on record"} />
-          <Fact label="Wetlands / flood" value={`${parcel.wetlandPct}% wetland · ${parcel.floodPct}% flood zone`} />
-        </dl>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {parcel.link && (
-            <a href={parcel.link} target="_blank" rel="noreferrer" className="min-h-9 rounded-md border border-white/10 px-3 py-2 text-sm text-zinc-200 hover:border-white/25">
-              Property appraiser record ↗
+          <div className="mt-4 flex flex-wrap gap-2">
+            <a href={streetView(parcel.lat, parcel.lng)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 border border-[#3a3a3a] px-3 py-2 text-[12px] text-[#eeeeec] hover:border-[#fdd907]">
+              Street View <ArrowUpRight size={12} />
             </a>
-          )}
-          <a
-            href={`https://www.google.com/maps/search/?api=1&query=${parcel.lat},${parcel.lng}`}
-            target="_blank"
-            rel="noreferrer"
-            className="min-h-9 rounded-md border border-white/10 px-3 py-2 text-sm text-zinc-200 hover:border-white/25"
-          >
-            Google Maps ↗
-          </a>
-        </div>
-      </section>
+            <a href={googleMaps(parcel.lat, parcel.lng)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 border border-[#3a3a3a] px-3 py-2 text-[12px] text-[#eeeeec] hover:border-[#fdd907]">
+              Open in Google Maps <ArrowUpRight size={12} />
+            </a>
+            {parcel.link && (
+              <a href={parcel.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 border border-[#3a3a3a] px-3 py-2 text-[12px] text-[#eeeeec] hover:border-[#fdd907]">
+                Property appraiser <ArrowUpRight size={12} />
+              </a>
+            )}
+          </div>
+        </header>
 
-      {parcel.applications.length > 0 && (
-        <section>
-          <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">County applications on this parcel</h3>
-          <ul className="flex flex-col gap-2 text-sm">
-            {parcel.applications.map((application) => (
-              <li key={[application.type, application.status, application.project, application.description].join("|")} className="rounded-lg border border-white/10 p-3">
-                <p className="text-zinc-200">
-                  {application.type} · <span className="text-zinc-400">{application.status.toLowerCase()}</span>
-                  {application.opened && <span className="text-zinc-500"> · opened {application.opened}</span>}
-                </p>
-                <p className="mt-1 text-zinc-400">{application.description || application.project}</p>
-              </li>
+        {isRelatedOwner(parcel) && (
+          <p className="border border-[#3a3a3a] p-3 text-[13px] text-[#d4d4d2]">This owner holds Hills City Center land, so it may be Skorman&apos;s. Confirm with Max before treating it as a lead.</p>
+        )}
+
+        {parcel.decisions.length > 0 && (
+          <section className="flex flex-col gap-3">
+            <h3 className="text-[12px] text-[#a6a6a6]">Rejected or withdrawn applications on this parcel</h3>
+            {parcel.decisions.map((decision) => (
+              <DecisionCard key={decision.id} decision={decision} note={outcomeNote(parcel, decision)} />
             ))}
-          </ul>
+          </section>
+        )}
+
+        <Points title="Why it appeared" items={positives.map((signal) => signal.detail)} tone="good" />
+        <Points title="Watch outs" items={cautions.map((signal) => signal.detail)} tone="warn" />
+        <Points title="Check before relying on this" items={notes.map((signal) => signal.detail)} tone="info" />
+
+        <section className="border border-[#262626] p-4">
+          <h3 className="mb-3 text-[13px] text-[#eeeeec]">Track this parcel</h3>
+          <div className="flex flex-wrap gap-1.5">
+            {trackStatuses.map((status) => (
+              <button
+                key={status}
+                type="button"
+                aria-pressed={track?.status === status}
+                onClick={() => setTracking(parcel.id, track?.status === status ? null : (status as TrackStatus), note)}
+                className={`min-h-8 border px-2.5 text-[12px] ${track?.status === status ? "border-[#fdd907] bg-[#fdd907] text-[#111]" : "border-[#303030] text-[#b8b8b6] hover:border-[#5a5a58]"}`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+          <textarea
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            onBlur={() => setTracking(parcel.id, track?.status ?? null, note)}
+            rows={3}
+            placeholder="Notes, who to call, what you learned"
+            aria-label="Notes"
+            className="mt-3 w-full border border-[#262626] bg-[#0e0e0e] px-3 py-2 text-[14px] text-[#eeeeec] placeholder:text-[#7a7a78] focus:border-[#fdd907] focus:outline-none"
+          />
         </section>
-      )}
+
+        <section className="border border-[#262626] p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-[13px] text-[#eeeeec]">AI research brief</h3>
+            <button type="button" onClick={runResearch} disabled={research.status === "loading"} className="min-h-9 bg-[#f8f8f6] px-3 text-[13px] text-[#252525] hover:bg-[#dcdcd9] disabled:opacity-60">
+              {research.status === "loading" ? "Researching…" : research.status === "done" ? "Run again" : "Research"}
+            </button>
+          </div>
+          <p className="mt-2 text-[12px] leading-relaxed text-[#8a8a88]">
+            Looks up this parcel&apos;s recent sales, nearby land sales, and nearby county applications, then writes a short brief. It can be wrong, so verify before acting.
+          </p>
+          {research.status === "error" && <p className="mt-3 text-[13px] text-[#f8a3a9]">{research.error}</p>}
+          {research.brief && (
+            <div className="mt-4 flex flex-col gap-4">
+              <p className="text-[13px] leading-relaxed text-[#eeeeec]">
+                <span className="mr-2 bg-[#fdd907] px-1.5 py-0.5 text-[11px] text-[#111]">{research.brief.verdict}</span>
+                {research.brief.summary}
+              </p>
+              <Points title="Why it may fit" items={research.brief.whyItMayFit} tone="good" />
+              <Points title="Obstacles" items={research.brief.obstacles} tone="warn" />
+              <Points title="Nearby activity" items={research.brief.nearbyActivity} tone="info" />
+              <Points title="Questions to verify" items={research.brief.questionsToVerify} tone="info" />
+            </div>
+          )}
+        </section>
+
+        <section>
+          <h3 className="mb-1 text-[12px] text-[#a6a6a6]">Property record</h3>
+          <dl className="divide-y divide-[#1e1e1e]">
+            <Fact label="Owner" value={parcel.owner} />
+            <Fact label="Mailing address" value={[parcel.ownerAddress, parcel.ownerCity, parcel.ownerState, parcel.ownerZip].filter(Boolean).join(", ")} />
+            <Fact label="Parcel number" value={`${parcel.parcelNumber} (alternate key ${parcel.id})`} />
+            <Fact label="Zoning" value={`${describeCode(parcel.zoning, parcel.zoningName)}, ${levelText(parcel.zoningLevel)}`} />
+            <Fact label="Zoning source" value={parcel.zoningSource} />
+            <Fact label="Land-use plan" value={`${describeCode(parcel.flu, parcel.fluName)}, ${levelText(parcel.planLevel)}`} />
+            {parcel.lastRezoning && <Fact label="Last rezoning" value={`${parcel.lastRezoning.change} · ordinance ${parcel.lastRezoning.ordinance} · ${parcel.lastRezoning.date}`} />}
+            {parcel.annexed && <Fact label="Annexed" value={`Into ${parcel.annexed.city} · ordinance ${parcel.annexed.ordinance} · ${parcel.annexed.date}`} />}
+            <Fact label="Current use" value={parcel.landUse} />
+            <Fact label="Assessed value" value={`${money(parcel.justValue)} (land ${money(parcel.landValue)}, buildings ${money(parcel.buildingValue)})`} />
+            <Fact label="Last sale" value={parcel.lastSaleDate ? `${parcel.lastSaleDate} for ${money(parcel.lastSalePrice)}${held !== null ? ` · ${held} years ago` : ""}` : "No sale on record"} />
+            <Fact label="Wetlands / flood" value={`${parcel.wetlandPct}% wetland · ${parcel.floodPct}% flood zone`} />
+          </dl>
+        </section>
+      </div>
     </article>
   );
 }

@@ -10,7 +10,8 @@
     "test:intake": "node --test tests/intake.test.mjs",
     "export:pdf": "node scripts/export-pdf.mjs",
     "export:og": "node scripts/export-og.mjs",
-    "skorman:parcels": "node scripts/skorman-parcels.mjs"
+    "skorman:parcels": "node scripts/skorman-parcels.mjs",
+    "skorman:decisions": "node scripts/skorman-decisions.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "^9.8.1",

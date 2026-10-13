@@ -1,0 +1,3489 @@
+{
+ "generatedAt": "2026-10-13T23:44:32.532Z",
+ "coverage": [
+  "Lake County Board of County Commissioners zoning packets since 2021-10-01 (178 cases read, 14 withdrawn, recommended for denial, or repeatedly continued)",
+  "Lake County development applications marked denied or cancelled, 2018 to 2021 (9)",
+  "City of Clermont council summaries of actions since 2021-01-01 (18 denied or withdrawn land-use items)",
+  "City of Minneola: verified decisions listed by hand (1)"
+ ],
+ "approvedLakeCountyCases": [
+  {
+   "caseNumber": "FLU-21-01-1",
+   "name": "Holiday Travel Park",
+   "date": "2021-10-05",
+   "fromZoning": "CUP",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1741688"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-02-1",
+   "name": "Holiday Travel Park PUD",
+   "date": "2021-10-05",
+   "fromZoning": "CUP",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1741688"
+   ]
+  },
+  {
+   "caseNumber": "FLU-21-03-5",
+   "name": "Wildwoods Campground",
+   "date": "2021-10-05",
+   "fromZoning": "C-1",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1727545"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-06-5",
+   "name": "Wildwoods Campground",
+   "date": "2021-10-05",
+   "fromZoning": "C-1",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1727545"
+   ]
+  },
+  {
+   "caseNumber": "CP-21-07",
+   "name": "Property Rights Element",
+   "date": "2022-01-04",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "FLU-21-06-4",
+   "name": "CSD Groves",
+   "date": "2022-04-05",
+   "fromZoning": "A",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1098491"
+   ]
+  },
+  {
+   "caseNumber": "FLU-21-09-2",
+   "name": "Wellness Way Area Plan Amendments",
+   "date": "2022-05-03",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "RZ-21-24-2",
+   "name": "South Lake Seventh-Day Adventists Church",
+   "date": "2021-10-05",
+   "fromZoning": "",
+   "toZoning": "CFD",
+   "parcelKeys": [
+    "1678536"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-13-5",
+   "name": "Brucelas-Burch Property",
+   "date": "2021-10-05",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3827730"
+   ]
+  },
+  {
+   "caseNumber": "CUP-21-04-5",
+   "name": "The 1 Dog Trainer Academy",
+   "date": "2021-10-05",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3827730"
+   ]
+  },
+  {
+   "caseNumber": "CUP-21-07-1",
+   "name": "C\u2019s Horse Ranch",
+   "date": "2021-11-02",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1025605"
+   ]
+  },
+  {
+   "caseNumber": "CUP-21-09-5",
+   "name": "Southland Construction \u2013 Lady Lake Construction Office",
+   "date": "2021-11-02",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1770581"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-25-5",
+   "name": "Myers Property Rezoning",
+   "date": "2021-11-02",
+   "fromZoning": "",
+   "toZoning": "A",
+   "parcelKeys": [
+    "2592087"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-27-4",
+   "name": "Trinity Capital Group Rezoning",
+   "date": "2021-12-07",
+   "fromZoning": "",
+   "toZoning": "R-4",
+   "parcelKeys": [
+    "3818981"
+   ]
+  },
+  {
+   "caseNumber": "CUP-21-13-1",
+   "name": "Landscape Systems Holdings LLC",
+   "date": "2021-12-07",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1039100",
+    "1039096"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-26-2",
+   "name": "Four Winds Youth with a Mission (YWAM)",
+   "date": "2021-12-07",
+   "fromZoning": "",
+   "toZoning": "CFD",
+   "parcelKeys": [
+    "3018311",
+    "1095481",
+    "1529387",
+    "1529395",
+    "3747470",
+    "3283368",
+    "1592151",
+    "1109027",
+    "1592127",
+    "3747488",
+    "1509891",
+    "3747429",
+    "1411912",
+    "2615591"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-29-3",
+   "name": "Warren Life Estate Property",
+   "date": "2022-02-01",
+   "fromZoning": "",
+   "toZoning": "A",
+   "parcelKeys": [
+    "1388287"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-39-5",
+   "name": "At Home Day Care - ALF",
+   "date": "2022-02-01",
+   "fromZoning": "",
+   "toZoning": "CFD",
+   "parcelKeys": [
+    "1238781",
+    "3874829"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-34-4",
+   "name": "Deneault-Fox Property",
+   "date": "2022-02-01",
+   "fromZoning": "",
+   "toZoning": "R-1",
+   "parcelKeys": [
+    "1261911"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-35",
+   "name": "-",
+   "date": "2022-02-01",
+   "fromZoning": "MP",
+   "toZoning": "",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "RZ-21-37-4",
+   "name": "Northlake Church of Christ",
+   "date": "2022-02-01",
+   "fromZoning": "",
+   "toZoning": "A",
+   "parcelKeys": [
+    "1387469"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-22-1",
+   "name": "Trout Lake Master Planned Unit Development (MPUD)",
+   "date": "2022-04-05",
+   "fromZoning": "A",
+   "toZoning": "MPUD",
+   "parcelKeys": [
+    "1594600"
+   ]
+  },
+  {
+   "caseNumber": "FLU-21-08-5",
+   "name": "Expert Investments",
+   "date": "2022-07-05",
+   "fromZoning": "R-1",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1278759"
+   ]
+  },
+  {
+   "caseNumber": "RZ-20-39-1",
+   "name": "Lake Nellie Crossing Planned Unit Development (PUD)",
+   "date": "2022-03-01",
+   "fromZoning": "R-6",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1813107",
+    "3863032",
+    "1405351"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-23-4",
+   "name": "CSD Groves",
+   "date": "2022-04-05",
+   "fromZoning": "A",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1098491"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-30-4",
+   "name": "New Missions, Inc.",
+   "date": "2022-10-11",
+   "fromZoning": "",
+   "toZoning": "CFD",
+   "parcelKeys": [
+    "3830967"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-40-4",
+   "name": "White Rose Subdivision",
+   "date": "2022-05-03",
+   "fromZoning": "",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1123691",
+    "3455096",
+    "3788799"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-28-5",
+   "name": "Expert Investments PUD",
+   "date": "2022-07-05",
+   "fromZoning": "R-1",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1278759"
+   ]
+  },
+  {
+   "caseNumber": "FLU-21-05-3",
+   "name": "Drake Pointe PUD",
+   "date": "2022-11-01",
+   "fromZoning": "R-2",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1226155",
+    "1242371",
+    "1371961",
+    "3827817",
+    "1517389",
+    "3855902",
+    "1535972",
+    "3878118",
+    "1673801",
+    "1792304",
+    "1792312",
+    "3827816",
+    "2923989",
+    "2923962",
+    "3815464",
+    "3450221",
+    "1792291",
+    "3016050",
+    "2704381",
+    "1803411",
+    "1803403"
+   ]
+  },
+  {
+   "caseNumber": "FLU-22-08-1",
+   "name": "Wellness Way Area Plan Amendments",
+   "date": "2022-11-01",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "FLU-22-09",
+   "name": "Rural Conservation Comprehensive Plan Amendments",
+   "date": "2022-08-02",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "FLU-22-06-5",
+   "name": "Illinois-Crown Property",
+   "date": "2022-08-02",
+   "fromZoning": "R-1",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "2863056",
+    "2863099"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-16-5",
+   "name": "Illinois-Crown Property",
+   "date": "2022-08-02",
+   "fromZoning": "",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "2863056",
+    "2863099"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-02-2",
+   "name": "Hampton Manor Assisted Living Facility",
+   "date": "2022-08-02",
+   "fromZoning": "",
+   "toZoning": "CFD",
+   "parcelKeys": [
+    "1412277"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-42-4",
+   "name": "Lake Cares",
+   "date": "2022-08-02",
+   "fromZoning": "",
+   "toZoning": "CP",
+   "parcelKeys": [
+    "1240573"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-04-4",
+   "name": "7-Eleven at Pine Lakes",
+   "date": "2022-08-02",
+   "fromZoning": "",
+   "toZoning": "CP",
+   "parcelKeys": [
+    "1675090",
+    "1537100",
+    "1537088"
+   ]
+  },
+  {
+   "caseNumber": "FLU-22-03-2",
+   "name": "RLY Holdings LLC",
+   "date": "2022-10-11",
+   "fromZoning": "A",
+   "toZoning": "",
+   "parcelKeys": [
+    "3866510"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-43-4",
+   "name": "Pandolph Property PUD Amendment",
+   "date": "2022-10-11",
+   "fromZoning": "PUD",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "2601175",
+    "2832088",
+    "3266391",
+    "3330986"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-07-3",
+   "name": "Harbor Shores Road PUD",
+   "date": "2023-06-06",
+   "fromZoning": "R-6",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1214564",
+    "2563036",
+    "1489954"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-08-3",
+   "name": "Goose Creek PUD",
+   "date": "2023-06-06",
+   "fromZoning": "",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1387728",
+    "1387736",
+    "1387779",
+    "3829154"
+   ]
+  },
+  {
+   "caseNumber": "FLU-22-05-4",
+   "name": "Mount Dora Groves North",
+   "date": "2022-10-11",
+   "fromZoning": "",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "3884341",
+    "1445671"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-14-4",
+   "name": "Mount Dora Groves North",
+   "date": "2022-10-11",
+   "fromZoning": "C-1",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "3884341",
+    "1445671"
+   ]
+  },
+  {
+   "caseNumber": "FLU-22-04-4",
+   "name": "Mount Dora Groves South",
+   "date": "2022-12-06",
+   "fromZoning": "",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1445710",
+    "3884340",
+    "1445698",
+    "1445647",
+    "3816281"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-20-3",
+   "name": "Charitable Ministry Support Inc",
+   "date": "2022-11-01",
+   "fromZoning": "CFD",
+   "toZoning": "",
+   "parcelKeys": [
+    "2948230"
+   ]
+  },
+  {
+   "caseNumber": "FLU-22-07-4",
+   "name": "Sorrento Pines PUD",
+   "date": "2023-01-03",
+   "fromZoning": "",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "3902829"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-19-3",
+   "name": "Drake Pointe PUD",
+   "date": "2022-11-01",
+   "fromZoning": "R-2",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1226155",
+    "1242371",
+    "1371961",
+    "3827817",
+    "1517389",
+    "3855902",
+    "1535972",
+    "3878118",
+    "1673801",
+    "1792304",
+    "1792312",
+    "3827816",
+    "2923989",
+    "2923962",
+    "3815464",
+    "3450221",
+    "1792291",
+    "3016050",
+    "2704381",
+    "1803411",
+    "1803403"
+   ]
+  },
+  {
+   "caseNumber": "FLU-22-12-1",
+   "name": "Wellness Way Area Plan Amendments",
+   "date": "2023-04-04",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "RZ-22-13-4",
+   "name": "Mount Dora Groves South",
+   "date": "2022-12-06",
+   "fromZoning": "R-6",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1445710",
+    "3884340",
+    "1445698",
+    "1445647",
+    "3816281"
+   ]
+  },
+  {
+   "caseNumber": "",
+   "name": "FLU -22-01-3, Atlantic Housing",
+   "date": "2023-01-03",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1409179"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-01-3",
+   "name": "Atlantic Housing PUD",
+   "date": "2023-01-03",
+   "fromZoning": "RMRP",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1409179"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-41-1",
+   "name": "Savanna Reserve",
+   "date": "2023-01-03",
+   "fromZoning": "PUD",
+   "toZoning": "A",
+   "parcelKeys": [
+    "1704707",
+    "1587816",
+    "1587808",
+    "1587794",
+    "1507529",
+    "1111811",
+    "3456068"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-05-1",
+   "name": "Pacific Ace PUD Amendment",
+   "date": "2023-01-03",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3929329",
+    "3929332",
+    "3929341",
+    "3930620",
+    "3929328",
+    "3929334",
+    "3929340",
+    "3930634",
+    "3929333",
+    "3929324",
+    "3930613",
+    "3930616",
+    "3930618",
+    "3930632",
+    "3930635",
+    "3929339",
+    "1412382",
+    "1412374",
+    "1412463",
+    "1412366",
+    "3930631",
+    "3930614"
+   ]
+  },
+  {
+   "caseNumber": "FLU-22-10-4",
+   "name": "Wiggins Property",
+   "date": "2023-02-07",
+   "fromZoning": "",
+   "toZoning": "C-1",
+   "parcelKeys": [
+    "1510571",
+    "2614056",
+    "1510562"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-22-4",
+   "name": "Wiggins Property",
+   "date": "2023-02-07",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "2614056"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-10-1",
+   "name": "Camden Park North PUD",
+   "date": "2023-02-07",
+   "fromZoning": "",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1595134",
+    "1595231",
+    "1070121",
+    "1595185"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-26-5",
+   "name": "Carlton Village LLC",
+   "date": "2023-02-07",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1414270"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-09-1",
+   "name": "Paquette Property.",
+   "date": "2023-02-07",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "RZ-22-29-5",
+   "name": "Light Point Farm",
+   "date": "2023-03-07",
+   "fromZoning": "R-1",
+   "toZoning": "A",
+   "parcelKeys": [
+    "1281873"
+   ]
+  },
+  {
+   "caseNumber": "MCUP-22-02-4",
+   "name": "Lisbon Sand-Dura Stress Mining Conditional Use Permit (MCUP) Amendment",
+   "date": "2023-03-07",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1702623",
+    "1702640",
+    "1702534",
+    "1727481",
+    "1702542",
+    "1657059",
+    "1386969",
+    "1386772"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-15-2",
+   "name": "Clermont Baptist Church",
+   "date": "2023-03-07",
+   "fromZoning": "CFD",
+   "toZoning": "CFD",
+   "parcelKeys": [
+    "1029031",
+    "3798781",
+    "3798636",
+    "3456084"
+   ]
+  },
+  {
+   "caseNumber": "MCUP-22-01-1",
+   "name": "Rubin Groves Sand Mine",
+   "date": "2023-04-04",
+   "fromZoning": "PUD",
+   "toZoning": "",
+   "parcelKeys": [
+    "1412501",
+    "3925069"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-24-4",
+   "name": "Swanson Chudeusz Property",
+   "date": "2023-04-04",
+   "fromZoning": "",
+   "toZoning": "R-3",
+   "parcelKeys": [
+    "1212812"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-28-2",
+   "name": "Hills of Montverde PUD Amendment",
+   "date": "2023-04-04",
+   "fromZoning": "",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1029503",
+    "2873728",
+    "3778275"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-06-4",
+   "name": "Reed Property",
+   "date": "2023-05-02",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "RZ-22-19-1",
+   "name": "T-Mobile Crown Castle",
+   "date": "2023-05-02",
+   "fromZoning": "CFD",
+   "toZoning": "CFD",
+   "parcelKeys": [
+    "1101778"
+   ]
+  },
+  {
+   "caseNumber": "FLU-22-14-4",
+   "name": "Haines Creek RV Village",
+   "date": "2023-05-02",
+   "fromZoning": "",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1702712",
+    "1779171",
+    "1779073"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-30-4",
+   "name": "Haines Creek RV Village",
+   "date": "2023-05-02",
+   "fromZoning": "",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1702712",
+    "1779171",
+    "1779073"
+   ]
+  },
+  {
+   "caseNumber": "FLU-22-11-4",
+   "name": "East Lake Sports and Community Complex",
+   "date": "2023-06-06",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1802709"
+   ]
+  },
+  {
+   "caseNumber": "RZ-22-32-5",
+   "name": "Costin Property",
+   "date": "2023-06-06",
+   "fromZoning": "",
+   "toZoning": "RA",
+   "parcelKeys": [
+    "1740037"
+   ]
+  },
+  {
+   "caseNumber": "RZ-23-07-2",
+   "name": "Stenzel Farm",
+   "date": "2023-08-01",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "FLU-23-35-4",
+   "name": "Eld, Roach, and Azad Properties",
+   "date": "2023-09-05",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1400856",
+    "1400881",
+    "1673828"
+   ]
+  },
+  {
+   "caseNumber": "RZ-23-32-4",
+   "name": "Eld, Roach, and Azad Properties",
+   "date": "2023-09-05",
+   "fromZoning": "",
+   "toZoning": "PUD",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "RZ-22-33-4",
+   "name": "Rapture Air Storage Building",
+   "date": "2023-09-05",
+   "fromZoning": "",
+   "toZoning": "C-2",
+   "parcelKeys": [
+    "1212596"
+   ]
+  },
+  {
+   "caseNumber": "",
+   "name": "Comprehensive Plan Map Amendment \u2013 Economic Development Overlay District Map 20",
+   "date": "2023-11-14",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3794003"
+   ]
+  },
+  {
+   "caseNumber": "FLU-23-06-3",
+   "name": "Hurley Environmental Park Comprehensive Plan Map Amendment",
+   "date": "2023-11-14",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3794003"
+   ]
+  },
+  {
+   "caseNumber": "RZ-23-04-3",
+   "name": "Hurley Environmental Park Rezoning",
+   "date": "2023-11-14",
+   "fromZoning": "",
+   "toZoning": "A",
+   "parcelKeys": [
+    "3794003"
+   ]
+  },
+  {
+   "caseNumber": "FLU-23-29-1",
+   "name": "Golden Eagle Mixed-Use Comprehensive Plan Map Amendment",
+   "date": "2023-12-05",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3801697"
+   ]
+  },
+  {
+   "caseNumber": "RZ-23-30-1",
+   "name": "Golden Eagle Mixed-Use Rezoning",
+   "date": "2023-12-05",
+   "fromZoning": "",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "3801697"
+   ]
+  },
+  {
+   "caseNumber": "FLU-23-23-5",
+   "name": "Griffin-Howard Property",
+   "date": "2023-11-14",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1811856",
+    "3916348"
+   ]
+  },
+  {
+   "caseNumber": "RZ-23-50-5",
+   "name": "Griffin and Howard Property Scrivener\u2019s Error Correction",
+   "date": "2023-11-14",
+   "fromZoning": "",
+   "toZoning": "R-1",
+   "parcelKeys": [
+    "1811856",
+    "3916348"
+   ]
+  },
+  {
+   "caseNumber": "FLU-23-05-1",
+   "name": "LCSO Facility",
+   "date": "2023-11-14",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "2822317"
+   ]
+  },
+  {
+   "caseNumber": "RZ-23-19-4",
+   "name": "Willow Estates",
+   "date": "2023-12-05",
+   "fromZoning": "",
+   "toZoning": "CFD",
+   "parcelKeys": [
+    "3555040"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-37",
+   "name": "Schofield Master Planned Unit Development (MPUD)",
+   "date": "2023-12-05",
+   "fromZoning": "A",
+   "toZoning": "MPUD",
+   "parcelKeys": [
+    "1085063",
+    "1031389",
+    "3854757",
+    "1029261",
+    "1594626",
+    "3374011",
+    "3360010"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-138",
+   "name": "Johnson & Clayborn Property",
+   "date": "2024-01-09",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1445892",
+    "3910152",
+    "1445922",
+    "2809957"
+   ]
+  },
+  {
+   "caseNumber": "RZ-21-12-4",
+   "name": "Florida Greenscapes Management Inc. Property",
+   "date": "2024-01-09",
+   "fromZoning": "",
+   "toZoning": "CP",
+   "parcelKeys": [
+    "1708796"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-253",
+   "name": "Sorrento PUD (Hillcrest) Comprehensive Plan Map Amendment",
+   "date": "2024-08-06",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3350154",
+    "1789168",
+    "3799266",
+    "1598192",
+    "1802741",
+    "1711193",
+    "1598630",
+    "1597803",
+    "1516994"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-284",
+   "name": "Old Animal Shelter - REZONING",
+   "date": "2024-05-07",
+   "fromZoning": "",
+   "toZoning": "R-6",
+   "parcelKeys": [
+    "3701267",
+    "3701259"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-130",
+   "name": "Sorrento Pines Expansion Project",
+   "date": "2024-08-06",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3902829"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-312",
+   "name": "Connolly Property",
+   "date": "2024-06-04",
+   "fromZoning": "",
+   "toZoning": "CP",
+   "parcelKeys": [
+    "1746159",
+    "3785566",
+    "3781473",
+    "1314984",
+    "1314968",
+    "1314950"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-254",
+   "name": "Hillcrest PUD",
+   "date": "2024-08-06",
+   "fromZoning": "",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1789168",
+    "3799266",
+    "1598192",
+    "1802741",
+    "1711193",
+    "1598630",
+    "1597803",
+    "1516994"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-132",
+   "name": "Sorrento Pines Expansion PUD",
+   "date": "2024-08-06",
+   "fromZoning": "",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "3902829"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-354",
+   "name": "HM Cattle Company Meats & More",
+   "date": "2024-09-10",
+   "fromZoning": "",
+   "toZoning": "C-2",
+   "parcelKeys": [
+    "1299284"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-235",
+   "name": "Lake Yale",
+   "date": "2026-02-03",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1439515",
+    "1439604",
+    "1439612",
+    "1439558",
+    "1705657",
+    "1213037",
+    "1439523",
+    "1504279",
+    "3561988",
+    "3463609"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-249",
+   "name": "Brightside Storage \u2013 Sorrento BSS Sorrento LLC and Craig Lee Hegstrom & Traci P. Hegstrom ",
+   "date": "2024-09-10",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "PZ2024-023",
+   "name": "Farm Project",
+   "date": "2024-10-01",
+   "fromZoning": "",
+   "toZoning": "R-1",
+   "parcelKeys": [
+    "1302781"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-290",
+   "name": "Mount Dora North",
+   "date": "2025-03-04",
+   "fromZoning": "R-2",
+   "toZoning": "",
+   "parcelKeys": [
+    "1124239",
+    "2760061",
+    "2755547",
+    "2896973",
+    "3769473",
+    "1784239",
+    "1446287",
+    "1102171",
+    "1124191",
+    "2568542"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-291",
+   "name": "Mount Dora South",
+   "date": "2025-03-04",
+   "fromZoning": "R-1",
+   "toZoning": "",
+   "parcelKeys": [
+    "1124841",
+    "1112001",
+    "1102235",
+    "1085110",
+    "1709261",
+    "3900130",
+    "2731541",
+    "1814596",
+    "1510767"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-015",
+   "name": "Assisted Living Facility",
+   "date": "2024-12-03",
+   "fromZoning": "",
+   "toZoning": "CFD",
+   "parcelKeys": [
+    "2858893"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-298",
+   "name": "Iglesia Nueva Vida En Cristo, Inc.",
+   "date": "2025-01-07",
+   "fromZoning": "",
+   "toZoning": "CFD",
+   "parcelKeys": [
+    "1403740"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-158",
+   "name": "Bertram Property",
+   "date": "2025-01-07",
+   "fromZoning": "C-1",
+   "toZoning": "R-7",
+   "parcelKeys": [
+    "1309425"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-099",
+   "name": "Heritage Green",
+   "date": "2025-04-01",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1595860",
+    "1048265",
+    "1081483",
+    "1123968",
+    "1444209",
+    "3853227"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-35",
+   "name": "Vista Ridge",
+   "date": "2025-08-05",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1048281"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-34",
+   "name": "Vista Ridge",
+   "date": "2025-08-05",
+   "fromZoning": "MP",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1048281"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-01",
+   "name": "2040 Water Supply Facilities Work Plan Appendix A, Public Facilities Element Comprehensive",
+   "date": "2025-10-07",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "PZ2024-255",
+   "name": "Ford Vacant Property",
+   "date": "2025-04-01",
+   "fromZoning": "R-6",
+   "toZoning": "",
+   "parcelKeys": [
+    "1180660"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-018",
+   "name": "Mountain Lake Drive",
+   "date": "2025-07-01",
+   "fromZoning": "",
+   "toZoning": "R-6",
+   "parcelKeys": [
+    "1360781",
+    "1360790",
+    "1360803",
+    "1670675",
+    "3949922"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-057",
+   "name": "Calvary Chapel",
+   "date": "2025-05-06",
+   "fromZoning": "A",
+   "toZoning": "CFD",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "PZ2024-165",
+   "name": "Mansfield Landscaping",
+   "date": "2025-05-06",
+   "fromZoning": "R-2",
+   "toZoning": "A",
+   "parcelKeys": [
+    "1241952"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-272",
+   "name": "Trinity Discovery Farms, Inc",
+   "date": "2025-06-03",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3837197"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-235",
+   "name": "Summer Bay PUD Amendment",
+   "date": "2025-06-03",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3952581"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-282",
+   "name": "Cypress Creek Farm",
+   "date": "2025-06-03",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3778532"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-254",
+   "name": "Triangle Industrial Park Jack Smith",
+   "date": "2025-06-03",
+   "fromZoning": "R-1",
+   "toZoning": "",
+   "parcelKeys": [
+    "1409756"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-16",
+   "name": "Deep Woods",
+   "date": "2025-06-03",
+   "fromZoning": "A",
+   "toZoning": "",
+   "parcelKeys": [
+    "1598699",
+    "3859087"
+   ]
+  },
+  {
+   "caseNumber": "",
+   "name": "Evaluation and Appraisal Report (EAR)",
+   "date": "2025-07-01",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "PZ2025-13",
+   "name": "Sorrento Square",
+   "date": "2025-07-01",
+   "fromZoning": "CP",
+   "toZoning": "C-2",
+   "parcelKeys": [
+    "1495300"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-100",
+   "name": "Livestock Project",
+   "date": "2025-07-01",
+   "fromZoning": "R-6",
+   "toZoning": "",
+   "parcelKeys": [
+    "1039924"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-074",
+   "name": "Lakeshore Preserve",
+   "date": "2025-10-07",
+   "fromZoning": "R-6",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1813018",
+    "1405432",
+    "1025907",
+    "1304512"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-329",
+   "name": "Oswalt Clermont",
+   "date": "2025-07-01",
+   "fromZoning": "R-6",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1114870"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-291",
+   "name": "Strange Property",
+   "date": "2025-07-01",
+   "fromZoning": "C-1",
+   "toZoning": "R-6",
+   "parcelKeys": [
+    "1409616"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-105",
+   "name": "Oaks Grove Rezoning",
+   "date": "2025-07-01",
+   "fromZoning": "A",
+   "toZoning": "R-4",
+   "parcelKeys": [
+    "1209102"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-267",
+   "name": "Eve's Garden - Dog Breeding and Kennel",
+   "date": "2025-08-05",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3793293",
+    "3793294",
+    "1297966"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-088",
+   "name": "Hartle Road Partners, LLC",
+   "date": "2025-08-05",
+   "fromZoning": "A",
+   "toZoning": "R-4",
+   "parcelKeys": [
+    "1648173",
+    "1648181"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-286",
+   "name": "Bella Collina PUD Amendment",
+   "date": "2025-08-05",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3836312",
+    "3836313",
+    "3951405",
+    "3921860",
+    "3836733",
+    "3906228",
+    "3906227",
+    "3836399",
+    "3863899"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-22",
+   "name": "Duke\u2019s Landing",
+   "date": "2025-08-05",
+   "fromZoning": "R-1",
+   "toZoning": "RMRP",
+   "parcelKeys": [
+    "1699495"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-64",
+   "name": "Roopnarine Property",
+   "date": "2025-08-05",
+   "fromZoning": "R-6",
+   "toZoning": "",
+   "parcelKeys": [
+    "2520311"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-321",
+   "name": "HertaberkSchwein Farms",
+   "date": "2025-08-05",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1037921"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-107",
+   "name": "CR 448A Warehouse",
+   "date": "2025-11-04",
+   "fromZoning": "A",
+   "toZoning": "MP",
+   "parcelKeys": [
+    "1441943"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-62",
+   "name": "Chesterfield Town Center Storage-Summer Bay",
+   "date": "2025-09-02",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1595401"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-14",
+   "name": "Parcet Outdoor Storage",
+   "date": "2025-10-07",
+   "fromZoning": "C-1",
+   "toZoning": "MP",
+   "parcelKeys": [
+    "1211824"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-279",
+   "name": "Sorrento Ave - Elkridge",
+   "date": "2025-09-02",
+   "fromZoning": "CFD",
+   "toZoning": "R-6",
+   "parcelKeys": [
+    "1361001",
+    "3958234",
+    "3958235"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-137",
+   "name": "Gulfstream Towers FL242",
+   "date": "2025-10-07",
+   "fromZoning": "A",
+   "toZoning": "",
+   "parcelKeys": [
+    "1510929"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-119",
+   "name": "Sorrento Tower",
+   "date": "2025-10-07",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3905352"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-195",
+   "name": "Rubi Shores",
+   "date": "2025-10-07",
+   "fromZoning": "R-2",
+   "toZoning": "R-6",
+   "parcelKeys": [
+    "1214688"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-141",
+   "name": "FL-1878 Leesburg Tower CUP",
+   "date": "2025-11-04",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3957871"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-138",
+   "name": "Crescent Pines Rezoning",
+   "date": "2026-04-07",
+   "fromZoning": "R-6",
+   "toZoning": "",
+   "parcelKeys": [
+    "1507731"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-156",
+   "name": "Rafiki Foundation Portable Classrooms",
+   "date": "2026-01-06",
+   "fromZoning": "CFD",
+   "toZoning": "CFD",
+   "parcelKeys": [
+    "1224306"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-236",
+   "name": "Lake Yale PUD May and Whitaker Family Partnership, May Whitaker Family Partnership, LTD, J",
+   "date": "2026-02-03",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1439515",
+    "1439604",
+    "1439612",
+    "1439558",
+    "1705657",
+    "1213037",
+    "1439523",
+    "1504279",
+    "2864010",
+    "1407397",
+    "1407354",
+    "1407371",
+    "2993901",
+    "2993910",
+    "1504287",
+    "1813841",
+    "1212863",
+    "2801069",
+    "1212855",
+    "1211671",
+    "1705436",
+    "1705649",
+    "1212987",
+    "1212936",
+    "1212979",
+    "3561988",
+    "3463609",
+    "3870959",
+    "2508931",
+    "2853034",
+    "3851831",
+    "3826409",
+    "3826408",
+    "2852631",
+    "2852640"
+   ]
+  },
+  {
+   "caseNumber": "PZ2024-218",
+   "name": "O\u2019Brien Road PUD Comprehensive Plan Map Amendment",
+   "date": "2026-01-06",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1028574"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-318",
+   "name": "Butler Property",
+   "date": "2026-01-06",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3949930"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-18",
+   "name": "Schofield Road PUD Amendment",
+   "date": "2026-02-03",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3396863",
+    "1029279",
+    "3826259"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-148",
+   "name": "The Barn at Southern Oaks",
+   "date": "2026-03-03",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3906332"
+   ]
+  },
+  {
+   "caseNumber": "PZ2026-16",
+   "name": "Orange Mountain Public Safety Tower",
+   "date": "2026-04-07",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3960771"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-132",
+   "name": "Greater Groves PUD Amendment",
+   "date": "2026-04-07",
+   "fromZoning": "PUD",
+   "toZoning": "",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "PZ2025-130",
+   "name": "Cedar Creek Rural Conservation Subdivision",
+   "date": "2026-04-07",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1101051",
+    "3852069"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-110",
+   "name": "Sandberg Property",
+   "date": "2026-05-05",
+   "fromZoning": "C-1",
+   "toZoning": "R-1",
+   "parcelKeys": [
+    "3870245"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-394",
+   "name": "Blueberry Farms",
+   "date": "2026-05-05",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1031753"
+   ]
+  },
+  {
+   "caseNumber": "PZ2023-262",
+   "name": "Iglesia Cristiana Pentecostal",
+   "date": "2026-05-05",
+   "fromZoning": "A",
+   "toZoning": "CFD",
+   "parcelKeys": [
+    "1743931"
+   ]
+  },
+  {
+   "caseNumber": "PZ2026-58",
+   "name": "Alsept Property",
+   "date": "2026-08-04",
+   "fromZoning": "R-6",
+   "toZoning": "",
+   "parcelKeys": [
+    "2716436"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-344",
+   "name": "Love Property District 4 \u2013 Leslie Campione",
+   "date": "2026-08-04",
+   "fromZoning": "R-3",
+   "toZoning": "",
+   "parcelKeys": [
+    "2516321"
+   ]
+  },
+  {
+   "caseNumber": "PZ2026-101",
+   "name": "Gifford Pool",
+   "date": "2026-08-04",
+   "fromZoning": "PUD",
+   "toZoning": "",
+   "parcelKeys": [
+    "3825546"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-375",
+   "name": "Escobedo Property",
+   "date": "2026-10-06",
+   "fromZoning": "A",
+   "toZoning": "",
+   "parcelKeys": [
+    "2510528"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-259",
+   "name": "Humphrey Property",
+   "date": "2026-08-04",
+   "fromZoning": "R-7",
+   "toZoning": "",
+   "parcelKeys": [
+    "1336210"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-289",
+   "name": "Panther Run Planned Unit Development (PUD)",
+   "date": "2026-09-01",
+   "fromZoning": "A",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "3801646",
+    "1594669"
+   ]
+  },
+  {
+   "caseNumber": "PZ2026-36",
+   "name": "Church of God Campground",
+   "date": "2026-10-06",
+   "fromZoning": "PUD",
+   "toZoning": "PUD",
+   "parcelKeys": [
+    "1507049",
+    "1506930"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-379",
+   "name": "Narayana Dental Office",
+   "date": "2026-10-06",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "1402549"
+   ]
+  },
+  {
+   "caseNumber": "PZ2026-149",
+   "name": "Astor Self Storage",
+   "date": "2026-10-06",
+   "fromZoning": "LM",
+   "toZoning": "LM",
+   "parcelKeys": [
+    "2581263"
+   ]
+  },
+  {
+   "caseNumber": "PZ2026-155",
+   "name": "Ady\u2019s Marketplace LLC",
+   "date": "2026-10-06",
+   "fromZoning": "CP",
+   "toZoning": "CP",
+   "parcelKeys": [
+    "1681511",
+    "1681553",
+    "2924021",
+    "1681570"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-274",
+   "name": "Sunshower Planned Unit Development",
+   "date": "2026-10-06",
+   "fromZoning": "A",
+   "toZoning": "",
+   "parcelKeys": [
+    "2500271",
+    "2717084",
+    "2765241"
+   ]
+  },
+  {
+   "caseNumber": "PZ2025-83",
+   "name": "Tiger Paw Estates PUD RZ",
+   "date": "2026-10-06",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": []
+  },
+  {
+   "caseNumber": "PZ2026-160",
+   "name": "Sorrento Hills - Heartland Dental",
+   "date": "2026-10-06",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3891759"
+   ]
+  },
+  {
+   "caseNumber": "PZ2026-194",
+   "name": "Bella Collina 359E Property",
+   "date": "2026-10-06",
+   "fromZoning": "PUD",
+   "toZoning": "",
+   "parcelKeys": [
+    "3825809"
+   ]
+  },
+  {
+   "caseNumber": "PZ2026-144",
+   "name": "Gore Property",
+   "date": "2026-10-06",
+   "fromZoning": "R-1",
+   "toZoning": "",
+   "parcelKeys": [
+    "3628721"
+   ]
+  },
+  {
+   "caseNumber": "PZ2026-109",
+   "name": "Lebron Quiles Property",
+   "date": "2026-10-06",
+   "fromZoning": "",
+   "toZoning": "",
+   "parcelKeys": [
+    "3824293"
+   ]
+  },
+  {
+   "caseNumber": "PZ2026-191",
+   "name": "Miller & Cobb Property",
+   "date": "2026-10-06",
+   "fromZoning": "A",
+   "toZoning": "",
+   "parcelKeys": [
+    "3794002"
+   ]
+  }
+ ],
+ "decisions": [
+  {
+   "id": "lake-RZ-21-33-4",
+   "government": "Lake County",
+   "caseNumber": "RZ-21-33-4",
+   "name": "Peninsula Trucking Facility",
+   "date": "2022-04-05",
+   "meetings": [
+    "2022-04-05"
+   ],
+   "request": "Amend Community Commercial District (C-2) Ordinance #3-81 and amend Planned Industrial (MP) Ordinances #39-87 and #44-87, from MP and C-2 to MP to establish a new MP ordinance to allow limited light industrial uses. Including a waiver consideration request to LDR 9.10.03 Mount Plymouth-Sorrento Commercial Design Standards.",
+   "owner": "",
+   "applicant": "",
+   "size": "11.51 +/- acres",
+   "location": "31547 County Road (CR) 437, Sorrento",
+   "staff": "Staff finds the rezoning request inconsistent with the Land Development Regulations (LDR) and the Comprehensive Plan.",
+   "board": "motion to approve failed 2-2 and a motion to deny failed 2-2.",
+   "fromZoning": "",
+   "toZoning": "MP",
+   "reasons": [
+    "Planning & Zoning Board: motion to approve failed 2-2 and a motion to deny failed 2-2.",
+    "County staff: Staff finds the rezoning request inconsistent with the Land Development Regulations (LDR) and the Comprehensive Plan."
+   ],
+   "parcelKeys": [
+    "1754402",
+    "1734991",
+    "1681596"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Lake County BCC zoning packet, 2022-04-05",
+     "url": "https://lakecountyfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=3572,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "lake-CUP-21-10-5",
+   "government": "Lake County",
+   "caseNumber": "CUP-21-10-5",
+   "name": "Ares Training Facility",
+   "date": "2022-05-03",
+   "meetings": [
+    "2022-05-03"
+   ],
+   "request": "Amend Ordinance #2019-23 to remove conditions that restrict the training facility operation.",
+   "owner": "",
+   "applicant": "",
+   "size": "99.338 +/- acres",
+   "location": "36515 N. Treasure Island Avenue, Leesburg",
+   "staff": "",
+   "board": "Denied on the Regular Agenda, 6 \u2013 0.",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Planning & Zoning Board: Denied on the Regular Agenda, 6 \u2013 0."
+   ],
+   "parcelKeys": [
+    "1388830",
+    "3784607"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Lake County BCC zoning packet, 2022-05-03",
+     "url": "https://lakecountyfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=3612,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "lake-RZ-22-27-4",
+   "government": "Lake County",
+   "caseNumber": "RZ-22-27-4",
+   "name": "Storage Masters",
+   "date": "2023-07-11",
+   "meetings": [
+    "2023-06-06",
+    "2023-07-11"
+   ],
+   "request": "Rezone approximately 2.38 +/- acres from Residential Professional District (RP) to Planned Commercial District (CP) and amend Planned Commercial District (CP) Ordinance #36-87 to incorporate the 2.38 +/- acre parcel identified by Alternate Key Number 1597846 to facilitate the development of an additional mini storage warehouse.",
+   "owner": "",
+   "applicant": "",
+   "size": "4.37 +/- acres (entire project area)",
+   "location": "North of Sorrento Avenue and east of Mt. Plymouth Loop, in the Sorrento unincorporated area.",
+   "staff": "Staff finds the rezoning request inconsistent with the Land Development Regulations (LDR) Section 7.00.04(B)(10)(e) and the Main Street Future Land Use Category (FLUC) as designated by the 2030 Comprehensive Plan. The application includes a request to the Board of County Commissioners (BCC) to consider a waiver to LDR Section 7.00.04(B)(10)(e) entitled Permitted Uses in the Wekiva River Protection Area (WRPA), which limits commercial development within the WRPA to the following intersections: 1. SR 44 and CR 437 2. CR 44A and CR 437 3. SR 46 and CR 437 4. SR 44 in the vicinity of the Royal Trails Subdivision 5. SR 46 and CR 435.",
+   "board": "Plan.",
+   "fromZoning": "",
+   "toZoning": "CP",
+   "reasons": [
+    "County staff: Staff finds the rezoning request inconsistent with the Land Development Regulations (LDR) Section 7.00.04(B)(10)(e) and the Main Street Future Land Use Category (FLUC) as designated by the 2030 Comprehensive Plan. The application includes a request to the Board of County Commissioners (BCC) to consider a waiver to LDR Section 7.00.04(B)(10)(e) entitled Permitted Uses in the Wekiva River Protection Area (WRPA), which limits commercial development within the WRPA to the following intersections: 1. SR 44 and CR 437 2. CR 44A and CR 437 3. SR 46 and CR 437 4. SR 44 in the vicinity of the Royal Trails Subdivision 5. SR 46 and CR 435."
+   ],
+   "parcelKeys": [
+    "1597846",
+    "1597927"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Lake County BCC zoning packet, 2023-07-11",
+     "url": "https://lakecountyfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4104,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "lake-CUP-23-09-5",
+   "government": "Lake County",
+   "caseNumber": "CUP-23-09-5",
+   "name": "Treasure Island Motocross Training Facility",
+   "date": "2023-12-05",
+   "meetings": [
+    "2023-11-14",
+    "2023-12-05"
+   ],
+   "request": "Conditional use permit (CUP) to allow for a Motocross training and practice facility to be used by professional and amateur athletes.",
+   "owner": "",
+   "applicant": "",
+   "size": "34 +/- acres",
+   "location": "35540 North Treasure Island Avenue, Leesburg FL, 34748",
+   "staff": "",
+   "board": "Recommendation to deny the application unanimously approved 4-0.",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Planning & Zoning Board: Recommendation to deny the application unanimously approved 4-0."
+   ],
+   "parcelKeys": [
+    "1742544",
+    "1177324"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Lake County BCC zoning packet, 2023-12-05",
+     "url": "https://lakecountyfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4258,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "lake-PZ2024-150",
+   "government": "Lake County",
+   "caseNumber": "PZ2024-150",
+   "name": "Old Hammock Cove, Emeralda Marsh Rural Protection Area Removal",
+   "date": "2024-11-05",
+   "meetings": [
+    "2024-11-05"
+   ],
+   "request": "Amend the Future Land Use Map (FLUM) to remove 1,321.86 +/- acres from the Emeralda Marsh Rural Protection Area.",
+   "owner": "",
+   "applicant": "",
+   "size": "1,321.86 +/- Acres",
+   "location": "North of the Harbor Hills community, west of Lake Griffin and Ocklawaha River, in the unincorporated Lady Lake area.",
+   "staff": "Staff finds the application inconsistent with the Comprehensive Plan.",
+   "board": "Approval on the Regular Agenda with a vote of 3 \u2013 1 and 1 abstained.",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "County staff: Staff finds the application inconsistent with the Comprehensive Plan."
+   ],
+   "parcelKeys": [
+    "1176786",
+    "1386373",
+    "1386381",
+    "1742391",
+    "1811007",
+    "1811015",
+    "1811023",
+    "1811040",
+    "3249313",
+    "3355865",
+    "3355873",
+    "3362616",
+    "1386314",
+    "1386306",
+    "1811147",
+    "3304411",
+    "1238901",
+    "1811031",
+    "1238935",
+    "3635469"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Lake County BCC zoning packet, 2024-11-05",
+     "url": "https://lakecountyfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4578,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "lake-PZ2023-343",
+   "government": "Lake County",
+   "caseNumber": "PZ2023-343",
+   "name": "Old Hammock Cove",
+   "date": "2024-11-05",
+   "meetings": [
+    "2024-11-05"
+   ],
+   "request": "Amend the Future Land Use Map (FLUM) from Rural and Rural Transition Future Land Use Category (FLUC) to Planned Unit Development (PUD) FLUC on approximately 1,424.71 +/- gross acres and amend associated Comprehensive Plan Policies to incorporate the proposed development program for the Old Hammock Cove Planned Unit Development which will include 868 gated residential units, golf course, yacht club, and marina. Additionally, the development is proposed to contain approximately 327 acres of open space.",
+   "owner": "Harbor Hills Development, LP",
+   "applicant": "",
+   "size": "1,424.71 +/- gross acres (899.8 +/- net acres excluding wetlands and water bodies)",
+   "location": "North of the Harbor Hills community, west of Lake Griffin and Ocklawaha River, in the unincorporated Lady Lake area.",
+   "staff": "Staff finds the application is not consistent with the Emeralda Marsh Rural Protection Area. A companion Map Amendment request to remove the subject parcels from the Emeralda Marsh Rural Protection Area PZ2024-150 is being proposed. Should the Map Amendment be approved by the BCC to remove the subject 1,321.86 +/- acres from the Emeralda Marsh Rural Protection Area, the proposed amendment would then be consistent with the Comprehensive Plan and Land Development Regulations (LDR).",
+   "board": "Approved on the Regular Agenda with a vote of 4 \u2013 0 and 1 abstained.",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "County staff: Staff finds the application is not consistent with the Emeralda Marsh Rural Protection Area. A companion Map Amendment request to remove the subject parcels from the Emeralda Marsh Rural Protection Area PZ2024-150 is being proposed. Should the Map Amendment be approved by the BCC to remove the subject 1,321.86 +/- acres from the Emeralda Marsh Rural Protection Area, the proposed amendment would then be consistent with the Comprehensive Plan and Land Development Regulations (LDR)."
+   ],
+   "parcelKeys": [
+    "1176786",
+    "1386373",
+    "1386381",
+    "1742391",
+    "1811007",
+    "1811015",
+    "1811023",
+    "1811040",
+    "3249313",
+    "3355865",
+    "3355873",
+    "3362616",
+    "1386314",
+    "1386306",
+    "1811147",
+    "3304411",
+    "1238901",
+    "1811031",
+    "1238935",
+    "3635469",
+    "1586143",
+    "3873594"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Lake County BCC zoning packet, 2024-11-05",
+     "url": "https://lakecountyfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4578,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "lake-PZ2024-149",
+   "government": "Lake County",
+   "caseNumber": "PZ2024-149",
+   "name": "GK Rogers North",
+   "date": "2025-01-07",
+   "meetings": [
+    "2025-01-07"
+   ],
+   "request": "Rezone approximately 17.24 +/- acres from Planned Industrial (MP) District by Ordinance #95-89 to Planned Commercial (CP) District.",
+   "owner": "GK Rogers Construction LLC",
+   "applicant": "Jimmy Crawford of Crawford, Modica and Holt",
+   "size": "17.242 +/- gross acres",
+   "location": "14013 Auto Plex Lane, Clermont",
+   "staff": "Staff finds the rezoning request consistent with the Land Development Regulations (LDR) and majority Comprehensive Plan. The request, however, is inconsistent with the Transportation Element of the Comprehensive Plan.",
+   "board": "Approved on the Consent Agenda with a vote of 5 \u2013 0.",
+   "fromZoning": "MP",
+   "toZoning": "CP",
+   "reasons": [
+    "County staff: Staff finds the rezoning request consistent with the Land Development Regulations (LDR) and majority Comprehensive Plan. The request, however, is inconsistent with the Transportation Element of the Comprehensive Plan."
+   ],
+   "parcelKeys": [
+    "3938448",
+    "2665637"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Lake County BCC zoning packet, 2025-01-07",
+     "url": "https://lakecountyfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4643,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "lake-PZ2024-041",
+   "government": "Lake County",
+   "caseNumber": "PZ2024-041",
+   "name": "Tranquility Ridge Village",
+   "date": "2025-01-07",
+   "meetings": [
+    "2025-01-07"
+   ],
+   "request": "Rezone approximately 31.1 +/- acres from Rural Residential (R-1) District to Community Facility (CFD) District to allow the construction of a 144-bed assisted living facility, 120-bed skilled nursing facility, and a 124-unit independent living facility for persons fifty-five (55) years of age or older, including rehabilitation services.",
+   "owner": "",
+   "applicant": "",
+   "size": "31.1 +/- acres",
+   "location": "North of Edwards Road, east of South US Highway 27/441 and west of Grays Airport Road, Lady Lake",
+   "staff": "Staff finds the rezoning request consistent with the Land Development Regulations (LDR) and the Comprehensive Plan.",
+   "board": "Denied on the Regular Agenda with a vote of 3-2.",
+   "fromZoning": "",
+   "toZoning": "CFD",
+   "reasons": [
+    "Planning & Zoning Board: Denied on the Regular Agenda with a vote of 3-2."
+   ],
+   "parcelKeys": [
+    "1280681"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Lake County BCC zoning packet, 2025-01-07",
+     "url": "https://lakecountyfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4643,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "lake-PZ2024-356",
+   "government": "Lake County",
+   "caseNumber": "PZ2024-356",
+   "name": "Clermont West",
+   "date": "2025-12-02",
+   "meetings": [
+    "2025-09-02",
+    "2025-10-07",
+    "2025-12-02"
+   ],
+   "request": "Amend the Future Land Use Map (FLUM) on approximately 15.53 +/- acres from the Regional Office Future Land Use Category to Planned Unit Development (PUD) to facilitate a development program for Clermont West, a 300-unit multi-family development.",
+   "owner": "Fox Hill Builders, Inc.",
+   "applicant": "Clermont West Investors, LLC",
+   "size": "15.53 +/- acres",
+   "location": "South of Hooks Street and East of US Highway 27, in the unincorporated Clermont area",
+   "staff": "Staff find the request inconsistent with the Clermont JPA Land Development Regulations (LDR) and Comprehensive Plan.",
+   "board": "Approved 3 \u2013 2 on the Regular Agenda",
+   "fromZoning": "R-6",
+   "toZoning": "",
+   "reasons": [
+    "County staff: Staff find the request inconsistent with the Clermont JPA Land Development Regulations (LDR) and Comprehensive Plan.",
+    "Continued 2 times"
+   ],
+   "parcelKeys": [
+    "2665831"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Lake County BCC zoning packet, 2025-12-02",
+     "url": "https://lakecountyfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5230,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "lake-PZ2024-355",
+   "government": "Lake County",
+   "caseNumber": "PZ2024-355",
+   "name": "Clermont West",
+   "date": "2025-12-02",
+   "meetings": [
+    "2025-09-02",
+    "2025-10-07",
+    "2025-12-02"
+   ],
+   "request": "1) Rezone approximately 15.53 +/- acres from Urban Residential (R-6) District to Planned Unit Development (PUD) 2) Waiver request to Land Development Regulations (LDR) Section 15.02.01\u00a9 to increase the maximum habitable building height to forty-five (45) feet and sixty (60) feet (including architectural features) in lieu of a maximum habitable building height of thirty- five (35) feet and forty-five (45) feet maximum finished building height 3) Waiver request to LDR Section 15.02.10(A)(6) to allow elevation changes in topography that exceed ten (10) feet and not to exceed twenty (20) feet over no more than 15% of the project site (excluding roads and stormwater areas) in lieu of elevation changes that are limited to ten (10) feet 4) Waiver request to LDR Section 15.02.10\u00a9 to allow elevation changes in topography that exceed ten (10) feet and not to exceed twenty (20) feet over no more than 15% of the project site (excluding roads and stormwater areas) in lieu of elevation changes that are limited to ten (10) feet 5) Waiver request to LDR Table 15.02.01E to exempt the development from the additional fifteen (15) feet setback for each story over two (2) stories.",
+   "owner": "Fox Hill Builders, Inc.",
+   "applicant": "Clermont West Investors, LLC",
+   "size": "15.53 +/- acres unincorporated Clermont area",
+   "location": "Generally located south of Hooks Street and east of US Highway 27, in the unincorporated Clermont area",
+   "staff": "Staff find the waiver requests and rezoning request inconsistent with the Clermont JPA Land Development Regulations (LDR) and Comprehensive Plan.",
+   "board": "Approved 4 \u2013 1 on the Regular Agenda",
+   "fromZoning": "R-6",
+   "toZoning": "",
+   "reasons": [
+    "County staff: Staff find the waiver requests and rezoning request inconsistent with the Clermont JPA Land Development Regulations (LDR) and Comprehensive Plan.",
+    "Continued 2 times"
+   ],
+   "parcelKeys": [
+    "2665831"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Lake County BCC zoning packet, 2025-12-02",
+     "url": "https://lakecountyfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5230,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "lake-PZ2025-206",
+   "government": "Lake County",
+   "caseNumber": "PZ2025-206",
+   "name": "Capurso Property",
+   "date": "2026-04-07",
+   "meetings": [
+    "2026-04-07"
+   ],
+   "request": "Rezone approximately 1.75 +/- acres from Agriculture (A) District to Planned Commercial (CP) District to allow automotive repair and vehicular sales uses to facilitate the existing golf cart and motor vehicle repair and sales.",
+   "owner": "Frank A. Capurso",
+   "applicant": "Michael Rankin, LPG Urban and Regional Planners, LLC",
+   "size": "1.75 +/- acres",
+   "location": "3045 Eagles Nest Road, in the unincorporated Fruitland Park area.",
+   "staff": "Staff finds the rezoning request is generally consistent with the Land Development Regulations (LDR) and inconsistent with Comprehensive Plan Policy I-1.3.10.3",
+   "board": "Approved on the Consent Agenda, unanimously.",
+   "fromZoning": "A",
+   "toZoning": "CP",
+   "reasons": [
+    "County staff: Staff finds the rezoning request is generally consistent with the Land Development Regulations (LDR) and inconsistent with Comprehensive Plan Policy I-1.3.10.3"
+   ],
+   "parcelKeys": [
+    "1282471"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Lake County BCC zoning packet, 2026-04-07",
+     "url": "https://lakecountyfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=6435,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "lake-PZ2025-179",
+   "government": "Lake County",
+   "caseNumber": "PZ2025-179",
+   "name": "Serenoa PUD Amendment",
+   "date": "2026-04-07",
+   "meetings": [
+    "2026-04-07"
+   ],
+   "request": "Amend and Restate Planned Unit Development (PUD) Ordinance #2019-60, for property identified with alternative key number 3914076, to allow the use of a Self-Storage Facility.",
+   "owner": "Professional Resource Development, Inc.",
+   "applicant": "Professional Resource Development, Inc.",
+   "size": "16.64 +/- acres",
+   "location": "East of Sawgrass Bay Boulevard, north of Pacific Ace Way in the unincorporated Lake County area",
+   "staff": "Staff finds the rezoning amendment inconsistent with the Land Development Regulations (LDR) and with the Comprehensive Plan.",
+   "board": "Denied on regular agenda 6-1",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Withdrawn before a final vote",
+    "Planning & Zoning Board: Denied on regular agenda 6-1",
+    "County staff: Staff finds the rezoning amendment inconsistent with the Land Development Regulations (LDR) and with the Comprehensive Plan."
+   ],
+   "parcelKeys": [
+    "3914076"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Lake County BCC zoning packet, 2026-04-07",
+     "url": "https://lakecountyfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=6435,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "lake-PZ2026-188",
+   "government": "Lake County",
+   "caseNumber": "PZ2026-188",
+   "name": "Voitik Property",
+   "date": "2026-10-06",
+   "meetings": [
+    "2026-10-06"
+   ],
+   "request": "1. Amend the Future Land Use Map (FLUM) of approximately 4.45 +/- acres from Wekiva River Protection Area A-1-20 Sending Area Future Land Use Category (FLUC) to Planned Unit Development Future Land Use Category to accommodate a single-lot residential subdivision. 2. Rezone approximately 4.45 +/- acres from Agriculture (A) District to Planned Unit Development (PUD) to accommodate a single-lot residential subdivision.",
+   "owner": "Mark Voitik and Jill Voitik",
+   "applicant": "George Bloder, Esq.",
+   "size": "4.45 +/- acres",
+   "location": "Huff Road, in the unincorporated Eustis area",
+   "staff": "Staff finds the rezoning request consistent with the Land Development Regulations (LDR) and Comprehensive Plan.",
+   "board": "Denied on the Regular Agenda with a vote of 4-2.",
+   "fromZoning": "A",
+   "toZoning": "PUD",
+   "reasons": [
+    "Planning & Zoning Board: Denied on the Regular Agenda with a vote of 4-2."
+   ],
+   "parcelKeys": [
+    "3816059"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Lake County BCC zoning packet, 2026-10-06",
+     "url": "https://lakecountyfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=7798,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "lake-PZ2025-371",
+   "government": "Lake County",
+   "caseNumber": "PZ2025-371",
+   "name": "Dreamcatcher Horse Ranch and Rescue Center CUP",
+   "date": "2026-10-06",
+   "meetings": [
+    "2026-10-06"
+   ],
+   "request": "Conditional Use P ermit (CUP) approval on approximately 10 +/- acres for a 199\u2019 monopole tele communications tower with a waiver to Land Development Regulation (LDR) Section 3.13.09(B)(1) to allow the proposed telecommunications tower to be constructed off-center within the boundaries of the parent parcel within the Agriculture (A) District.",
+   "owner": "",
+   "applicant": "",
+   "size": "10 +/- gross acre parent parcel (10,000 square foot lease area)",
+   "location": "10627 Toad Road, in the unincorporated Clermont area",
+   "staff": "Staff finds the CUP application consistent with the LDR and Comprehensive Plan.",
+   "board": "Approved unanimously on regular agenda.",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Withdrawn before a final vote"
+   ],
+   "parcelKeys": [
+    "3330391"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Lake County BCC zoning packet, 2026-10-06",
+     "url": "https://lakecountyfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=7798,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "lake-app-CUP-GALLACHERS EVENTS-042125000100003900",
+   "government": "Lake County",
+   "caseNumber": "CUP",
+   "name": "GALLACHERS EVENTS",
+   "date": "2020-02-19",
+   "meetings": [],
+   "request": "GALLACHERS EVENTS",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "23838 READING RD HOWEY IN THE HILLS FL 34737",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "County application cancelled (2020)"
+   ],
+   "parcelKeys": [
+    "3359933"
+   ],
+   "parcelNumbers": [
+    "042125000100003900"
+   ],
+   "point": {
+    "lat": 28.693944,
+    "lng": -81.806686
+   },
+   "sources": [
+    {
+     "label": "Lake County development applications layer (2018\u20132021)",
+     "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
+    }
+   ]
+  },
+  {
+   "id": "lake-app-CMP PLN AM-LAKE NELLIE CROSSING-142325000100001300",
+   "government": "Lake County",
+   "caseNumber": "CMP PLN AM",
+   "name": "LAKE NELLIE CROSSING",
+   "date": "2020-11-17",
+   "meetings": [],
+   "request": "Comprehensive Plan Amendment - FLU 20-04-2 - Rural Transition To Urban Low",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "SUGGS RD CLERMONT FL 34711",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "County application cancelled (2020)"
+   ],
+   "parcelKeys": [
+    "1813107"
+   ],
+   "parcelNumbers": [
+    "142325000100001300"
+   ],
+   "point": {
+    "lat": 28.487938,
+    "lng": -81.774278
+   },
+   "sources": [
+    {
+     "label": "Lake County development applications layer (2018\u20132021)",
+     "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
+    }
+   ]
+  },
+  {
+   "id": "lake-app-CMP PLN AM-CREEDEN, DEBORAH-122326000100001400",
+   "government": "Lake County",
+   "caseNumber": "CMP PLN AM",
+   "name": "CREEDEN, DEBORAH",
+   "date": "2018-04-10",
+   "meetings": [],
+   "request": "WELLNESS WAY 1 TO RURAL",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "TERRA VISTA CT WINTER GARDEN FL 34787",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "County application cancelled (2018)"
+   ],
+   "parcelKeys": [
+    "3424913"
+   ],
+   "parcelNumbers": [
+    "122326000100001400"
+   ],
+   "point": {
+    "lat": 28.504294,
+    "lng": -81.659878
+   },
+   "sources": [
+    {
+     "label": "Lake County development applications layer (2018\u20132021)",
+     "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
+    }
+   ]
+  },
+  {
+   "id": "lake-app-CMP PLN AM-MARY B. EDDY-362226000300001000",
+   "government": "Lake County",
+   "caseNumber": "CMP PLN AM",
+   "name": "MARY B. EDDY",
+   "date": "2018-05-23",
+   "meetings": [],
+   "request": "FLU - WELLNESS WAY 4 TO RURAL",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "11955 EDDY DR WINTER GARDEN FL 34787",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "County application cancelled (2018)"
+   ],
+   "parcelKeys": [
+    "3502051"
+   ],
+   "parcelNumbers": [
+    "362226000300001000"
+   ],
+   "point": {
+    "lat": 28.52209,
+    "lng": -81.667242
+   },
+   "sources": [
+    {
+     "label": "Lake County development applications layer (2018\u20132021)",
+     "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
+    }
+   ]
+  },
+  {
+   "id": "lake-app-PRE-SUB-LAKESHORE DRIVE ESTATES-142325000300003100",
+   "government": "Lake County",
+   "caseNumber": "PRE-SUB",
+   "name": "LAKESHORE DRIVE ESTATES",
+   "date": "2020-04-17",
+   "meetings": [],
+   "request": "SFR PROJECT WITH PROPOSED 165 LOTS AND DE. DENSITY OF 2.55 DU/AC.",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "LAKESHORE DR CLERMONT FL 34711",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "County application cancelled (2020)"
+   ],
+   "parcelKeys": [
+    "1304296"
+   ],
+   "parcelNumbers": [
+    "142325000300003100"
+   ],
+   "point": {
+    "lat": 28.482306,
+    "lng": -81.782661
+   },
+   "sources": [
+    {
+     "label": "Lake County development applications layer (2018\u20132021)",
+     "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
+    }
+   ]
+  },
+  {
+   "id": "lake-app-CMP PLN AM-EVERGREEN ESTATES FKA EXTREME GROVES PUD-012326000100000100",
+   "government": "Lake County",
+   "caseNumber": "CMP PLN AM",
+   "name": "EVERGREEN ESTATES FKA EXTREME GROVES PUD",
+   "date": "2018-07-26",
+   "meetings": [],
+   "request": "Evergreen Estates (FKA Extreme Grove) FLU-18-15-2 (R to PD)",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "FLYNN CT WINTER GARDEN FL 34787",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "County application denied (2018)"
+   ],
+   "parcelKeys": [
+    "3502027"
+   ],
+   "parcelNumbers": [
+    "012326000100000100"
+   ],
+   "point": {
+    "lat": 28.519626,
+    "lng": -81.664089
+   },
+   "sources": [
+    {
+     "label": "Lake County development applications layer (2018\u20132021)",
+     "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
+    }
+   ]
+  },
+  {
+   "id": "lake-app-REZONING-ISLAMIC CENTER OF CLERMONT-242325090005600002",
+   "government": "Lake County",
+   "caseNumber": "REZONING",
+   "name": "ISLAMIC CENTER OF CLERMONT",
+   "date": "2019-05-14",
+   "meetings": [],
+   "request": "WORSHIP CENTER(MOSQUE), LEARNING CTR, 125 BED ALF, COMM. SERV. CTR.(FREE MED. CLINIC, FOOD BANK ECT.",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "15020 JOHNS LAKE RD CLERMONT FL 34711",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "County application cancelled (2019)"
+   ],
+   "parcelKeys": [
+    "1029708"
+   ],
+   "parcelNumbers": [
+    "242325090005600002"
+   ],
+   "point": {
+    "lat": 28.524258,
+    "lng": -81.706145
+   },
+   "sources": [
+    {
+     "label": "Lake County development applications layer (2018\u20132021)",
+     "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
+    }
+   ]
+  },
+  {
+   "id": "lake-app-PRE-PLAT-SUMMER RIDGE-132325050003500000",
+   "government": "Lake County",
+   "caseNumber": "PRE-PLAT",
+   "name": "SUMMER RIDGE",
+   "date": "2020-03-05",
+   "meetings": [],
+   "request": "153 LOTS SUBDIVISION, INCLUDING ROADWAYS, STORMWATER, RETENTION PONDS AND ASSOC. UTILITIES",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "HAMMOCK RIDGE RD CLERMONT FL 34711",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "County application cancelled (2020)"
+   ],
+   "parcelKeys": [
+    "1663083"
+   ],
+   "parcelNumbers": [
+    "132325050003500000"
+   ],
+   "point": {
+    "lat": 28.514096,
+    "lng": -81.74573
+   },
+   "sources": [
+    {
+     "label": "Lake County development applications layer (2018\u20132021)",
+     "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
+    }
+   ]
+  },
+  {
+   "id": "lake-app-PRE-PLAT-HILLS OF MONTVERDE-092226020003900000",
+   "government": "Lake County",
+   "caseNumber": "PRE-PLAT",
+   "name": "HILLS OF MONTVERDE",
+   "date": "2019-04-09",
+   "meetings": [],
+   "request": "SFD-RESIDENTIAL SUBDIVISION CONSISTING OF 97 LOTS ON 24.96 AC.",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "FOSGATE RD MONTVERDE FL 34756",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "County application cancelled (2019)"
+   ],
+   "parcelKeys": [
+    "1029503"
+   ],
+   "parcelNumbers": [
+    "092226020003900000"
+   ],
+   "point": {
+    "lat": 28.584771,
+    "lng": -81.704731
+   },
+   "sources": [
+    {
+     "label": "Lake County development applications layer (2018\u20132021)",
+     "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2021-04-27-Ordinance No. 2020-16 Final Hartwood Marsh Assisted Living Facility CPA",
+   "government": "City of Clermont",
+   "caseNumber": "Ordinance No. 2020-16",
+   "name": "Hartwood Marsh Assisted Living Facility CPA",
+   "date": "2021-04-27",
+   "meetings": [
+    "2021-04-27"
+   ],
+   "request": "Consider a Future Land Use change Hartwood Marsh Assisted Living Facility CPA from Low Density Residential to High Density Residential for (6) six acres. CITY OF CLERMONT CITY COUNCIL MEETING LOCATION: CLERMONT ARTS & RECREATION CENTER AGENDA 6:30 PM, Tuesday, April 27, 2021",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: withdrawn"
+   ],
+   "parcelKeys": [
+    "1593920"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2021-04-27",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=3986,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=3973,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2021-04-27-Ordinance No. 2020-17 Final Hartwood Marsh Assisted Living Facility",
+   "government": "City of Clermont",
+   "caseNumber": "Ordinance No. 2020-17",
+   "name": "Hartwood Marsh Assisted Living Facility",
+   "date": "2021-04-27",
+   "meetings": [
+    "2021-04-27"
+   ],
+   "request": "Consider rezoning from R-1 Single Hartwood Marsh Assisted Living Facility Family Medium Density Residential to Planned Unit Development for property located at the southeast corner of Hartwood Marsh and Hancock Road. Consider rezoning from Central",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "located at the southeast corner of Hartwood Marsh and Hancock Road",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: withdrawn"
+   ],
+   "parcelKeys": [
+    "1593920"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2021-04-27",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=3986,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=3973,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2021-06-08-Ordinance No. 2021-013 Final Disston Duplexes PUD",
+   "government": "City of Clermont",
+   "caseNumber": "Ordinance No. 2021-013",
+   "name": "Disston Duplexes PUD",
+   "date": "2021-06-08",
+   "meetings": [
+    "2021-06-08"
+   ],
+   "request": "Consider rezoning from R-3 Disston Duplexes PUD Residential, C-1 Light Commercial and C-2 General Commercial to a Planned Unit Development for vacant parcels located at the corner of Disston Avenue and Almond Street. APPROVE WITH CONDITIONS - FAILED",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "located at the corner of Disston Avenue and Almond Street",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: denied (vote 2-3)"
+   ],
+   "parcelKeys": [
+    "1617995",
+    "1618002",
+    "2827092"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2021-06-08",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4021,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4019,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2022-08-23-Ordinance No. 2022-024 Final Lost Lake Assemblage Annex",
+   "government": "City of Clermont",
+   "caseNumber": "Ordinance No. 2022-024",
+   "name": "Lost Lake Assemblage Annex",
+   "date": "2022-08-23",
+   "meetings": [
+    "2022-08-23"
+   ],
+   "request": "Consider annexation of 48+/- acres Lost Lake Assemblage Annex located north of Johns Lake Road and west of Hancock Road. VOTE: 3/2",
+   "owner": "",
+   "applicant": "",
+   "size": "48 acres",
+   "location": "located north of Johns Lake Road and west of Hancock Road",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: denied (vote 3-2)"
+   ],
+   "parcelKeys": [
+    "1031346",
+    "1678501",
+    "1678528",
+    "1098858",
+    "1067952",
+    "1491690",
+    "1029562"
+   ],
+   "parcelNumbers": [
+    "242325080001100000",
+    "242325080002800000",
+    "242325080002800001",
+    "242325080003800000",
+    "242325080004300000",
+    "332226000200000500",
+    "332226000200000600"
+   ],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2022-08-23",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4403,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4395,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2024-02-13-Resolution No. 2024-002R Patio Food Truck Park CUP",
+   "government": "City of Clermont",
+   "caseNumber": "Resolution No. 2024-002R",
+   "name": "Patio Food Truck Park CUP",
+   "date": "2024-02-13",
+   "meetings": [
+    "2024-02-13"
+   ],
+   "request": "Consider a Conditional Use Permit to Patio Food Truck Park CUP allow for a patio food truck establishment on a vacant parcel located at 2531 US Highway 27. VOTE: 2/1 NEW BUSINESS",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "located at 2531 US Highway 27",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: denied (vote 2-1)"
+   ],
+   "parcelKeys": [
+    "3877636"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2024-02-13",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4875,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4873,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2024-04-23-Ordinance No. 2024-006 Final Sundara Eco-Spa Annexation",
+   "government": "City of Clermont",
+   "caseNumber": "Ordinance No. 2024-006",
+   "name": "Sundara Eco-Spa Annexation",
+   "date": "2024-04-23",
+   "meetings": [
+    "2024-04-23"
+   ],
+   "request": "Consider annexing 42 +/- acres located Sundara Eco-Spa Annexation southwest of the Lakeshore Drive and Hammock Ridge Road intersection.",
+   "owner": "",
+   "applicant": "",
+   "size": "42 acres",
+   "location": "",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: withdrawn"
+   ],
+   "parcelKeys": [
+    "3828571",
+    "1592933",
+    "1587581"
+   ],
+   "parcelNumbers": [
+    "362225000400000100",
+    "062326000200000500",
+    "132325050000800000",
+    "312226000300001503"
+   ],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2024-04-23",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4961,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4956,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2024-04-23-Ordinance No. 2024-007 Final Sundara Eco-Spa Comp Plan Amendment",
+   "government": "City of Clermont",
+   "caseNumber": "Ordinance No. 2024-007",
+   "name": "Sundara Eco-Spa Comp Plan Amendment",
+   "date": "2024-04-23",
+   "meetings": [
+    "2024-04-23"
+   ],
+   "request": "Consider an ordinance to change the Sundara Eco-Spa Comp Plan Amendment future land use for property located southwest of the Lakeshore Drive and Hammock Ridge Road intersection.",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "located southwest of the Lakeshore Drive and Hammock Ridge Road intersection",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: withdrawn"
+   ],
+   "parcelKeys": [
+    "3828571",
+    "1592933",
+    "1587581"
+   ],
+   "parcelNumbers": [
+    "362225000400000100",
+    "062326000200000500",
+    "132325050000800000",
+    "312226000300001503"
+   ],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2024-04-23",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4961,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4956,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2024-04-23-Ordinance No. 2024-008 Final Sundara Eco-Spa PUD Rezoning",
+   "government": "City of Clermont",
+   "caseNumber": "Ordinance No. 2024-008",
+   "name": "Sundara Eco-Spa PUD Rezoning",
+   "date": "2024-04-23",
+   "meetings": [
+    "2024-04-23"
+   ],
+   "request": "Consider an ordinance to change the Sundara Eco-Spa PUD Rezoning zoning for property located southwest of the Lakeshore Drive and Hammock Ridge Road intersection.",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "located southwest of the Lakeshore Drive and Hammock Ridge Road intersection",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: withdrawn"
+   ],
+   "parcelKeys": [
+    "3828571",
+    "1592933",
+    "1587581"
+   ],
+   "parcelNumbers": [
+    "362225000400000100",
+    "062326000200000500",
+    "132325050000800000",
+    "312226000300001503"
+   ],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2024-04-23",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4961,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4956,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2024-06-11-Resolution No. 2024-008R Waterbrooke Self-Storage CUP",
+   "government": "City of Clermont",
+   "caseNumber": "Resolution No. 2024-008R",
+   "name": "Waterbrooke Self-Storage CUP",
+   "date": "2024-06-11",
+   "meetings": [
+    "2024-06-11"
+   ],
+   "request": "request.",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: withdrawn"
+   ],
+   "parcelKeys": [
+    "1613558"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2024-06-11",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5000,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=4998,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2024-07-23-Resolution No. 2024-013R The River Church CUP - Withdrawn",
+   "government": "City of Clermont",
+   "caseNumber": "Resolution No. 2024-013R",
+   "name": "The River Church CUP",
+   "date": "2024-07-23",
+   "meetings": [
+    "2024-07-23"
+   ],
+   "request": "Resolution No. 2024-013R The applicant has withdrawn the The River Church CUP - Withdrawn application with intent to reapply.",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: withdrawn"
+   ],
+   "parcelKeys": [
+    "1626561"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2024-07-23",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5040,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5035,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2024-07-23-Resolution No. 2023-026R Hancock Commons Apartments CUP - Withdrawn",
+   "government": "City of Clermont",
+   "caseNumber": "Resolution No. 2023-026R",
+   "name": "Hancock Commons Apartments CUP",
+   "date": "2024-07-23",
+   "meetings": [
+    "2024-07-23"
+   ],
+   "request": "Resolution No. 2023-026R The applicant has withdrawn the Hancock Commons Apartments CUP - Withdrawn application with intent to reapply.",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: withdrawn"
+   ],
+   "parcelKeys": [
+    "1593905"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2024-07-23",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5040,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5035,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2024-08-27-Resolution No. 2024-018R Clermont West South Phase 2 CUP",
+   "government": "City of Clermont",
+   "caseNumber": "Resolution No. 2024-018R",
+   "name": "Clermont West South Phase 2 CUP",
+   "date": "2024-08-27",
+   "meetings": [
+    "2024-08-27"
+   ],
+   "request": "Consider a Conditional Use Permit Clermont West South Phase 2 CUP request to allow two hotels, a residential storage warehouse with shared parking in the C-2 General Commercial zoning district on vacant property located north of Hooks Street between Ford of Clermont and Dick's Sporting Goods. VOTE:5/0",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "located north of Hooks Street between Ford of Clermont and Dick's Sporting Goods",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: denied (vote 5-0)"
+   ],
+   "parcelKeys": [
+    "1103916"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2024-08-27",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5072,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5062,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2024-10-22-Ordinance No. 2024-041 Intro Land-Bridge Annexation",
+   "government": "City of Clermont",
+   "caseNumber": "Ordinance No. 2024-041",
+   "name": "Land-Bridge Annexation",
+   "date": "2024-10-22",
+   "meetings": [
+    "2024-10-22"
+   ],
+   "request": "Consider annexation of 449 +/- acres Land-Bridge Annexation located off of CR 561 near Thompson Place Road, 2.5 miles south of SR 50 and 12th Street intersection. VOTE: 5/0",
+   "owner": "",
+   "applicant": "",
+   "size": "449 acres",
+   "location": "",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: denied (vote 5-0)"
+   ],
+   "parcelKeys": [
+    "1404924",
+    "1025397",
+    "1103266",
+    "1025346",
+    "1587549",
+    "1025362",
+    "1704685",
+    "2516828",
+    "1812666",
+    "1587573",
+    "1092981",
+    "3033523",
+    "1587557"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2024-10-22",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5150,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5148,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2025-01-28-Resolution No. 2025-006R Clermont West Phase 2 CUP",
+   "government": "City of Clermont",
+   "caseNumber": "Resolution No. 2025-006R",
+   "name": "Clermont West Phase 2 CUP",
+   "date": "2025-01-28",
+   "meetings": [
+    "2025-01-28"
+   ],
+   "request": "Consider a Conditional Use Permit for Clermont West Phase 2 CUP two hotels and residential self-storage with special conditions. STATUS: NO ACTION SINCE",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: denied"
+   ],
+   "parcelKeys": [
+    "1103916"
+   ],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2025-01-28",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5262,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5258,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2025-04-08-Ordinance No. 2025-012 Intro SSCPA",
+   "government": "City of Clermont",
+   "caseNumber": "Ordinance No. 2025-012",
+   "name": "SSCPA",
+   "date": "2025-04-08",
+   "meetings": [
+    "2025-04-08"
+   ],
+   "request": "Consider a request for a small-scale SSCPA comprehensive plan amendment for property located at 963 Juniata Street. VOTE: 3/2",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "located at 963 Juniata Street",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: denied (vote 3-2)"
+   ],
+   "parcelKeys": [
+    "1714095"
+   ],
+   "parcelNumbers": [
+    "242225010009800700"
+   ],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2025-04-08",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5323,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5322,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2025-04-08-Ordinance No. 2025-013 Intro Rezone",
+   "government": "City of Clermont",
+   "caseNumber": "Ordinance No. 2025-013",
+   "name": "Rezone",
+   "date": "2025-04-08",
+   "meetings": [
+    "2025-04-08"
+   ],
+   "request": "Consider a request for a rezoning for Rezone property located at 963 W. Juniata Street. VOTE: 3/2 REPORTS ADJOURN THE MEETING ADJOURNED AT 6:39 PM Public Notice Any opening invocation that is offered before the official start of the Council meeting shall be the voluntary offering of a private person, to and for the benefit of the Council. The views or beliefs expressed by the invocation speaker ha",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "located at 963 W",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: denied (vote 3-2)"
+   ],
+   "parcelKeys": [
+    "1714095"
+   ],
+   "parcelNumbers": [
+    "242225010009800700"
+   ],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2025-04-08",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5323,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5322,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2025-09-23-Resolution No. 2025-024R 1227 Bloxam Ave CUP",
+   "government": "City of Clermont",
+   "caseNumber": "Resolution No. 2025-024R",
+   "name": "1227 Bloxam Ave CUP",
+   "date": "2025-09-23",
+   "meetings": [
+    "2025-09-23"
+   ],
+   "request": "Consider a Conditional Use Permit to 1227 Bloxam Ave CUP allow Lake County Ambulance/EMS Service from this location. VOTE: 2/2/1",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: motion to approve failed (vote 2-2)"
+   ],
+   "parcelKeys": [],
+   "parcelNumbers": [],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2025-09-23",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5459,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5455,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "clermont-2026-03-24-Resolution No. 2025-037R 7-11 Wellness Way CUP",
+   "government": "City of Clermont",
+   "caseNumber": "Resolution No. 2025-037R",
+   "name": "7-11 Wellness Way CUP",
+   "date": "2026-03-24",
+   "meetings": [
+    "2026-03-24"
+   ],
+   "request": "Consider a Conditional Use Permit to 7-11 Wellness Way CUP allow a convenience store, gas station, and car wash within the southern Neighborhood Center location, C-1 Light Commercial, within the Wellness Ridge Planned Unit Development. VOTE: 5/0",
+   "owner": "",
+   "applicant": "",
+   "size": "",
+   "location": "",
+   "staff": "",
+   "board": "",
+   "fromZoning": "",
+   "toZoning": "",
+   "reasons": [
+    "Clermont City Council: denied (vote 5-0)"
+   ],
+   "parcelKeys": [],
+   "parcelNumbers": [
+    "222326000300000300"
+   ],
+   "point": null,
+   "sources": [
+    {
+     "label": "Clermont City Council summary of actions, 2026-03-24",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5597,plainText=false)"
+    },
+    {
+     "label": "Meeting packet",
+     "url": "https://clermontfl.api.civicclerk.com/v1/Meetings/GetMeetingFileStream(fileId=5595,plainText=false)"
+    }
+   ]
+  },
+  {
+   "id": "minneola-resolution-2025-17",
+   "government": "City of Minneola",
+   "caseNumber": "Resolution 2025-17",
+   "name": "Convenience store with fuel (special exception)",
+   "date": "2025-09-08",
+   "meetings": [
+    "2025-08-04",
+    "2025-09-08",
+    "2025-10-07",
+    "2026-05-05"
+   ],
+   "request": "Special exception for a convenience store with fuel operations on B-1 land.",
+   "owner": "JEN FLORIDA 30 LLC (parcel owner per property appraiser)",
+   "applicant": "Jonathan Huels",
+   "size": "",
+   "location": "Northeast corner of N Hancock Rd and CR 561A",
+   "staff": "Conditional approval",
+   "board": "Recommended denial 4-0 on September 8, 2025, after an August 4 motion to approve died without a second",
+   "fromZoning": "B-1",
+   "toZoning": "B-1",
+   "reasons": [
+    "Planning & Zoning Commission recommended denial 4-0",
+    "City Council tabled it in October 2025; a revised version returned in May 2026 after mediation"
+   ],
+   "parcelKeys": [
+    "3938432"
+   ],
+   "parcelNumbers": [],
+   "point": {
+    "lat": 28.6209,
+    "lng": -81.724
+   },
+   "sources": [
+    {
+     "label": "Minneola City Council agenda, October 7, 2025",
+     "url": "https://www.minneola.us/sites/g/files/vyhlif4716/f/agendas/october_7_2025_city_council_meeting_agenda_2.pdf"
+    },
+    {
+     "label": "Minneola City Council agenda, May 5, 2026",
+     "url": "https://www.minneola.us/sites/g/files/vyhlif4716/f/agendas/may_5_2026_city_council_meeting_agenda_3_0.pdf"
+    },
+    {
+     "label": "Summary of the September 8, 2025 minutes (Zoning Signal)",
+     "url": "https://zoningsignal.com/meetings/minneola-pz-2025-09"
+    }
+   ]
+  }
+ ]
+}

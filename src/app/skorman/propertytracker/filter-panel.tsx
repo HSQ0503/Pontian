@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import {
   defaultFilters,
+  opportunitySignals,
   ruleFields,
   ruleOperators,
   signalCatalog,
@@ -15,23 +16,29 @@ import {
 } from "./parcels";
 import { deleteView, saveView, useSavedViews } from "./store";
 
-const inputClass =
-  "w-full rounded-md border border-white/10 bg-zinc-900 px-2.5 py-2 text-[15px] text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-400 focus:outline-none";
+export const inputClass =
+  "w-full border border-[#262626] bg-[#0e0e0e] px-3 py-2 text-[14px] text-[#eeeeec] placeholder:text-[#7a7a78] focus:border-[#fdd907] focus:outline-none";
+
+const chipClass = (active: boolean) =>
+  `min-h-8 border px-2.5 text-left text-[12px] transition-colors ${active ? "border-[#fdd907] bg-[#fdd907] text-[#111]" : "border-[#303030] text-[#b8b8b6] hover:border-[#5a5a58] hover:text-[#eeeeec]"}`;
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-3 border-t border-white/10 pt-4">
-      <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">{title}</h3>
+    <section className="flex flex-col gap-3 border-t border-[#262626] pt-5">
+      <h3 className="text-[12px] text-[#a6a6a6]">{title}</h3>
       {children}
     </section>
   );
 }
 
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) {
+function Toggle({ label, detail, checked, onChange }: { label: string; detail?: string; checked: boolean; onChange: (value: boolean) => void }) {
   return (
-    <label className="flex min-h-9 cursor-pointer items-center gap-3 text-sm text-zinc-300">
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="size-4 accent-yellow-300" />
-      {label}
+    <label className="flex cursor-pointer items-start gap-3 py-1 text-[13px] text-[#d4d4d2]">
+      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[#fdd907]" />
+      <span>
+        {label}
+        {detail && <span className="block text-[12px] text-[#8a8a88]">{detail}</span>}
+      </span>
     </label>
   );
 }
@@ -42,10 +49,12 @@ export function FilterPanel({
   filters,
   onChange,
   jurisdictions,
+  rejectedCount,
 }: {
   filters: Filters;
   onChange: (filters: Filters) => void;
   jurisdictions: string[];
+  rejectedCount: number;
 }) {
   const views = useSavedViews();
   const [viewName, setViewName] = useState("");
@@ -59,84 +68,77 @@ export function FilterPanel({
     set("rules", filters.rules.map((rule) => (rule.id === id ? { ...rule, ...patch } : rule)));
 
   return (
-    <div className="flex flex-col gap-4 text-zinc-200">
+    <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
-        <input
-          value={filters.search}
-          onChange={(event) => set("search", event.target.value)}
-          placeholder="Search owner, address, parcel #"
-          aria-label="Search"
-          className={inputClass}
-        />
-        <div className="flex items-center gap-2">
+        <input value={filters.search} onChange={(event) => set("search", event.target.value)} placeholder="Owner, address, or parcel number" aria-label="Search" className={inputClass} />
+        <div className="flex gap-2">
           <select value={filters.sort} onChange={(event) => set("sort", event.target.value as Filters["sort"])} aria-label="Sort by" className={inputClass}>
-            <option value="score">Sort: best score</option>
-            <option value="distance">Sort: closest</option>
-            <option value="acres">Sort: largest</option>
-            <option value="held">Sort: held longest</option>
+            <option value="score">Best score first</option>
+            <option value="distance">Closest first</option>
+            <option value="acres">Largest first</option>
+            <option value="held">Held longest first</option>
           </select>
-          <button type="button" onClick={() => onChange(defaultFilters)} className="min-h-10 shrink-0 rounded-md px-3 text-sm text-zinc-400 hover:bg-white/5 hover:text-zinc-100">
+          <button type="button" onClick={() => onChange(defaultFilters)} className="shrink-0 px-3 text-[13px] text-[#a6a6a6] hover:text-[#eeeeec]">
             Reset
           </button>
         </div>
       </div>
 
+      <button
+        type="button"
+        aria-pressed={filters.rejectedOnly}
+        onClick={() => set("rejectedOnly", !filters.rejectedOnly)}
+        className={`flex items-center justify-between gap-3 border px-3 py-3 text-left text-[13px] transition-colors ${filters.rejectedOnly ? "border-[#f51625] bg-[#f51625]/10 text-[#eeeeec]" : "border-[#303030] text-[#d4d4d2] hover:border-[#5a5a58]"}`}
+      >
+        <span className="flex items-center gap-2.5">
+          <span className="block size-2.5 rotate-45 bg-[#f51625]" aria-hidden />
+          Only parcels with a rejected or withdrawn application
+        </span>
+        <span className="text-[#8a8a88]">{rejectedCount}</span>
+      </button>
+
       <Section title="Location and size">
-        <label className="flex flex-col gap-1.5 text-sm text-zinc-400">
+        <label className="flex flex-col gap-2 text-[13px] text-[#d4d4d2]">
           Within {filters.maxMiles} miles of Crooked Can
-          <input type="range" min={0.5} max={7} step={0.5} value={filters.maxMiles} onChange={(event) => set("maxMiles", Number(event.target.value))} className="accent-yellow-300" />
+          <input type="range" min={0.5} max={7} step={0.5} value={filters.maxMiles} onChange={(event) => set("maxMiles", Number(event.target.value))} />
         </label>
         <div className="grid grid-cols-2 gap-2">
-          <label className="flex flex-col gap-1 text-sm text-zinc-400">
+          <label className="flex flex-col gap-1 text-[12px] text-[#a6a6a6]">
             Min acres
             <input type="number" min={0} value={filters.minAcres} onChange={(event) => set("minAcres", Number(event.target.value) || 0)} className={inputClass} />
           </label>
-          <label className="flex flex-col gap-1 text-sm text-zinc-400">
+          <label className="flex flex-col gap-1 text-[12px] text-[#a6a6a6]">
             Max acres
             <input type="number" min={0} value={filters.maxAcres ?? ""} onChange={(event) => set("maxAcres", numberOrNull(event.target.value))} placeholder="Any" className={inputClass} />
           </label>
         </div>
-        <label className="flex flex-col gap-1 text-sm text-zinc-400">
+        <label className="flex flex-col gap-1 text-[12px] text-[#a6a6a6]">
           Max assessed value ($)
           <input type="number" min={0} step={50000} value={filters.maxValue ?? ""} onChange={(event) => set("maxValue", numberOrNull(event.target.value))} placeholder="Any" className={inputClass} />
         </label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {jurisdictions.map((name) => (
-            <button
-              key={name}
-              type="button"
-              aria-pressed={filters.jurisdictions.includes(name)}
-              onClick={() => toggleJurisdiction(name)}
-              className={`min-h-8 rounded-full border px-3 text-xs ${filters.jurisdictions.includes(name) ? "border-yellow-300 bg-yellow-300/10 text-yellow-200" : "border-white/10 text-zinc-400 hover:border-white/25"}`}
-            >
+            <button key={name} type="button" aria-pressed={filters.jurisdictions.includes(name)} onClick={() => toggleJurisdiction(name)} className={chipClass(filters.jurisdictions.includes(name))}>
               {name.replace(" Lake County", "")}
             </button>
           ))}
         </div>
+        <p className="text-[12px] leading-relaxed text-[#8a8a88]">Parcels with a rejected application always show, whatever their size or distance.</p>
       </Section>
 
-      <Section title="Opportunity signals">
-        <p className="text-xs text-zinc-500">Only show parcels with every selected signal.</p>
-        <div className="flex flex-wrap gap-2">
-          {(Object.keys(signalCatalog) as SignalId[])
-            .filter((id) => !["wetlands", "flood", "improved"].includes(id))
-            .map((id) => (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={filters.requiredSignals.includes(id)}
-                onClick={() => toggleSignal(id)}
-                className={`min-h-8 rounded-full border px-3 text-left text-xs ${filters.requiredSignals.includes(id) ? "border-yellow-300 bg-yellow-300/10 text-yellow-200" : "border-white/10 text-zinc-400 hover:border-white/25"}`}
-              >
-                {signalCatalog[id]}
-              </button>
-            ))}
+      <Section title="Must have every selected signal">
+        <div className="flex flex-wrap gap-1.5">
+          {opportunitySignals.map((id) => (
+            <button key={id} type="button" aria-pressed={filters.requiredSignals.includes(id)} onClick={() => toggleSignal(id)} className={chipClass(filters.requiredSignals.includes(id))}>
+              {signalCatalog[id]}
+            </button>
+          ))}
         </div>
-        <label className="flex flex-col gap-1.5 text-sm text-zinc-400">
+        <label className="flex flex-col gap-2 text-[13px] text-[#d4d4d2]">
           Minimum score: {filters.minScore}
-          <input type="range" min={0} max={80} step={5} value={filters.minScore} onChange={(event) => set("minScore", Number(event.target.value))} className="accent-yellow-300" />
+          <input type="range" min={0} max={80} step={5} value={filters.minScore} onChange={(event) => set("minScore", Number(event.target.value))} />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-zinc-400">
+        <label className="flex flex-col gap-1 text-[12px] text-[#a6a6a6]">
           Owner has held it at least
           <select value={filters.minYearsHeld} onChange={(event) => set("minYearsHeld", Number(event.target.value))} className={inputClass}>
             <option value={0}>Any length</option>
@@ -147,15 +149,21 @@ export function FilterPanel({
         </label>
       </Section>
 
-      <Section title="Exclude">
-        <label className="flex flex-col gap-1.5 text-sm text-zinc-400">
-          Max wetlands: {filters.maxWetlandPct}%
-          <input type="range" min={0} max={100} step={10} value={filters.maxWetlandPct} onChange={(event) => set("maxWetlandPct", Number(event.target.value))} className="accent-yellow-300" />
-        </label>
+      <Section title="Leave out">
+        <Toggle
+          label="Land already being developed"
+          detail="Platted subdivisions, builder-owned land, and parcels rezoned in the last five years"
+          checked={filters.hideActiveDevelopment}
+          onChange={(value) => set("hideActiveDevelopment", value)}
+        />
+        <Toggle label="Parcels already built on" checked={filters.hideImproved} onChange={(value) => set("hideImproved", value)} />
         <Toggle label="Vacant land only" checked={filters.vacantOnly} onChange={(value) => set("vacantOnly", value)} />
-        <Toggle label="Hide parcels already built on" checked={filters.hideImproved} onChange={(value) => set("hideImproved", value)} />
         <Toggle label="Show public, HOA, and church land" checked={filters.showUnavailable} onChange={(value) => set("showUnavailable", value)} />
-        <Toggle label="Show possible Skorman parcels" checked={filters.showRelated} onChange={(value) => set("showRelated", value)} />
+        <Toggle label="Show parcels that look like Skorman's" checked={filters.showRelated} onChange={(value) => set("showRelated", value)} />
+        <label className="flex flex-col gap-2 text-[13px] text-[#d4d4d2]">
+          Max wetlands: {filters.maxWetlandPct}%
+          <input type="range" min={0} max={100} step={10} value={filters.maxWetlandPct} onChange={(event) => set("maxWetlandPct", Number(event.target.value))} />
+        </label>
       </Section>
 
       <Section title="Your list">
@@ -172,7 +180,7 @@ export function FilterPanel({
 
       <Section title="Custom filters">
         {filters.rules.map((rule) => (
-          <div key={rule.id} className="flex flex-col gap-2 rounded-lg border border-white/10 p-2.5">
+          <div key={rule.id} className="flex flex-col gap-2 border border-[#262626] p-2.5">
             <select value={rule.field} onChange={(event) => updateRule(rule.id, { field: event.target.value as RuleField })} aria-label="Field" className={inputClass}>
               {(Object.keys(ruleFields) as RuleField[]).map((field) => (
                 <option key={field} value={field}>
@@ -196,7 +204,7 @@ export function FilterPanel({
                 />
               )}
             </div>
-            <button type="button" onClick={() => set("rules", filters.rules.filter((item) => item.id !== rule.id))} className="self-start text-xs text-zinc-500 hover:text-red-300">
+            <button type="button" onClick={() => set("rules", filters.rules.filter((item) => item.id !== rule.id))} className="self-start text-[12px] text-[#8a8a88] hover:text-[#f51625]">
               Remove
             </button>
           </div>
@@ -204,13 +212,13 @@ export function FilterPanel({
         <button
           type="button"
           onClick={() => set("rules", [...filters.rules, { id: crypto.randomUUID(), field: "landUse", operator: "contains", value: "" }])}
-          className="min-h-10 rounded-md border border-dashed border-white/15 text-sm text-zinc-300 hover:border-white/30"
+          className="min-h-10 border border-dashed border-[#3a3a3a] text-[13px] text-[#d4d4d2] hover:border-[#fdd907] hover:text-[#fdd907]"
         >
           Add a filter
         </button>
       </Section>
 
-      <Section title="Saved views">
+      <Section title="Saved searches">
         <form
           className="flex gap-2"
           onSubmit={(event) => {
@@ -220,17 +228,17 @@ export function FilterPanel({
             setViewName("");
           }}
         >
-          <input value={viewName} onChange={(event) => setViewName(event.target.value)} placeholder="Name this search" aria-label="View name" className={inputClass} />
-          <button type="submit" className="min-h-10 shrink-0 rounded-md bg-zinc-100 px-3 text-sm font-medium text-zinc-950 hover:bg-white">
+          <input value={viewName} onChange={(event) => setViewName(event.target.value)} placeholder="Name this search" aria-label="Search name" className={inputClass} />
+          <button type="submit" className="shrink-0 bg-[#f8f8f6] px-3 text-[13px] text-[#252525] hover:bg-[#dcdcd9]">
             Save
           </button>
         </form>
         {views.map((view) => (
-          <div key={view.id} className="flex items-center justify-between gap-2 text-sm">
-            <button type="button" onClick={() => onChange({ ...defaultFilters, ...view.filters })} className="min-h-9 truncate text-left text-zinc-200 hover:text-yellow-200">
+          <div key={view.id} className="flex items-center justify-between gap-2 text-[13px]">
+            <button type="button" onClick={() => onChange({ ...defaultFilters, ...view.filters })} className="min-h-9 truncate text-left text-[#eeeeec] hover:text-[#fdd907]">
               {view.name}
             </button>
-            <button type="button" onClick={() => deleteView(view.id)} aria-label={`Delete ${view.name}`} className="min-h-9 px-2 text-xs text-zinc-500 hover:text-red-300">
+            <button type="button" onClick={() => deleteView(view.id)} aria-label={`Delete ${view.name}`} className="min-h-9 px-2 text-[12px] text-[#8a8a88] hover:text-[#f51625]">
               Delete
             </button>
           </div>

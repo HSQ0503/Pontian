@@ -1,6 +1,132 @@
 .app {
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ink: #080808;
+  --panel: #0e0e0e;
+  --raised: #141414;
+  --rule: #262626;
+  --rule-strong: #3a3a3a;
+  --paper: #eeeeec;
+  --muted: #a6a6a6;
+  --faint: #8a8a88;
+  --yellow: #fdd907;
+  --red: #f51625;
+  --blue: #3d9bff;
   color-scheme: dark;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.app :global(.leaflet-container) {
+  font-family: inherit;
+  background: #0b0b0b;
+}
+
+.app :global(.leaflet-tooltip) {
+  background: #141414;
+  color: var(--paper);
+  border: 1px solid var(--rule-strong);
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 12px;
+}
+
+.app :global(.leaflet-tooltip-top::before) {
+  border-top-color: var(--rule-strong);
+}
+
+.app :global(.leaflet-bar a) {
+  background: #f8f8f6;
+  color: #252525;
+  border-radius: 0 !important;
+}
+
+.app :global(.leaflet-control-attribution) {
+  background: rgb(8 8 8 / 70%);
+  color: var(--faint);
+}
+
+.app :global(.leaflet-control-attribution a) {
+  color: var(--muted);
+}
+
+.app :global(.pt-anchor) {
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: var(--yellow);
+  border: 2px solid var(--ink);
+  outline: 1px solid var(--yellow);
+  transform: rotate(45deg);
+}
+
+.app :global(.pt-decision) {
+  display: block;
+  width: 14px;
+  height: 14px;
+  background: var(--red);
+  border: 2px solid #fff;
+  transform: rotate(45deg);
+  cursor: pointer;
+}
+
+.headline {
+  font-family: var(--font-frontier-headline), sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+.accent {
+  display: flex;
+  gap: 4px;
+}
+
+.accent span {
+  width: 16px;
+  height: 3px;
+  background: var(--red);
+}
+
+.accent span:nth-child(2) {
+  background: var(--yellow);
+}
+
+.accent span:nth-child(3) {
+  background: #007dfe;
+}
+
+.mark {
+  width: 22px;
+  height: 21px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.mark img {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  max-width: none;
+  left: -3px;
+  top: -4.6px;
+}
+
+.app a:focus-visible,
+.app button:focus-visible,
+.app input:focus-visible,
+.app select:focus-visible,
+.app textarea:focus-visible,
+.app summary:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+.app input[type="range"] {
+  accent-color: var(--yellow);
+}
+
+.scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #333 transparent;
 }
 
 /* The site-wide film grain sits over everything and would cover the map. */
@@ -8,6 +134,8 @@
   display: none;
 }
 
-.app :global(.leaflet-container) {
-  font-family: inherit;
+@media (prefers-reduced-motion: reduce) {
+  .app * {
+    transition: none !important;
+  }
 }
