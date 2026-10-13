@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import styles from "./logistics.module.css";
 import { Choice, Example } from "./logistics-visuals";
 import { CargoView } from "./logistics-load";
+import { InteractionCue } from "./interaction-cue";
 import { operation, places, plans, shipments, stopOf, vehicles } from "./logistics-data";
 import { freeSlots, recoveryLayout, recoverySceneItems, slotMark, type RecoveryMode, type SceneTone } from "./logistics-load-plan";
 import type { SceneChip } from "./logistics-load-scene";
@@ -13,6 +14,7 @@ type Option = "KV-2044" | "KV-2045";
 
 export function DisruptionRecovery() {
   const [mode, setMode] = useState<RecoveryMode>("recovery");
+  const [model, setModel] = useState(false);
   const [option, setOption] = useState<Option>("KV-2045");
   const [draft, setDraft] = useState(false);
   const layout = useMemo(() => recoveryLayout(mode), [mode]);
@@ -69,6 +71,10 @@ export function DisruptionRecovery() {
       />
       <div className={styles.loadGrid}>
         <div className={styles.sceneSheet}>
+          <InteractionCue
+            line="You can use this."
+            steps={["Switch the plan", "Click a delivery", "Preview the update", ...(model ? ["Drag to look around"] : [])]}
+          />
           <CargoView
             items={recoverySceneItems}
             layout={layout}
@@ -80,6 +86,7 @@ export function DisruptionRecovery() {
             onSelect={(shipment) => { if (shipment === "KV-2044" || shipment === "KV-2045") setOption(shipment); }}
             cameras={false}
             initialView="overhead"
+            onModel={setModel}
           />
         </div>
         <div className={styles.loadSide}>

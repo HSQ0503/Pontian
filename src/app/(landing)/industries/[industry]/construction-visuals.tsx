@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import styles from "./construction.module.css";
+import { InteractionCue } from "./interaction-cue";
 import type { BidMode, SceneKind } from "./construction-scene";
 import { BOARD_STACK, CORE_X, DOORS, LIFT, QUOTED, WALLS, doorById, leafTip, planPieces, type Door, type Range } from "./construction-floor";
 
@@ -60,12 +61,14 @@ function useViewportPresence<T extends HTMLElement>() {
 }
 
 // The plan drawing renders first and stays when WebGL is unavailable.
-function FloorView({ scene, fallback, label, className = "", children }: { scene: SceneKind; fallback: ReactNode; label: string; className?: string; children?: ReactNode }) {
+function FloorView({ scene, fallback, label, className = "", onModel, children }: { scene: SceneKind; fallback: ReactNode; label: string; className?: string; onModel?: (live: boolean) => void; children?: ReactNode }) {
   const webgl = useSyncExternalStore(noSubscription, hasWebGL, () => false);
   const instant = useReducedMotion();
   const { ref, near, visible } = useViewportPresence<HTMLDivElement>();
   const [ready, setReady] = useState(false);
   const live = near && webgl;
+  const showing = live && ready;
+  useEffect(() => { onModel?.(showing); }, [showing, onModel]);
   return (
     <div ref={ref} className={`${styles.viewport} ${className}`} role="img" aria-label={label}>
       <div className={styles.fallback} data-hidden={(live && ready) || undefined}>{fallback}</div>
@@ -175,6 +178,7 @@ const roomOf = (id: string): { x: Range; z: Range } => {
 
 export function BidCheck() {
   const [mode, setMode] = useState<BidMode>("quote");
+  const [model, setModel] = useState(false);
   const doors = (door: Door): PlanDoor => {
     if (door.kind !== "fitout") return "normal";
     if (QUOTED.has(door.id)) return mode === "quote" ? "ok" : "normal";
@@ -197,7 +201,9 @@ export function BidCheck() {
           <span className={styles.countText}>doors in the quote</span>
         </button>
       </div>
+      <InteractionCue line="You can use this." steps={model ? ["Switch the count", "Drag to look around"] : ["Switch the count"]} />
       <FloorView
+        onModel={setModel}
         scene={{ kind: "bid", mode }}
         label={mode === "quote"
           ? "3D model of the Level 2 floor. Doors D1 to D10 are marked as quoted. D11 and D12, in the two rooms nearest the stair core, are not in the quote."
@@ -223,6 +229,7 @@ const CHANGE_MARKS: PlanMark[] = [
 
 export function ChangeImpact() {
   const [revised, setRevised] = useState(true);
+  const [model, setModel] = useState(false);
   return (
     <Example
       title="Client asks for two more rooms"
@@ -236,7 +243,9 @@ export function ChangeImpact() {
         onChange={(value) => setRevised(value === "revised")}
         options={[{ value: "current", label: "Current plan" }, { value: "revised", label: "With two more rooms" }]}
       />
+      <InteractionCue line="You can use this." steps={model ? ["Switch the plan", "Drag to look around"] : ["Switch the plan"]} />
       <FloorView
+        onModel={setModel}
         className={styles.changeView}
         scene={{ kind: "change", revised }}
         label={revised
@@ -261,6 +270,7 @@ export function SiteCheck() {
       finding={<p><strong>No door visible in this capture.</strong> That doesn’t mean it’s missing.</p>}
       next={<p>Ask the site team to check C-14.</p>}
     >
+      <InteractionCue line="Click the finding." steps={["Check the install schedule"]} />
       <FloorView
         className={styles.splitView}
         scene={{ kind: "site", stacked }}
@@ -320,6 +330,7 @@ export function WayForward() {
       finding={<p><strong>A different order of work to review.</strong> It rests on assumptions the planner hasn’t checked.</p>}
       next={<p>The planner checks it before anything is rescheduled.</p>}
     >
+      <InteractionCue line="You can use this." steps={["Switch the sequence"]} />
       <div className={styles.board}>
         <div className={styles.boardHead}>
           <Toggle

@@ -9,6 +9,7 @@ import {
   type Configuration, type OrderId, type PlanBlock, type Stage,
 } from "./manufacturing-model";
 import styles from "./manufacturing.module.css";
+import { InteractionCue } from "./interaction-cue";
 
 const ProductCanvas = dynamic(() => import("./manufacturing-scene").then((module) => module.ProductCanvas), { ssr: false });
 const DriveCanvas = dynamic(() => import("./manufacturing-scene").then((module) => module.DriveCanvas), { ssr: false });
@@ -193,6 +194,7 @@ export function InspectProduct() {
           <button key={item.id} type="button" className={styles.choice} aria-pressed={sample === item.id} onClick={() => { setSample(item.id); setShowFinding(true); }}>{item.label}</button>
         ))}
       </div>
+      <InteractionCue line="You can use this." steps={["Switch the example", "Show or hide the finding"]} />
       <SceneFrame
         shape="product"
         label={sample === "reference"
@@ -310,6 +312,7 @@ export function PlanProduction() {
           </button>
         ))}
       </div>
+      <InteractionCue line="Switch the option." steps={["Switch the sequence"]} />
       <div className={styles.board}>
         <div className={styles.axis} aria-hidden="true">
           {HOURS.map((hour) => <span key={hour} style={{ left: `${((hour - planning.shiftStart) / SHIFT_LENGTH) * 100}%` }}>{formatClock(hour)}</span>)}
@@ -419,6 +422,7 @@ export function InvestigateProblem() {
       next={<p>Your maintenance lead decides what to inspect, by the approved procedure.</p>}
       boundary="Fictional example. A hotter motor alone doesn’t prove a part is failing, and the assistant never touches the machine."
     >
+      <InteractionCue line="You can use this." steps={["Switch the explanation", "Open a source"]} />
       <div className={styles.investigateTop}>
         <div ref={frame}>
           <SceneFrame
@@ -609,6 +613,7 @@ export function TestChange() {
           </label>
           <span className={styles.clock}>{formatSim(time)} / {formatSim(RUN)}</span>
         </div>
+        <InteractionCue line="You can use this." steps={["Play or pause", "Replay from the start", "Move the time"]} />
         <SceneFrame
           shape="wide"
           label={`Both lines at ${formatSim(time)} simulated time. Today: ${today.waitingForInspection} housings waiting before inspection, ${today.packaged} packed. With a second station: ${proposed.waitingForInspection} waiting, ${proposed.packaged} packed.`}

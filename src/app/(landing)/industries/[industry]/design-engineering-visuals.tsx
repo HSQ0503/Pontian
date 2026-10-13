@@ -9,6 +9,7 @@ import {
 } from "./design-engineering-model";
 import type { PlantFocus, SceneProps } from "./design-engineering-scene";
 import styles from "./design-engineering.module.css";
+import { InteractionCue } from "./interaction-cue";
 
 const DesignScene = dynamic(() => import("./design-engineering-scene"), { ssr: false });
 
@@ -243,6 +244,7 @@ export function FirstModel() {
         : <p><strong>Wall height isn’t on the drawing.</strong> No walls get built until someone confirms it.</p>}
       next={<p>Your engineer checks it and carries on.</p>}
     >
+      <InteractionCue line="You can use this." steps={["Click a wall", "Confirm the height"]} />
       <div className={styles.modelGrid}>
         <div className={styles.panel}>
           <p className={styles.panelTitle}>Source plan</p>
@@ -336,6 +338,7 @@ export function DesignFit() {
           {reroute ? <><RotateCcw size={14} strokeWidth={1.6} aria-hidden="true" /> Original route</> : "Try a lower route"}
         </button>
       </div>
+      <InteractionCue line="Switch the option." steps={["Switch a discipline", "Try a lower route"]} />
       <SceneView
         className={styles.wideView}
         scene={{ kind: "clash", structure, ventilation, reroute }}
@@ -393,6 +396,7 @@ export function RevisionScope() {
       result={<p><strong>Three things to check.</strong> None confirmed as a problem.</p>}
       next={<p>Each discipline checks its part.</p>}
     >
+      <InteractionCue line="You can use this." steps={["Switch the unit", "Click a check"]} />
       <div className={styles.revisionGrid}>
         <SceneView
           className={styles.plantView}
@@ -472,6 +476,7 @@ export function Deliverables() {
         : <p><strong>The draft schedule lists three.</strong></p>}
       next={<p>Your team reviews it before it goes out.</p>}
     >
+      <InteractionCue line="Click the finding." steps={["Click a window", "Add it to the schedule"]} />
       <div className={styles.documentGrid}>
         <SceneView
           className={styles.windowsView}

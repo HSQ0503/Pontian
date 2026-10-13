@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from "react";
 import { ArrowRight, Check, RotateCcw } from "lucide-react";
 import styles from "./retail.module.css";
+import { InteractionCue } from "./interaction-cue";
 import type { ShelfSceneProps } from "./retail-scene";
 import {
   BRIEFING_DATE, DAYS_OF_COVER, HARBOR_HOUSE_BLEND, LOCATIONS, MARKET_SPARE, PRODUCTS, RECEIPTS, REORDER, STORE_TOTAL, TASTING_SLOT, TRANSFER,
@@ -224,13 +225,16 @@ export function KnowTheCustomer() {
       findingLabel="Result for review"
     >
       <div className={styles.customerGrid}>
-        <ShelfView
+        <div>
+          <InteractionCue line="You can use this." steps={["Switch the suggestion", "Click a product", ...(presence.ready ? ["Drag to look around"] : [])]} />
+          <ShelfView
           frame={frame}
           presence={presence}
           className={styles.briefingView}
           scene={{ kind: "briefing", focus, onPick: setFocus, labels, label: "The Harbor Street coffee shelf. The suggested product is highlighted. Drag or use the arrow keys to turn the view." }}
           fallback={<BriefingElevation focus={focus} labels={labels} onPick={setFocus} />}
         />
+        </div>
 
         <div className={styles.briefing}>
           <p className={styles.briefingHead}><strong>Briefing: Maya</strong><span>Found by name. No cameras.</span></p>
@@ -384,6 +388,7 @@ export function UnderstandTheBusiness() {
         <Segmented label="Period" options={PERIOD_OPTIONS} value={period} onChange={setPeriod} />
       </div>
 
+      <InteractionCue line="You can use this." steps={["Switch the period", "Click a store"]} />
       <div className={styles.mixPanel}>
         <div className={styles.mixRows} role="group" aria-label="Share of net sales by category. Choose a store to see its records.">
           {STORE_IDS.map((id) => (
@@ -468,6 +473,7 @@ function Stage({ index, step, className = "", children }: { index: number; step:
 }
 
 export function PlanTheNextVisit() {
+  const reducedMotion = useReducedMotion();
   const [newer, setNewer] = useState<"none" | "found">("none");
   const { step, replay } = useSequence(3);
   const found = newer === "found";
@@ -495,6 +501,7 @@ export function PlanTheNextVisit() {
       <div className={styles.recordToggle}>
         <Segmented label="Purchase record" options={[{ id: "none", label: "No newer purchase" }, { id: "found", label: "New purchase recorded" }]} value={newer} onChange={setNewer} />
       </div>
+      <InteractionCue line="You can use this." steps={reducedMotion ? ["Switch the purchase record"] : ["Switch the purchase record", "Replay the check"]} />
 
       <div className={styles.panel}>
         <p className={styles.panelTitle}><Glyph product="house" size={22} />Maya’s House Blend purchases</p>
@@ -621,6 +628,14 @@ export function StockForDemand() {
         </div>
         <Segmented label="Option" options={[{ id: "transfer", label: `Transfer ${TRANSFER} bags` }, { id: "reorder", label: `Order ${REORDER.quantity} instead` }]} value={option} onChange={setOption} />
       </div>
+      <InteractionCue
+        line="You can use this."
+        steps={[
+          "Switch the option",
+          ...(presence.ready ? ["Drag to look around"] : []),
+          ...(animate && option === "transfer" ? ["Replay the move"] : []),
+        ]}
+      />
 
       <ShelfView
         frame={frame}

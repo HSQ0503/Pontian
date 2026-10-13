@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
-import { industries } from "@/lib/industries";
+import { getStartedHref, industries } from "@/lib/industries";
 import { FrontierHeader } from "@/components/landing/frontier-header";
 import frontier from "../../frontier.module.css";
 import base from "./industry.module.css";
@@ -81,7 +81,7 @@ export function RetailPage() {
   return (
     <div className={`${frontier.home} ${base.page}`}>
       <a className={frontier.skip} href="#industry-content">Skip to content</a>
-      <FrontierHeader />
+      <FrontierHeader industrySlug={SLUG} />
       <main id="industry-content">
         <IndustryHero
           industry={industry}
@@ -125,7 +125,7 @@ export function RetailPage() {
           <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
           <h2 id="talk-title" className={styles.closingTitle}>What should your team know before the next customer walks in?</h2>
           <p className={styles.closingBody}>Tell us how you sell and what your point-of-sale system already records.</p>
-          <Link href="/get-started" className={styles.closingButton}>Talk through your retail operation <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
+          <Link href={getStartedHref(SLUG)} className={styles.closingButton}>Talk through your retail operation <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
         </section>
       </main>
       <footer className={base.footer}>

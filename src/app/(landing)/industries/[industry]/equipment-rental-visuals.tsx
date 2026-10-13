@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useEffectEvent, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play, RotateCcw } from "lucide-react";
 import styles from "./equipment-rental.module.css";
+import { InteractionCue } from "./interaction-cue";
 import type { DeliveryFocus, MachineId, MatchFocus, RentalFocus, ReturnArea, SceneProps } from "./equipment-rental-scene";
 import { Breaker, Elevation, LowLoaderElevation, TRANSPORT_POSE, type ElevationArea, type ElevationTone } from "./equipment-rental-elevation";
 import { POSES } from "./equipment-rental-geometry";
@@ -71,12 +72,14 @@ function useWidth<T extends HTMLElement>() {
 
 type SceneInput = SceneProps extends infer P ? (P extends unknown ? Omit<P, "onReady" | "active"> : never) : never;
 
-function MachineView({ scene, fallback, label, className = "", children }: { scene: SceneInput; fallback: ReactNode; label: string; className?: string; children?: ReactNode }) {
+function MachineView({ scene, fallback, label, className = "", onModel, children }: { scene: SceneInput; fallback: ReactNode; label: string; className?: string; onModel?: (live: boolean) => void; children?: ReactNode }) {
   const reduced = useReducedMotion();
   const webgl = useSyncExternalStore(noSubscription, hasWebGL, () => false);
   const { ref, near, visible } = useViewportPresence<HTMLDivElement>();
   const [ready, setReady] = useState(false);
   const live = near && webgl && !reduced;
+  const showing = live && ready;
+  useEffect(() => { onModel?.(showing); }, [showing, onModel]);
   return (
     <div ref={ref} className={`${styles.viewport} ${className}`} role="img" aria-label={label}>
       <div className={styles.fallback} data-hidden={live && ready} aria-hidden="true">{fallback}</div>
@@ -239,6 +242,7 @@ function MatchFallback({ step }: { step: number }) {
 }
 
 export function MatchMachine() {
+  const [model, setModel] = useState(false);
   const [focus, setFocus] = useState<MatchFocus>("availability");
   const [machine, setMachine] = useState<MachineId>(EX014);
   const sequence = useSequence(MATCH_STEPS.length, (step) => {
@@ -260,11 +264,15 @@ export function MatchMachine() {
     >
       <Sequence steps={MATCH_STEPS} sequence={sequence} title="Match the machine" />
       <div className={styles.stage}>
-        <MachineView
+        <div>
+          <InteractionCue line="You can use this." steps={["Step through it", "Play the example", ...(model ? ["Click a machine"] : [])]} />
+          <MachineView
+          onModel={setModel}
           scene={{ kind: "match", focus, machine, documented, onPick: pick }}
           fallback={<MatchFallback step={sequence.step} />}
           label={`Yard view: ${EX014}, inspected; ${EX027}, not inspected; and ${BREAKER}, a ${BREAKER_TYPE.toLowerCase()}.`}
         />
+        </div>
         <div className={styles.panel} aria-live="polite">
           {sequence.step === 0 && (
             <>
@@ -347,6 +355,7 @@ function DeliveryFallback({ transport, site }: { transport: boolean; site: boole
 }
 
 export function PrepareDelivery() {
+  const [model, setModel] = useState(false);
   const [focus, setFocus] = useState<DeliveryFocus>("overview");
   const sequence = useSequence(DELIVERY_STEPS.length, (step) => setFocus(DELIVERY_STEP_FOCUS[step]));
   const transport = sequence.step >= 1;
@@ -362,8 +371,10 @@ export function PrepareDelivery() {
       boundary="A road route isn’t heavy-haul clearance. Permits and loading need your own check."
     >
       <Sequence steps={DELIVERY_STEPS} sequence={sequence} title="Prepare the delivery" />
+      <InteractionCue line="You can use this." steps={["Step through it", "Click a check", ...(model ? ["Click the machine, truck, or gate"] : [])]} />
       <MachineView
         className={styles.wideView}
+        onModel={setModel}
         scene={{ kind: "delivery", focus, transport, site, onPick: setFocus }}
         fallback={<DeliveryFallback transport={transport} site={site} />}
         label={`${EX014} waits in the yard with ${BREAKER}. The truck is ${transport ? "booked" : "not booked"} and the quarry gate ${site ? "has a delivery time" : "has no delivery time yet"}.`}
@@ -438,6 +449,7 @@ function RentalTimeline({ extension, conflict }: { extension: number; conflict: 
 }
 
 export function ManageRental() {
+  const [model, setModel] = useState(false);
   const [extension, setExtension] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const sequence = useSequence(RENTAL_STEPS.length, (step) => {
@@ -472,8 +484,10 @@ export function ManageRental() {
         </div>
         <RentalTimeline extension={extension} conflict={conflict} />
       </div>
+      <InteractionCue line="You can use this." steps={["Step through it", "Switch the extra days", ...(model ? ["Click a machine"] : [])]} />
       <MachineView
         className={styles.wideView}
+        onModel={setModel}
         scene={{ kind: "rental", focus, conflict, onPick: (next) => setSelected(next === "ex027" ? "machine" : null) }}
         fallback={<RentalFallback conflict={conflict} focus={focus} />}
         label={`${EX014} on rent at the quarry with ${BREAKER}. ${EX027} is in the yard, not inspected.${conflict ? ` The extension runs into ${NEXT_RESERVATION}, which starts ${NEXT_RESERVATION_START}.` : ""}`}
@@ -571,6 +585,7 @@ export function ReturnToService() {
           </div>
         </div>
       </div>
+      <InteractionCue line="You can use this." steps={["Take the next step", "Compare an area"]} />
       <div ref={ref}>
         <MachineView
           className={stacked ? styles.splitStacked : styles.split}

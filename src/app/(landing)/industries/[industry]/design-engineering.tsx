@@ -2,7 +2,7 @@ import type { ComponentType } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
-import { industries } from "@/lib/industries";
+import { getStartedHref, industries } from "@/lib/industries";
 import { FrontierHeader } from "@/components/landing/frontier-header";
 import frontier from "../../frontier.module.css";
 import base from "./industry.module.css";
@@ -123,7 +123,7 @@ export function DesignEngineeringPage() {
   return (
     <div className={`${frontier.home} ${base.page}`}>
       <a className={frontier.skip} href="#industry-content">Skip to content</a>
-      <FrontierHeader />
+      <FrontierHeader industrySlug={SLUG} />
       <main id="industry-content">
         <IndustryHero
           industry={industry}
@@ -187,7 +187,7 @@ export function DesignEngineeringPage() {
             <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
             <h2 id="talk-title" className={styles.closingTitle}>What would your team rather spend less time doing?</h2>
             <p className={styles.closingBody}>Bring one modeling chore, coordination headache or document job that slows you down.</p>
-            <Link href="/get-started" className={styles.closingButton}>Talk through a workflow <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
+            <Link href={getStartedHref(SLUG)} className={styles.closingButton}>Talk through a workflow <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
           </div>
         </section>
       </main>

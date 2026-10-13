@@ -1,7 +1,7 @@
 import type { ComponentType } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
-import type { Industry } from "@/lib/industries";
+import { getStartedHref, type Industry } from "@/lib/industries";
 import { FrontierHeader } from "@/components/landing/frontier-header";
 import frontier from "../../frontier.module.css";
 import base from "./industry.module.css";
@@ -72,7 +72,7 @@ export function ConstructionPage({ industry, index, next }: { industry: Industry
   return (
     <div className={`${frontier.home} ${base.page}`}>
       <a className={frontier.skip} href="#industry-content">Skip to content</a>
-      <FrontierHeader />
+      <FrontierHeader industrySlug={industry.slug} />
       <main id="industry-content">
         <IndustryHero
           industry={industry}
@@ -121,7 +121,7 @@ export function ConstructionPage({ industry, index, next }: { industry: Industry
           <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
           <h2 id="talk-title" className={styles.closingTitle}>Which problem is costing your team time or money?</h2>
           <p className={styles.closingBody}>Bring us the one that keeps coming back.</p>
-          <Link href="/get-started" className={styles.closingButton}>Talk through a project <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
+          <Link href={getStartedHref(industry.slug)} className={styles.closingButton}>Talk through a project <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
         </section>
       </main>
       <footer className={base.footer}>
