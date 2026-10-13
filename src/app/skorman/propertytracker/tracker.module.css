@@ -1,0 +1,13 @@
+.app {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+
+/* The site-wide film grain sits over everything and would cover the map. */
+:global(body):has(.app)::after {
+  display: none;
+}
+
+.app :global(.leaflet-container) {
+  font-family: inherit;
+}

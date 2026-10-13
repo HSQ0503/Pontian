@@ -9,19 +9,24 @@
     "lint": "eslint",
     "test:intake": "node --test tests/intake.test.mjs",
     "export:pdf": "node scripts/export-pdf.mjs",
-    "export:og": "node scripts/export-og.mjs"
+    "export:og": "node scripts/export-og.mjs",
+    "skorman:parcels": "node scripts/skorman-parcels.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "^9.8.1",
+    "ai": "^7.0.139",
     "framer-motion": "^13.3.0",
+    "leaflet": "^1.9.4",
     "lucide-react": "^1.46.0",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "three": "^0.186.1"
+    "three": "^0.186.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/leaflet": "^1.9.22",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
