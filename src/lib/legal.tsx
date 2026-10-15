@@ -1,7 +1,5 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { formatPhone, telUrl } from "./site";
-
 export const legalDetails = {
   status: "draft" as "draft" | "published",
   updated: "October 2, 2026",
@@ -22,8 +20,8 @@ function LegalContact() {
     <>
       <p>
         Direct privacy requests and legal notices to Pontian
-        {legalDetails.email ? <> at <a href={`mailto:${legalDetails.email}`}>{legalDetails.email}</a></> : <> through the phone or WhatsApp channels on our <Link href="/contact">contact page</Link></>}.
-        You can also call <a href={telUrl()}>{formatPhone()}</a>. Identify the request as a privacy request or legal notice and describe what you need. Do not send passwords, identity documents, or sensitive records with your initial request.
+        {legalDetails.email ? <> at <a href={`mailto:${legalDetails.email}`}>{legalDetails.email}</a></> : <> through our <Link href="/contact">contact page</Link></>}.
+        Identify the request as a privacy request or legal notice and describe what you need. Do not send passwords, identity documents, or sensitive records with your initial request.
       </p>
       {legalDetails.mailingAddress && <p>Mailing address: {legalDetails.mailingAddress}.</p>}
     </>

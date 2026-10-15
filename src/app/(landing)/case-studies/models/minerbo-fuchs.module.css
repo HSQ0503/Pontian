@@ -1,0 +1,4 @@
+/* Sized like the SVG inside the fallback, so drawing chips line up with it. */
+.sheet { position: relative; width: min(100cqw, calc(100cqh * var(--ratio))); aspect-ratio: var(--ratio); }
+.sheet > svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; overflow: visible; }
+.sheet text { font-size: 12px; letter-spacing: .04em; fill: #555758; }

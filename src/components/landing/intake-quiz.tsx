@@ -10,10 +10,67 @@ import { LegalLinks } from "@/components/legal/legal-links";
 
 const colors = ["#f51625", "#fed603", "#007dfe"];
 
-export function IntakeQuiz({ contactOnly = false }: { contactOnly?: boolean }) {
-  const [step, setStep] = useState(contactOnly ? intakeQuestions.length : 0);
-  const [answers, setAnswers] = useState<string[]>(Array(intakeQuestions.length).fill(""));
+function ChosenIndustry({ value, other, open, canClose, onToggle, onChange, onOther }: {
+  value: string;
+  other: string;
+  open: boolean;
+  canClose: boolean;
+  onToggle: () => void;
+  onChange: (option: string) => void;
+  onOther: (value: string) => void;
+}) {
+  const options = intakeQuestions[0].options;
+  const index = Math.max(0, options.indexOf(value));
+  return (
+    <div className={styles.chosen}>
+      <div className={styles.chosenHead}>
+        <p className={styles.eyebrow}>INDUSTRY</p>
+        <button type="button" className={styles.change} aria-expanded={open} disabled={open && !canClose} onClick={onToggle}>{open ? "Done" : "Change"}</button>
+      </div>
+      <div className={styles.chosenCard} style={{ "--accent": colors[index % colors.length] } as CSSProperties}>
+        <span className={styles.choiceSurface} data-chosen="true">
+          <span className={styles.choiceNumber}>{String(index + 1).padStart(2, "0")}</span>
+          <span className={styles.motif} aria-hidden="true"><i /><i /><i /></span>
+          <span className={styles.choiceText}>{value}</span>
+          <span className={styles.check} aria-hidden="true"><Check size={15} /></span>
+        </span>
+      </div>
+      {open && (
+        <fieldset className={`${styles.choices} ${options.length > 5 ? styles.threeColumns : ""}`} aria-label="Industry">
+          {options.map((option, optionIndex) => (
+            <label key={option} className={styles.choice} style={{ "--accent": colors[optionIndex % colors.length] } as CSSProperties}>
+              <input type="radio" name="industry" value={option} checked={value === option} onChange={() => onChange(option)} />
+              <span className={styles.choiceSurface}>
+                <span className={styles.choiceNumber}>{String(optionIndex + 1).padStart(2, "0")}</span>
+                <span className={styles.motif} aria-hidden="true"><i /><i /><i /></span>
+                <span className={styles.choiceText}>{option}</span>
+                <span className={styles.check} aria-hidden="true"><Check size={15} /></span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+      )}
+      {open && value === "Other" && (
+        <div className={styles.writeIn}>
+          <label htmlFor="industry-other">Tell us in your own words</label>
+          <textarea id="industry-other" name="industry-other" autoFocus required maxLength={500} rows={2} placeholder="Write your response…" value={other} onChange={(event) => onOther(event.target.value)} aria-describedby="industry-other-count" />
+          <span id="industry-other-count">{other.length} / 500</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function IntakeQuiz({ contactOnly = false, industry }: { contactOnly?: boolean; industry?: string }) {
+  const arrivedWithIndustry = Boolean(industry && intakeQuestions[0].options.includes(industry));
+  const [step, setStep] = useState(contactOnly ? intakeQuestions.length : arrivedWithIndustry ? 1 : 0);
+  const [answers, setAnswers] = useState<string[]>(() => {
+    const initial = Array(intakeQuestions.length).fill("");
+    if (arrivedWithIndustry && industry) initial[0] = industry;
+    return initial;
+  });
   const [otherAnswers, setOtherAnswers] = useState<string[]>(Array(intakeQuestions.length).fill(""));
+  const [changingIndustry, setChangingIndustry] = useState(false);
   const [contact, setContact] = useState({ name: "", company: "", email: "" });
   const [status, setStatus] = useState<"idle" | "sending" | "success">("idle");
   const [error, setError] = useState("");
@@ -30,8 +87,21 @@ export function IntakeQuiz({ contactOnly = false }: { contactOnly?: boolean }) {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [step, status]);
 
+  const industryReady = !arrivedWithIndustry || isIntakeAnswerValid(0, answers[0], otherAnswers[0]);
+
+  function chooseIndustry(option: string) {
+    setAnswers(answers.map((answer, index) => index === 0 ? option : answer));
+    if (option !== "Other") setChangingIndustry(false);
+  }
+
+  function toggleIndustry() {
+    if (changingIndustry && !industryReady) return;
+    setChangingIndustry((open) => !open);
+  }
+
   function next(event: FormEvent) {
     event.preventDefault();
+    if (!industryReady) return;
     if (isIntakeAnswerValid(step, answers[step], otherAnswers[step])) setStep(step + 1);
   }
 
@@ -95,6 +165,18 @@ export function IntakeQuiz({ contactOnly = false }: { contactOnly?: boolean }) {
               {intakeQuestions.map((item, index) => <span key={item.title} className={isIntakeAnswerValid(index, answers[index], otherAnswers[index]) ? styles.filled : index === step ? styles.current : ""} />)}
             </div>}
 
+            {arrivedWithIndustry && !contactStep && (
+              <ChosenIndustry
+                value={answers[0]}
+                other={otherAnswers[0]}
+                open={changingIndustry}
+                canClose={industryReady}
+                onToggle={toggleIndustry}
+                onChange={chooseIndustry}
+                onOther={(value) => setOtherAnswers(otherAnswers.map((answer, index) => index === 0 ? value : answer))}
+              />
+            )}
+
             <section key={step} className={styles.stage}>
               <p className={styles.eyebrow}>{contactOnly ? "PONTIAN / SKORMAN" : contactStep ? "ONE LAST INTRODUCTION" : `QUESTION ${String(step + 1).padStart(2, "0")}`}</p>
               <h1 ref={title} tabIndex={-1} id="intake-question">{contactOnly ? "Contact Pontian." : contactStep ? "Where can we reach you?" : question.title}</h1>
@@ -138,9 +220,9 @@ export function IntakeQuiz({ contactOnly = false }: { contactOnly?: boolean }) {
                     </div>
                   )}
                   <div className={styles.controls}>
-                    <button className={styles.back} type="button" disabled={step === 0} onClick={() => setStep(step - 1)}><ArrowLeft size={17} /> Back</button>
+                    <button className={styles.back} type="button" disabled={step === (arrivedWithIndustry ? 1 : 0)} onClick={() => setStep(step - 1)}><ArrowLeft size={17} /> Back</button>
                     <span className={styles.remaining}>{10 - step - 1} {10 - step - 1 === 1 ? "question" : "questions"} after this</span>
-                    <button type="submit" className={styles.continue} disabled={!isIntakeAnswerValid(step, answers[step], otherAnswers[step])}>{step === 9 ? "Your details" : "Continue"}<ArrowRight size={18} /></button>
+                    <button type="submit" className={styles.continue} disabled={!industryReady || !isIntakeAnswerValid(step, answers[step], otherAnswers[step])}>{step === 9 ? "Your details" : "Continue"}<ArrowRight size={18} /></button>
                   </div>
                 </form>
               )}

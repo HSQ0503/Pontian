@@ -28,14 +28,21 @@
 .motif i:nth-child(1) { top: 1px; left: 44px; }
 .motif i:nth-child(2) { top: 45px; left: 0; }
 .motif i:nth-child(3) { top: 45px; left: 88px; }
-.choice:has(input:checked) .choiceSurface, .choice:has(input:focus-visible) .choiceSurface { border-color: var(--accent); box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 12%, transparent); }
-.choice:has(input:checked) .choiceSurface::before, .choice:has(input:focus-visible) .choiceSurface::before { opacity: 1; }
-.choice:has(input:checked) .motif, .choice:has(input:focus-visible) .motif { opacity: .28; transform: none; }
-.choice:has(input:checked) .choiceNumber { color: var(--accent); }
+.choice:has(input:checked) .choiceSurface, .choice:has(input:focus-visible) .choiceSurface, .choiceSurface[data-chosen="true"] { border-color: var(--accent); box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 12%, transparent); }
+.choice:has(input:checked) .choiceSurface::before, .choice:has(input:focus-visible) .choiceSurface::before, .choiceSurface[data-chosen="true"]::before { opacity: 1; }
+.choice:has(input:checked) .motif, .choice:has(input:focus-visible) .motif, .choiceSurface[data-chosen="true"] .motif { opacity: .28; transform: none; }
+.choice:has(input:checked) .choiceNumber, .choiceSurface[data-chosen="true"] .choiceNumber { color: var(--accent); }
 .check { position: absolute; right: 16px; bottom: 21px; width: 19px; height: 19px; border: 1px solid #444; border-radius: 50%; display: grid; place-items: center; color: #080808; }
 .check svg { opacity: 0; }
-.choice:has(input:checked) .check { background: var(--accent); border-color: var(--accent); }
-.choice:has(input:checked) .check svg { opacity: 1; }
+.choice:has(input:checked) .check, .choiceSurface[data-chosen="true"] .check { background: var(--accent); border-color: var(--accent); }
+.choice:has(input:checked) .check svg, .choiceSurface[data-chosen="true"] .check svg { opacity: 1; }
+.chosen { display: grid; gap: 14px; margin: 0 0 36px; }
+.chosenHead { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.chosenHead .eyebrow { margin: 0; }
+.chosenCard { max-width: 420px; }
+.change { min-height: 44px; padding: 8px 0; color: #aaa; font-size: 13px; cursor: pointer; }
+.change:hover { color: white; }
+.change:disabled { opacity: .28; cursor: default; }
 @media (hover: hover) {
   .choice:hover .choiceSurface { border-color: color-mix(in srgb, var(--accent) 70%, #303030); box-shadow: 0 0 28px color-mix(in srgb, var(--accent) 13%, transparent); }
   .choice:hover .choiceSurface::before { opacity: 1; }

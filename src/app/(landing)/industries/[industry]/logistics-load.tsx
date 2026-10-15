@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSPro
 import { Play, Square } from "lucide-react";
 import styles from "./logistics.module.css";
 import { Choice, Example } from "./logistics-visuals";
+import { InteractionCue } from "./interaction-cue";
 import { formatKg, formatSize, loadStops, operation, places, shipments, totalWeight } from "./logistics-data";
 import { blockersAt, blockingKeys, CARGO, items, laneY, loadLayout, loadSceneItems, ROWS, rowX, viewLabels, type ArrangementId, type FloorMark, type Placement, type SceneItem, type SceneLayout, type SceneTone, type ViewId } from "./logistics-load-plan";
 import type { SceneChip } from "./logistics-load-scene";
@@ -78,7 +79,7 @@ function PlanView({ items: sceneItems, placements, tones, marks, onSelect }: { i
   );
 }
 
-export function CargoView({ items: sceneItems, layout, tones, anchor, marks, chip, label, onSelect, cameras = true, initialView = "angle" }: {
+export function CargoView({ items: sceneItems, layout, tones, anchor, marks, chip, label, onSelect, cameras = true, initialView = "angle", onModel }: {
   items: SceneItem[];
   layout: SceneLayout;
   tones: Record<string, SceneTone>;
@@ -89,6 +90,7 @@ export function CargoView({ items: sceneItems, layout, tones, anchor, marks, chi
   onSelect: (shipment: string) => void;
   cameras?: boolean;
   initialView?: ViewId;
+  onModel?: (live: boolean) => void;
 }) {
   const reducedMotion = useReducedMotion();
   const webgl = useSyncExternalStore(noSubscription, detectWebGL, () => false);
@@ -99,6 +101,8 @@ export function CargoView({ items: sceneItems, layout, tones, anchor, marks, chi
   const [ready, setReady] = useState(false);
   const [view, setView] = useState<ViewId | null>(initialView);
   const live = mounted && webgl;
+  const showing = live && ready;
+  useEffect(() => { onModel?.(showing); }, [showing, onModel]);
   return (
     <>
       <div ref={frame} className={styles.viewport} data-live={(live && ready) || undefined}>
@@ -143,6 +147,7 @@ const words = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven"];
 
 export function LoadPlan() {
   const [arrangement, setArrangement] = useState<ArrangementId>("initial");
+  const [model, setModel] = useState(false);
   const [step, setStep] = useState(0);
   const [selected, setSelected] = useState("KV-2041");
   const [playing, setPlaying] = useState(false);
@@ -214,6 +219,16 @@ export function LoadPlan() {
       />
       <div className={styles.loadGrid}>
         <div className={styles.sceneSheet}>
+          <InteractionCue
+            line="You can use this."
+            steps={[
+              "Switch the arrangement",
+              "Click a shipment",
+              "Step through the stops",
+              ...(!reducedMotion ? ["Play the stops"] : []),
+              ...(model ? ["Drag to look around", "Switch the camera"] : []),
+            ]}
+          />
           <CargoView
             items={loadSceneItems}
             layout={layout}
@@ -223,6 +238,7 @@ export function LoadPlan() {
             chip={chip}
             label={`Vehicle B’s cargo space, ${arrangement} arrangement. Drag or use the arrow keys to turn the view.`}
             onSelect={setSelected}
+            onModel={setModel}
           />
           <div className={styles.sequence}>
             <div role="group" aria-label="Delivery sequence" className={styles.stepButtons}>

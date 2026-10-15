@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { ArrowRight, RotateCcw } from "lucide-react";
 import styles from "./property-services.module.css";
+import { InteractionCue } from "./interaction-cue";
 import { ANCHORS, PIN_ANCHORS, SIDE_FENCE, STOP_ANCHORS, type Area, type AreaState, type SceneInput, type SceneLabel, type StopId } from "./property-services-model";
 
 const PropertyScene = dynamic(() => import("./property-services-scene"), { ssr: false });
@@ -73,7 +74,7 @@ function hasWebGL() {
   return webglSupport;
 }
 
-function PropertyView({ scene, fallback, label }: { scene: SceneInput; fallback: ReactNode; label: string }) {
+function PropertyView({ scene, fallback, label, onModel }: { scene: SceneInput; fallback: ReactNode; label: string; onModel?: (live: boolean) => void }) {
   const reduced = useSyncExternalStore(subscribeToMotion, () => window.matchMedia("(prefers-reduced-motion: reduce)").matches, () => true);
   const webgl = useSyncExternalStore(noSubscription, hasWebGL, () => false);
   const ref = useRef<HTMLDivElement>(null);
@@ -90,6 +91,8 @@ function PropertyView({ scene, fallback, label }: { scene: SceneInput; fallback:
     return () => { nearObserver.disconnect(); visibleObserver.disconnect(); };
   }, []);
   const live = near && webgl && !reduced;
+  const showing = live && ready;
+  useEffect(() => { onModel?.(showing); }, [showing, onModel]);
   return (
     <div ref={ref} className={styles.viewport} role="img" aria-label={label}>
       <div className={styles.fallback} data-hidden={live && ready} aria-hidden="true">{fallback}</div>
@@ -423,6 +426,7 @@ const PHOTO_FOR: Record<Area, { View: (props: { label?: string }) => ReactNode; 
 };
 
 export function ScopeTheWork() {
+  const [model, setModel] = useState(false);
   const [sentence, setSentence] = useState(0);
   const [approved, setApproved] = useState(false);
   const areas = NOTE[sentence].areas;
@@ -448,11 +452,15 @@ export function ScopeTheWork() {
       note="Photos don’t give you measurements, hidden damage or the right cleaning method. Someone still has to look."
     >
       <div className={styles.stage}>
-        <PropertyView
+        <div>
+          <InteractionCue line="You can use this." steps={["Click a line of the note", ...(model ? ["Click an area"] : []), "Switch draft or approved"]} />
+          <PropertyView
           label={`3D model of the fictional Alder Lane property. ${approved ? "Customer-approved scope" : "Draft scope"}: driveway and rear patio in, painted fence excluded, side path ${approved ? "not included" : "to confirm"}.`}
+          onModel={setModel}
           scene={{ view: "wide", states, selected: areas, labels, onPick: pick }}
           fallback={<PropertyPlan states={states} selected={areas} labels={["driveway", "patio", "fence", "path"]} />}
         />
+        </div>
         <div className={styles.side}>
           <p className={styles.sideLabel}>Owner’s note</p>
           <blockquote className={styles.note}>
@@ -534,6 +542,7 @@ export function EquipTheCrew() {
       next={<p>The office signs off any extra work.</p>}
       note="Old notes and requests made on the day never change the approved job."
     >
+      <InteractionCue line="You can use this." steps={["Click a question"]} />
       <div className={styles.stage}>
         <PropertyView
           label={`3D view of the side of the fictional Alder Lane property, showing the side path, side gate and painted fence. ${question.answer}`}
@@ -569,6 +578,7 @@ const REVIEW: { status: [Tone, string]; action: string }[] = [
 ];
 
 export function ReviewTheResult() {
+  const [model, setModel] = useState(false);
   const [work, setWork] = useState<"driveway" | "patio">("patio");
   const [step, setStep] = useState(0);
   const patioDone = step > 0;
@@ -589,13 +599,17 @@ export function ReviewTheResult() {
       note="A missing photo doesn’t mean missing work, and a photo doesn’t prove the work was done well."
     >
       <div className={styles.stage}>
-        <PropertyView
+        <div>
+          <InteractionCue line="You can use this." steps={model ? ["Click the driveway or patio", "Take the next step"] : ["Switch the work", "Take the next step"]} />
+          <PropertyView
           label={work === "driveway"
             ? "3D view of the fictional Alder Lane driveway, with before and after photos on the record."
             : `3D view of the fictional Alder Lane rear patio. ${patioDone ? "Before and after photos are on the record." : "There is a before photo and no after photo."}`}
+          onModel={setModel}
           scene={{ view: work === "driveway" ? "front" : "back", states, selected: [work], labels, pins: [{ id: work, state: work === "driveway" || patioDone ? "ok" : "blocked" }], onPick: (area) => { if (area === "driveway" || area === "patio") setWork(area); } }}
           fallback={<PropertyPlan states={states} selected={[work]} labels={["driveway", "patio"]} />}
         />
+        </div>
         <div className={styles.side}>
           <div className={styles.toggle} role="group" aria-label="Work item">
             <button type="button" aria-pressed={work === "driveway"} onClick={() => setWork("driveway")}>Driveway</button>
@@ -642,6 +656,7 @@ const DAY_HOURS = 9;
 const span = ([start, end]: [number, number]): CSSProperties => ({ left: `${((start - DAY_START) / DAY_HOURS) * 100}%`, width: `${((end - start) / DAY_HOURS) * 100}%` });
 
 export function PlanTheNextVisit() {
+  const [model, setModel] = useState(false);
   const [selected, setSelected] = useState<StopId | null>(null);
   const stop = STOPS.find((item) => item.id === (selected ?? "alder")) ?? STOPS[1];
   const choose = (id: StopId) => setSelected(selected === id ? null : id);
@@ -657,11 +672,15 @@ export function PlanTheNextVisit() {
       note="Nothing here books a visit or messages a customer. Route grouping is something we’d test with you."
     >
       <div className={styles.stage}>
-        <PropertyView
+        <div>
+          <InteractionCue line="You can use this." steps={model ? ["Click a stop", "Click a property"] : ["Click a stop"]} />
+          <PropertyView
           label="3D view of the fictional Alder Lane property and two nearby properties on side roads, with a draft route: Birch Road first, then Alder Lane, then Cedar Court."
+          onModel={setModel}
           scene={{ view: selected ?? "street", states, selected: [], labels, neighbourhood: true, stop: selected, onPickStop: choose }}
           fallback={<AreaMap selected={selected} />}
         />
+        </div>
         <div className={styles.side}>
           <ol className={styles.history}>
             {HISTORY.map(([date, text]) => <li key={date}><span>{date}</span>{text}</li>)}

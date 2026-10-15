@@ -3,6 +3,10 @@ export type Industry = {
   alt: string; noir?: boolean; imagePosition?: string; heroPosition?: string;
 };
 
+export function getStartedHref(slug: string) {
+  return `/get-started?industry=${encodeURIComponent(slug)}`;
+}
+
 export const industries: Industry[] = [
   { slug: "construction", name: "Construction", headline: "Bespoke infrastructure for the jobsite.", tone: "clay", image: "/pontian/construction.png", alt: "Construction workers on a building site" },
   { slug: "design-engineering", name: "Design & Engineering", headline: "Built around the design process.", tone: "steel", image: "/pontian/design-engineering.jpeg", noir: true, alt: "Angular concrete architecture" },

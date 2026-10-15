@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, Check, CircleAlert } from "lucide-react";
 import styles from "./logistics.module.css";
+import { InteractionCue } from "./interaction-cue";
 import {
   collectionDetourKm,
   formatMoney,
@@ -202,6 +203,7 @@ export function DeliveryPlan() {
           <span><strong>{verdict.title}</strong> {verdict.text}</span>
         </p>
       </div>
+      <InteractionCue line="Switch the option." steps={["Switch where the job goes", "Click a stop"]} />
       <div ref={scroller} className={styles.timelineScroll}>
         <div className={styles.timeline}>
           <div className={styles.axis}>
@@ -294,6 +296,7 @@ export function QuotePreparation() {
       }}
     >
       <Choice label="Step" value={replied ? "after" : "before"} onChange={(value) => setReplied(value === "after")} options={[{ value: "before", label: "Before the reply" }, { value: "after", label: "After the reply" }]} />
+      <InteractionCue line="You can use this." steps={replied ? ["Switch the step", "Click a quote line"] : ["Switch the step", "Add the customer’s reply"]} />
       <div className={styles.quoteGrid}>
         <div className={styles.sheet}>
           <div className={styles.message}>

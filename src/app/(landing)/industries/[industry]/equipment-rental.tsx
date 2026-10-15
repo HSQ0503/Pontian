@@ -1,7 +1,7 @@
 import type { ComponentType } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
-import type { Industry } from "@/lib/industries";
+import { getStartedHref, type Industry } from "@/lib/industries";
 import { FrontierHeader } from "@/components/landing/frontier-header";
 import frontier from "../../frontier.module.css";
 import base from "./industry.module.css";
@@ -68,7 +68,7 @@ export function EquipmentRentalPage({ industry, index, next }: { industry: Indus
   return (
     <div className={`${frontier.home} ${base.page}`}>
       <a className={frontier.skip} href="#industry-content">Skip to content</a>
-      <FrontierHeader />
+      <FrontierHeader industrySlug={industry.slug} />
       <main id="industry-content">
         <IndustryHero
           industry={industry}
@@ -115,7 +115,7 @@ export function EquipmentRentalPage({ industry, index, next }: { industry: Indus
             <div className={styles.accent} aria-hidden="true"><span /><span /><span /></div>
             <h2 id="talk-title" className={styles.closingTitle}>Where does a rental get held up?</h2>
             <p className={styles.closingBody}>Finding the machine, getting it there, an extension, the turnaround. Tell us which one costs you most and we’ll start there.</p>
-            <Link href="/get-started" className={styles.closingButton}>Talk through your rental operation <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
+            <Link href={getStartedHref(industry.slug)} className={styles.closingButton}>Talk through your rental operation <ArrowUpRight size={17} strokeWidth={1.5} aria-hidden="true" /></Link>
           </div>
         </section>
       </main>

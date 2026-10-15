@@ -19,9 +19,13 @@ type FrontierHeaderProps = {
   action?: { label: string; href: string };
   pages?: { title: string; detail: string; href: string }[];
   originalArtwork?: boolean;
+  industrySlug?: string;
 };
 
-export function FrontierHeader({ context, action = { label: "Get Started", href: "/get-started" }, pages = defaultPages, originalArtwork = false }: FrontierHeaderProps = {}) {
+export function FrontierHeader({ context, action, pages = defaultPages, originalArtwork = false, industrySlug }: FrontierHeaderProps = {}) {
+  const startHref = industrySlug ? `/get-started?industry=${encodeURIComponent(industrySlug)}` : "/get-started";
+  const resolvedAction = action ?? { label: "Get Started", href: startHref };
+  const resolvedPages = pages.map((page) => (page.href === "/get-started" ? { ...page, href: startHref } : page));
   const header = useRef<HTMLElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const [panel, setPanel] = useState<"menu" | "search">("menu");
@@ -43,7 +47,7 @@ export function FrontierHeader({ context, action = { label: "Get Started", href:
     setQuery("");
     dialog.current?.showModal();
   }
-  const results = pages.filter((page) => `${page.title} ${page.detail}`.toLowerCase().includes(query.toLowerCase().trim()));
+  const results = resolvedPages.filter((page) => `${page.title} ${page.detail}`.toLowerCase().includes(query.toLowerCase().trim()));
   return (
     <>
       <header ref={header} className={styles.header}>
@@ -62,7 +66,7 @@ export function FrontierHeader({ context, action = { label: "Get Started", href:
           <span>Pontian{context && <span className={styles.context}>{context}</span>}</span>
         </Link>
         <nav className={styles.actions} aria-label="Primary navigation">
-          <Link href={action.href} className={styles.start}>{action.label}</Link>
+          <Link href={resolvedAction.href} className={styles.start}>{resolvedAction.label}</Link>
           <div className={styles.tools}>
             <button type="button" className={styles.iconButton} aria-label="Search site" aria-haspopup="dialog" onClick={() => openPanel("search")}><Search strokeWidth={1.25} /></button>
             <button type="button" className={styles.iconButton} aria-label="Open menu" aria-haspopup="dialog" onClick={() => openPanel("menu")}><Menu strokeWidth={1.25} /></button>
@@ -77,7 +81,7 @@ export function FrontierHeader({ context, action = { label: "Get Started", href:
           </div>
           {panel === "search" && <input autoFocus className={styles.searchInput} aria-label="Search pages" placeholder="What are you looking for?" value={query} onChange={(event) => setQuery(event.target.value)} />}
           <nav aria-label={panel === "search" ? "Search results" : "Site pages"}>
-            {(panel === "search" ? results : pages).map((page) => <Link className={styles.pageLink} key={page.href} href={page.href} onClick={() => dialog.current?.close()}><span>{page.title}</span><ArrowUpRight strokeWidth={1.25} /></Link>)}
+            {(panel === "search" ? results : resolvedPages).map((page) => <Link className={styles.pageLink} key={page.href} href={page.href} onClick={() => dialog.current?.close()}><span>{page.title}</span><ArrowUpRight strokeWidth={1.25} /></Link>)}
             {panel === "search" && results.length === 0 && <p className={styles.empty}>No matching pages. Try “home” or “contact”.</p>}
           </nav>
         </div>
