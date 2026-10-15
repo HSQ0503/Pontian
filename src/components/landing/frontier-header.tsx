@@ -8,6 +8,7 @@ import styles from "@/app/(landing)/frontier.module.css";
 
 const defaultPages = [
   { title: "Home", detail: "Frontier technology for industrial operations", href: "/" },
+  { title: "Case Studies", detail: "Software we built for our clients", href: "/case-studies" },
   { title: "Get Started", detail: "Tell us about your company", href: "/get-started" },
   { title: "Contact", detail: "Start a conversation with Pontian", href: "/contact" },
   { title: "Privacy Policy", detail: "How Pontian handles personal information", href: "/privacy" },

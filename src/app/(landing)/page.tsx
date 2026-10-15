@@ -1,14 +1,17 @@
-import type { Metadata } from "next";
 import { ArrowDown } from "lucide-react";
 import { FrontierHeader } from "@/components/landing/frontier-header";
 import { Industries } from "@/components/landing/industries";
 import { LegalLinks } from "@/components/legal/legal-links";
+import { pageMetadata } from "@/lib/seo";
 import styles from "./frontier.module.css";
 
-export const metadata: Metadata = {
-  title: { absolute: "Pontian | Frontier Technology Partner" },
-  description: "Frontier Technology Partner For Industrial Operations.",
-};
+export const metadata = pageMetadata({
+  title: "Pontian Technologies | Frontier Technology Partner for Industrial Operations",
+  absoluteTitle: true,
+  description: "Pontian Technologies builds custom software, data systems and AI tools around how your operation actually works, connects the records it already has, and keeps them running.",
+  path: "/",
+  socialTitle: "Pontian Technologies",
+});
 
 export default function PontianPage() {
   return (

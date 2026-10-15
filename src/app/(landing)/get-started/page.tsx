@@ -6,6 +6,7 @@ import { intakeQuestions } from "@/lib/intake";
 export const metadata: Metadata = {
   title: "Get Started",
   description: "Tell us about your company. A better first conversation starts here.",
+  alternates: { canonical: "/get-started" },
   robots: { index: false, follow: true },
 };
 
