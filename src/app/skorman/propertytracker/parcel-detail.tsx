@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ArrowUpRight, X } from "lucide-react";
-import { decisionTitle, describeCode, intensityLabels, isRelatedOwner, outcomeNote, trackStatuses, yearsHeld, type Decision, type Scored, type TrackStatus } from "./parcels";
+import { decisionTitle, describeCode, intensityLabels, isRelatedOwner, matchLabel, outcomeNote, statusChoice, trackStatuses, yearsHeld, type Decision, type Scored, type TrackStatus } from "./parcels";
 import { setTracking, useTracking } from "./store";
 import styles from "./tracker.module.css";
 
@@ -17,9 +17,51 @@ type Brief = {
 
 const money = (value: number) => (value ? `$${value.toLocaleString()}` : "—");
 
+export function placeName(parcel: { address: string; propertyName: string; parcelNumber: string }) {
+  if (parcel.address && parcel.address !== "UNASSIGNED") return parcel.address;
+  return parcel.propertyName || `Parcel ${parcel.parcelNumber}`;
+}
+
+export function plainSummary(parcel: Scored) {
+  const decision = parcel.decisions[0];
+  const rejected = parcel.signals.find((signal) => signal.id === "rejected-here");
+  if (rejected?.detail.includes("approved later")) {
+    return "An application was turned down, but the zoning may have changed since. Confirm that before treating the land as available.";
+  }
+  if (rejected?.detail.includes("split up") || rejected?.detail.includes("subdivided")) {
+    return "An application was turned down, but the land has since been split up.";
+  }
+  if (decision) {
+    const text = decision.reasons.join(" ");
+    const year = decision.date.slice(0, 4);
+    const when = year ? ` in ${year}` : "";
+    if (/withdrawn/i.test(text)) return `The owner withdrew an application${when}.`;
+    if (/cancelled|canceled/i.test(text)) return `An application was cancelled${when}.`;
+    if (/denial|denied/i.test(text)) return `${decision.government} recommended denying an application${when}.`;
+    if (/inconsistent/i.test(text)) return `${decision.government} staff said an application did not fit the plan${when}.`;
+    return `${decision.government} did not approve an application here${when}.`;
+  }
+  const ranked = parcel.signals.filter((signal) => signal.points > 0 && signal.id !== "close").sort((a, b) => b.points - a.points);
+  const best = ranked[0];
+  if (!best) return parcel.signals.find((signal) => signal.points > 0)?.detail ?? "Open it to read the public record.";
+  if (best.id === "farm-use") return "It's still farm or timber land.";
+  if (best.id === "near-rejected") return "It sits next to land where an application was turned down.";
+  if (best.id === "vacant") return "The county lists it as vacant land.";
+  if (best.id === "out-of-state") return best.detail.replace("Owner mailing address in", "The owner lives in");
+  if (best.id === "owner-holdings") return best.detail.replace("This owner holds", "The same owner holds");
+  return best.detail;
+}
+
 export const googleEmbed = (lat: number, lng: number, zoom = 18) => `https://maps.google.com/maps?q=${lat},${lng}&t=k&z=${zoom}&output=embed`;
 const streetView = (lat: number, lng: number) => `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
 const googleMaps = (lat: number, lng: number) => `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
+function readableDetail(detail: string) {
+  if (/^Classified today as /.test(detail)) return "It's still farm or timber land.";
+  const approvals = detail.match(/^(\d+) county rezoning or land-use approvals within a mile since (\d+)\.$/);
+  if (approvals) return Number(approvals[1]) === 1 ? `One nearby approval since ${approvals[2]}.` : `${approvals[1]} nearby approvals since ${approvals[2]}.`;
+  return detail;
+}
 
 function levelText(level: Scored["zoningLevel"]) {
   if (level === null) return "not classified";
@@ -72,11 +114,11 @@ export function DecisionCard({ decision, note }: { decision: Decision; note?: st
           </li>
         ))}
       </ul>
-      {(decision.fromZoning || decision.toZoning) && (
-        <p className="mt-3 text-[12px] text-[#a6a6a6]">
-          Requested zoning: {decision.fromZoning || "?"} → {decision.toZoning || "?"}
-        </p>
-      )}
+          {(decision.fromZoning || decision.toZoning) && (
+            <p className="mt-3 text-[13px] leading-relaxed text-[#d4d4d2]">
+              They asked to change the zoning from {decision.fromZoning || "the current zoning"} to {decision.toZoning || "a new category"}.
+            </p>
+          )}
       {decision.meetings.length > 1 && <p className="mt-1 text-[12px] text-[#a6a6a6]">Heard on {decision.meetings.join(", ")}</p>}
       {note && <p className="mt-2 text-[12px] text-[#eeeeec]">{note}</p>}
       {decision.located && decision.located !== "parcel number in the record" && (
@@ -164,31 +206,26 @@ export function ParcelDetail({ parcel, onClose }: { parcel: Scored; onClose: () 
 
       <div className="flex flex-col gap-6 p-5">
         <header>
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-[12px] text-[#a6a6a6]">
-                {parcel.jurisdiction} · {parcel.acres.toFixed(1)} acres · {parcel.distanceMiles.toFixed(1)} mi from Crooked Can
-              </p>
-              <h2 className={`${styles.headline} mt-1.5 text-[24px] leading-tight text-[#eeeeec]`}>
-                {parcel.address && parcel.address !== "UNASSIGNED" ? parcel.address : parcel.propertyName || `Parcel ${parcel.parcelNumber}`}
-              </h2>
-              <p className="mt-1 truncate text-[13px] text-[#b8b8b6]">{parcel.owner}</p>
-            </div>
-            <div className="shrink-0 text-right">
-              <p className={`${styles.headline} text-[40px] leading-none text-[#fdd907]`}>{parcel.score}</p>
-              <p className="mt-1 text-[11px] text-[#8a8a88]">score</p>
-            </div>
+          <p className="text-[13px] text-[#a6a6a6]">
+            {parcel.jurisdiction.replace(" Lake County", "")} · {Number(parcel.acres.toFixed(1))} acres · {Number(parcel.distanceMiles.toFixed(1))} miles from Crooked Can
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className="bg-[#fdd907] px-2 py-1 text-[12px] font-medium text-[#111]">{matchLabel(parcel.score)}</span>
+            {track && <span className="border border-[#fdd907]/60 px-2 py-1 text-[12px] text-[#fdd907]">{statusChoice[track.status].label}</span>}
           </div>
+          <h2 className={`${styles.headline} mt-3 text-[28px] leading-tight text-[#eeeeec]`}>{placeName(parcel)}</h2>
+          <p className="mt-1 text-[15px] text-[#d4d4d2]">{parcel.owner}</p>
+          <p className="mt-3 text-[16px] leading-relaxed text-[#eeeeec]">{plainSummary(parcel)}</p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <a href={streetView(parcel.lat, parcel.lng)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 border border-[#3a3a3a] px-3 py-2 text-[12px] text-[#eeeeec] hover:border-[#fdd907]">
-              Street View <ArrowUpRight size={12} />
+            <a href={streetView(parcel.lat, parcel.lng)} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1.5 border border-[#3a3a3a] px-3 text-[14px] text-[#eeeeec] hover:border-[#fdd907]">
+              Street View <ArrowUpRight size={14} />
             </a>
-            <a href={googleMaps(parcel.lat, parcel.lng)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 border border-[#3a3a3a] px-3 py-2 text-[12px] text-[#eeeeec] hover:border-[#fdd907]">
-              Open in Google Maps <ArrowUpRight size={12} />
+            <a href={googleMaps(parcel.lat, parcel.lng)} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1.5 border border-[#3a3a3a] px-3 text-[14px] text-[#eeeeec] hover:border-[#fdd907]">
+              Google Maps <ArrowUpRight size={14} />
             </a>
             {parcel.link && (
-              <a href={parcel.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 border border-[#3a3a3a] px-3 py-2 text-[12px] text-[#eeeeec] hover:border-[#fdd907]">
-                Property appraiser <ArrowUpRight size={12} />
+              <a href={parcel.link} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1.5 border border-[#3a3a3a] px-3 text-[14px] text-[#eeeeec] hover:border-[#fdd907]">
+                County record <ArrowUpRight size={14} />
               </a>
             )}
           </div>
@@ -200,52 +237,60 @@ export function ParcelDetail({ parcel, onClose }: { parcel: Scored; onClose: () 
 
         {parcel.decisions.length > 0 && (
           <section className="flex flex-col gap-3">
-            <h3 className="text-[12px] text-[#a6a6a6]">Rejected or withdrawn applications on this parcel</h3>
+            <h3 className="text-[15px] text-[#eeeeec]">What the city or county decided</h3>
             {parcel.decisions.map((decision) => (
               <DecisionCard key={decision.id} decision={decision} note={outcomeNote(parcel, decision)} />
             ))}
           </section>
         )}
 
-        <Points title="Why it appeared" items={positives.map((signal) => signal.detail)} tone="good" />
-        <Points title="Watch outs" items={cautions.map((signal) => signal.detail)} tone="warn" />
-        <Points title="Check before relying on this" items={notes.map((signal) => signal.detail)} tone="info" />
+        <Points title="Why it is on this list" items={positives.map((signal) => readableDetail(signal.detail))} tone="good" />
+        <Points title="Watch outs" items={cautions.map((signal) => readableDetail(signal.detail))} tone="warn" />
+        <Points title="Check before relying on this" items={notes.map((signal) => readableDetail(signal.detail))} tone="info" />
 
         <section className="border border-[#262626] p-4">
-          <h3 className="mb-3 text-[13px] text-[#eeeeec]">Track this parcel</h3>
-          <div className="flex flex-wrap gap-1.5">
-            {trackStatuses.map((status) => (
-              <button
-                key={status}
-                type="button"
-                aria-pressed={track?.status === status}
-                onClick={() => setTracking(parcel.id, track?.status === status ? null : (status as TrackStatus), note)}
-                className={`min-h-8 border px-2.5 text-[12px] ${track?.status === status ? "border-[#fdd907] bg-[#fdd907] text-[#111]" : "border-[#303030] text-[#b8b8b6] hover:border-[#5a5a58]"}`}
-              >
-                {status}
-              </button>
-            ))}
+          <h3 className="text-[16px] text-[#eeeeec]">What should we do with this?</h3>
+          <p className="mt-1 text-[13px] leading-relaxed text-[#8a8a88]">Saved on this computer only, until the shared list is ready.</p>
+          <div className="mt-3 grid gap-2">
+            {trackStatuses.map((status) => {
+              const choice = statusChoice[status];
+              const selected = track?.status === status;
+              return (
+                <button
+                  key={status}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => setTracking(parcel.id, selected ? null : (status as TrackStatus), note)}
+                  className={`flex min-h-11 items-center justify-between gap-3 border px-3 text-left transition-colors duration-200 ${selected ? "border-[#fdd907] bg-[#fdd907] text-[#111]" : "border-[#303030] text-[#eeeeec] hover:border-[#5a5a58]"}`}
+                >
+                  <span className="text-[15px]">{choice.label}</span>
+                  <span className={`text-[12px] ${selected ? "text-[#252525]" : "text-[#8a8a88]"}`}>{choice.hint}</span>
+                </button>
+              );
+            })}
           </div>
-          <textarea
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            onBlur={() => setTracking(parcel.id, track?.status ?? null, note)}
-            rows={3}
-            placeholder="Notes, who to call, what you learned"
-            aria-label="Notes"
-            className="mt-3 w-full border border-[#262626] bg-[#0e0e0e] px-3 py-2 text-[14px] text-[#eeeeec] placeholder:text-[#7a7a78] focus:border-[#fdd907] focus:outline-none"
-          />
+          <label className="mt-3 block text-[13px] text-[#a6a6a6]">
+            Note
+            <textarea
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              onBlur={() => setTracking(parcel.id, track?.status ?? null, note)}
+              rows={3}
+              placeholder="Who to call, or what you learned"
+              className="mt-1.5 w-full border border-[#262626] bg-[#0e0e0e] px-3 py-2 text-[15px] text-[#eeeeec] placeholder:text-[#7a7a78] focus:border-[#fdd907] focus:outline-none"
+            />
+          </label>
         </section>
 
         <section className="border border-[#262626] p-4">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-[13px] text-[#eeeeec]">AI research brief</h3>
-            <button type="button" onClick={runResearch} disabled={research.status === "loading"} className="min-h-9 bg-[#f8f8f6] px-3 text-[13px] text-[#252525] hover:bg-[#dcdcd9] disabled:opacity-60">
-              {research.status === "loading" ? "Researching…" : research.status === "done" ? "Run again" : "Research"}
+            <h3 className="text-[16px] text-[#eeeeec]">Plain-English summary</h3>
+            <button type="button" onClick={runResearch} disabled={research.status === "loading"} className="min-h-11 bg-[#f8f8f6] px-3 text-[14px] text-[#252525] hover:bg-[#dcdcd9] disabled:opacity-60">
+              {research.status === "loading" ? "Writing…" : research.status === "done" ? "Write again" : "Write a summary"}
             </button>
           </div>
-          <p className="mt-2 text-[12px] leading-relaxed text-[#8a8a88]">
-            Looks up this parcel&apos;s recent sales, nearby land sales, and nearby county applications, then writes a short brief. It can be wrong, so verify before acting.
+          <p className="mt-2 text-[14px] leading-relaxed text-[#a6a6a6]">
+            Looks up recent sales and nearby county applications, then explains them in a few sentences. Check the sources before acting on it.
           </p>
           {research.status === "error" && <p className="mt-3 text-[13px] text-[#f8a3a9]">{research.error}</p>}
           {research.brief && (
@@ -262,12 +307,12 @@ export function ParcelDetail({ parcel, onClose }: { parcel: Scored; onClose: () 
           )}
         </section>
 
-        <section>
-          <h3 className="mb-1 text-[12px] text-[#a6a6a6]">Property record</h3>
-          <dl className="divide-y divide-[#1e1e1e]">
+        <details className="border border-[#262626] p-4">
+          <summary className="text-[15px] text-[#eeeeec]">Full public record</summary>
+          <dl className="mt-2 divide-y divide-[#1e1e1e]">
             <Fact label="Owner" value={parcel.owner} />
             <Fact label="Mailing address" value={[parcel.ownerAddress, parcel.ownerCity, parcel.ownerState, parcel.ownerZip].filter(Boolean).join(", ")} />
-            <Fact label="Parcel number" value={`${parcel.parcelNumber} (alternate key ${parcel.id})`} />
+            <Fact label="Parcel number" value={`${parcel.parcelNumber} · county ID ${parcel.id}`} />
             <Fact label="Zoning" value={`${describeCode(parcel.zoning, parcel.zoningName)}, ${levelText(parcel.zoningLevel)}`} />
             <Fact label="Zoning source" value={parcel.zoningSource} />
             <Fact label="Land-use plan" value={`${describeCode(parcel.flu, parcel.fluName)}, ${levelText(parcel.planLevel)}`} />
@@ -278,7 +323,7 @@ export function ParcelDetail({ parcel, onClose }: { parcel: Scored; onClose: () 
             <Fact label="Last sale" value={parcel.lastSaleDate ? `${parcel.lastSaleDate} for ${money(parcel.lastSalePrice)}${held !== null ? ` · ${held} years ago` : ""}` : "No sale on record"} />
             <Fact label="Wetlands / flood" value={`${parcel.wetlandPct}% wetland · ${parcel.floodPct}% flood zone`} />
           </dl>
-        </section>
+        </details>
       </div>
     </article>
   );

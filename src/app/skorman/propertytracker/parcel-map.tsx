@@ -3,7 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import type { LayerGroup, Map as LeafletMap, TileLayer } from "leaflet";
-import type { Decision, Parcel, Scored } from "./parcels";
+import { matchLabel, type Decision, type Parcel, type Scored } from "./parcels";
 
 export type MapView = "parcels" | "satellite";
 
@@ -80,6 +80,15 @@ export function ParcelMap({ view, parcels, related, decisions, center, selectedI
 
   useEffect(() => {
     const instance = map.current;
+    const element = container.current;
+    if (!ready || !instance || !element) return;
+    const observer = new ResizeObserver(() => instance.invalidateSize());
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [ready]);
+
+  useEffect(() => {
+    const instance = map.current;
     if (!ready || !instance || !bases.current) return;
     for (const [name, tiles] of Object.entries(bases.current)) {
       for (const tile of tiles) {
@@ -108,7 +117,7 @@ export function ParcelMap({ view, parcels, related, decisions, center, selectedI
         fillColor: color,
         fillOpacity: satellite ? (selected ? 0.12 : 0.04) : selected ? 0.45 : 0.22,
       })
-        .bindTooltip(`${parcel.score} · ${parcel.acres.toFixed(1)} ac · ${parcel.owner}`, { sticky: true })
+        .bindTooltip(`${matchLabel(parcel.score)} · ${parcel.acres.toFixed(1)} acres · ${parcel.owner}`, { sticky: true })
         .on("click", () => select.current(parcel.id))
         .addTo(group);
     }
@@ -140,5 +149,5 @@ export function ParcelMap({ view, parcels, related, decisions, center, selectedI
     map.current.flyTo([focus.lat, focus.lng], Math.max(map.current.getZoom(), 16), { duration: 0.6 });
   }, [ready, focus]);
 
-  return <div ref={container} className="h-full w-full bg-[#0b0b0b]" role="region" aria-label="Map of candidate parcels and rejected applications" />;
+  return <div ref={container} className="h-full w-full bg-[#0b0b0b]" role="region" aria-label="Map of places near Crooked Can" />;
 }

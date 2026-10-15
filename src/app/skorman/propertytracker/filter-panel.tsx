@@ -7,6 +7,7 @@ import {
   ruleFields,
   ruleOperators,
   signalCatalog,
+  statusChoice,
   trackStatuses,
   type Filters,
   type Rule,
@@ -17,15 +18,15 @@ import {
 import { deleteView, saveView, useSavedViews } from "./store";
 
 export const inputClass =
-  "w-full border border-[#262626] bg-[#0e0e0e] px-3 py-2 text-[14px] text-[#eeeeec] placeholder:text-[#7a7a78] focus:border-[#fdd907] focus:outline-none";
+  "min-h-11 w-full border border-[#262626] bg-[#0e0e0e] px-3 text-[15px] text-[#eeeeec] placeholder:text-[#7a7a78] focus:border-[#fdd907] focus:outline-none";
 
 const chipClass = (active: boolean) =>
-  `min-h-8 border px-2.5 text-left text-[12px] transition-colors ${active ? "border-[#fdd907] bg-[#fdd907] text-[#111]" : "border-[#303030] text-[#b8b8b6] hover:border-[#5a5a58] hover:text-[#eeeeec]"}`;
+  `min-h-11 border px-3 text-left text-[13px] transition-colors duration-200 ${active ? "border-[#fdd907] bg-[#fdd907] text-[#111]" : "border-[#303030] text-[#d4d4d2] hover:border-[#5a5a58] hover:text-[#eeeeec]"}`;
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-3 border-t border-[#262626] pt-5">
-      <h3 className="text-[12px] text-[#a6a6a6]">{title}</h3>
+      <h3 className="text-[13px] text-[#eeeeec]">{title}</h3>
       {children}
     </section>
   );
@@ -69,35 +70,27 @@ export function FilterPanel({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <input value={filters.search} onChange={(event) => set("search", event.target.value)} placeholder="Owner, address, or parcel number" aria-label="Search" className={inputClass} />
-        <div className="flex gap-2">
-          <select value={filters.sort} onChange={(event) => set("sort", event.target.value as Filters["sort"])} aria-label="Sort by" className={inputClass}>
-            <option value="score">Best score first</option>
-            <option value="distance">Closest first</option>
-            <option value="acres">Largest first</option>
-            <option value="held">Held longest first</option>
-          </select>
-          <button type="button" onClick={() => onChange(defaultFilters)} className="shrink-0 px-3 text-[13px] text-[#a6a6a6] hover:text-[#eeeeec]">
-            Reset
-          </button>
-        </div>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[13px] leading-relaxed text-[#a6a6a6]">Use these when the main list is still too long.</p>
+        <button type="button" onClick={() => onChange(defaultFilters)} className="min-h-11 shrink-0 px-3 text-[13px] text-[#a6a6a6] hover:text-[#eeeeec]">
+          Reset
+        </button>
       </div>
 
       <button
         type="button"
         aria-pressed={filters.rejectedOnly}
         onClick={() => set("rejectedOnly", !filters.rejectedOnly)}
-        className={`flex items-center justify-between gap-3 border px-3 py-3 text-left text-[13px] transition-colors ${filters.rejectedOnly ? "border-[#f51625] bg-[#f51625]/10 text-[#eeeeec]" : "border-[#303030] text-[#d4d4d2] hover:border-[#5a5a58]"}`}
+        className={`flex min-h-11 items-center justify-between gap-3 border px-3 py-3 text-left text-[14px] transition-colors duration-200 ${filters.rejectedOnly ? "border-[#f51625] bg-[#f51625]/10 text-[#eeeeec]" : "border-[#303030] text-[#d4d4d2] hover:border-[#5a5a58]"}`}
       >
         <span className="flex items-center gap-2.5">
           <span className="block size-2.5 rotate-45 bg-[#f51625]" aria-hidden />
-          Only parcels with a rejected or withdrawn application
+          Only land where an application was turned down
         </span>
         <span className="text-[#8a8a88]">{rejectedCount}</span>
       </button>
 
-      <Section title="Location and size">
+      <Section title="How close, and how big">
         <label className="flex flex-col gap-2 text-[13px] text-[#d4d4d2]">
           Within {filters.maxMiles} miles of Crooked Can
           <input type="range" min={0.5} max={7} step={0.5} value={filters.maxMiles} onChange={(event) => set("maxMiles", Number(event.target.value))} />
@@ -123,10 +116,10 @@ export function FilterPanel({
             </button>
           ))}
         </div>
-        <p className="text-[12px] leading-relaxed text-[#8a8a88]">Parcels with a rejected application always show, whatever their size or distance.</p>
+        <p className="text-[13px] leading-relaxed text-[#8a8a88]">Land with a turned-down application still shows, even if it is smaller or farther away.</p>
       </Section>
 
-      <Section title="Must have every selected signal">
+      <Section title="Only show land that has all of these">
         <div className="flex flex-wrap gap-1.5">
           {opportunitySignals.map((id) => (
             <button key={id} type="button" aria-pressed={filters.requiredSignals.includes(id)} onClick={() => toggleSignal(id)} className={chipClass(filters.requiredSignals.includes(id))}>
@@ -135,7 +128,7 @@ export function FilterPanel({
           ))}
         </div>
         <label className="flex flex-col gap-2 text-[13px] text-[#d4d4d2]">
-          Minimum score: {filters.minScore}
+          Stronger matches only. Minimum strength: {filters.minScore}
           <input type="range" min={0} max={80} step={5} value={filters.minScore} onChange={(event) => set("minScore", Number(event.target.value))} />
         </label>
         <label className="flex flex-col gap-1 text-[12px] text-[#a6a6a6]">
@@ -156,29 +149,31 @@ export function FilterPanel({
           checked={filters.hideActiveDevelopment}
           onChange={(value) => set("hideActiveDevelopment", value)}
         />
-        <Toggle label="Parcels already built on" checked={filters.hideImproved} onChange={(value) => set("hideImproved", value)} />
+        <Toggle label="Land that already has buildings" checked={filters.hideImproved} onChange={(value) => set("hideImproved", value)} />
         <Toggle label="Vacant land only" checked={filters.vacantOnly} onChange={(value) => set("vacantOnly", value)} />
         <Toggle label="Show public, HOA, and church land" checked={filters.showUnavailable} onChange={(value) => set("showUnavailable", value)} />
-        <Toggle label="Show parcels that look like Skorman's" checked={filters.showRelated} onChange={(value) => set("showRelated", value)} />
+        <Toggle label="Include land that may already be Skorman's" checked={filters.showRelated} onChange={(value) => set("showRelated", value)} />
         <label className="flex flex-col gap-2 text-[13px] text-[#d4d4d2]">
           Max wetlands: {filters.maxWetlandPct}%
           <input type="range" min={0} max={100} step={10} value={filters.maxWetlandPct} onChange={(event) => set("maxWetlandPct", Number(event.target.value))} />
         </label>
       </Section>
 
-      <Section title="Your list">
-        <select value={filters.tracked} onChange={(event) => set("tracked", event.target.value as Filters["tracked"])} aria-label="Tracking status" className={inputClass}>
-          <option value="all">All parcels</option>
+      <Section title="Places you have marked">
+        <select value={filters.tracked} onChange={(event) => set("tracked", event.target.value as Filters["tracked"])} aria-label="Your list" className={`${inputClass} min-h-11`}>
+          <option value="all">All places</option>
           <option value="tracked">Anything I&apos;ve marked</option>
           {trackStatuses.map((status) => (
             <option key={status} value={status}>
-              {status}
+              {statusChoice[status].label}
             </option>
           ))}
         </select>
       </Section>
 
-      <Section title="Custom filters">
+      <details className="border-t border-[#262626] pt-5">
+        <summary className="text-[13px] text-[#eeeeec]">Exact filters</summary>
+        <div className="mt-4 flex flex-col gap-3">
         {filters.rules.map((rule) => (
           <div key={rule.id} className="flex flex-col gap-2 border border-[#262626] p-2.5">
             <select value={rule.field} onChange={(event) => updateRule(rule.id, { field: event.target.value as RuleField })} aria-label="Field" className={inputClass}>
@@ -212,13 +207,14 @@ export function FilterPanel({
         <button
           type="button"
           onClick={() => set("rules", [...filters.rules, { id: crypto.randomUUID(), field: "landUse", operator: "contains", value: "" }])}
-          className="min-h-10 border border-dashed border-[#3a3a3a] text-[13px] text-[#d4d4d2] hover:border-[#fdd907] hover:text-[#fdd907]"
+          className="min-h-11 border border-dashed border-[#3a3a3a] text-[14px] text-[#d4d4d2] hover:border-[#fdd907] hover:text-[#fdd907]"
         >
           Add a filter
         </button>
-      </Section>
+        </div>
+      </details>
 
-      <Section title="Saved searches">
+      <Section title="Saved setups">
         <form
           className="flex gap-2"
           onSubmit={(event) => {

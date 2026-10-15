@@ -346,6 +346,13 @@ export function scoreOf(signals: Signal[]) {
   return Math.max(0, Math.min(100, total));
 }
 
+export function matchLabel(score: number) {
+  if (score >= 60) return "Strong match";
+  if (score >= 40) return "Worth a look";
+  if (score >= 20) return "Possible";
+  return "Weak match";
+}
+
 export type Scored = Parcel & { signals: Signal[]; score: number; zoningLevel: Level; planLevel: Level; decisions: Decision[] };
 
 export function scoreParcels(data: ParcelData, today = new Date()): Scored[] {
@@ -411,6 +418,14 @@ export type Rule = { id: string; field: RuleField; operator: RuleOperator; value
 
 export const trackStatuses = ["Interesting", "Researching", "Contact owner", "Pursuing", "Pass"] as const;
 export type TrackStatus = (typeof trackStatuses)[number];
+
+export const statusChoice: Record<TrackStatus, { label: string; hint: string }> = {
+  Interesting: { label: "Saved", hint: "Keep it on your list" },
+  Researching: { label: "Looking into it", hint: "You want more information" },
+  "Contact owner": { label: "Call the owner", hint: "Ready to reach out" },
+  Pursuing: { label: "Working on it", hint: "A deal is in progress" },
+  Pass: { label: "Skip", hint: "Not a fit" },
+};
 export type Tracking = Record<string, { status: TrackStatus; note: string; updatedAt: string }>;
 
 export type Filters = {

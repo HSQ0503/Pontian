@@ -110,6 +110,12 @@
   top: -4.6px;
 }
 
+.app button,
+.app summary,
+.app label {
+  cursor: pointer;
+}
+
 .app a:focus-visible,
 .app button:focus-visible,
 .app input:focus-visible,

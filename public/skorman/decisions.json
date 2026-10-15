@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-10-13T23:44:32.532Z",
+ "generatedAt": "2026-10-15T16:05:23.729Z",
  "coverage": [
   "Lake County Board of County Commissioners zoning packets since 2021-10-01 (178 cases read, 14 withdrawn, recommended for denial, or repeatedly continued)",
   "Lake County development applications marked denied or cancelled, 2018 to 2021 (9)",
@@ -105,7 +105,7 @@
   },
   {
    "caseNumber": "CUP-21-07-1",
-   "name": "C\u2019s Horse Ranch",
+   "name": "C’s Horse Ranch",
    "date": "2021-11-02",
    "fromZoning": "",
    "toZoning": "",
@@ -115,7 +115,7 @@
   },
   {
    "caseNumber": "CUP-21-09-5",
-   "name": "Southland Construction \u2013 Lady Lake Construction Office",
+   "name": "Southland Construction – Lady Lake Construction Office",
    "date": "2021-11-02",
    "fromZoning": "",
    "toZoning": "",
@@ -851,7 +851,7 @@
   },
   {
    "caseNumber": "",
-   "name": "Comprehensive Plan Map Amendment \u2013 Economic Development Overlay District Map 20",
+   "name": "Comprehensive Plan Map Amendment – Economic Development Overlay District Map 20",
    "date": "2023-11-14",
    "fromZoning": "",
    "toZoning": "",
@@ -912,7 +912,7 @@
   },
   {
    "caseNumber": "RZ-23-50-5",
-   "name": "Griffin and Howard Property Scrivener\u2019s Error Correction",
+   "name": "Griffin and Howard Property Scrivener’s Error Correction",
    "date": "2023-11-14",
    "fromZoning": "",
    "toZoning": "R-1",
@@ -1092,7 +1092,7 @@
   },
   {
    "caseNumber": "PZ2023-249",
-   "name": "Brightside Storage \u2013 Sorrento BSS Sorrento LLC and Craig Lee Hegstrom & Traci P. Hegstrom ",
+   "name": "Brightside Storage – Sorrento BSS Sorrento LLC and Craig Lee Hegstrom & Traci P. Hegstrom ",
    "date": "2024-09-10",
    "fromZoning": "",
    "toZoning": "",
@@ -1425,7 +1425,7 @@
   },
   {
    "caseNumber": "PZ2025-22",
-   "name": "Duke\u2019s Landing",
+   "name": "Duke’s Landing",
    "date": "2025-08-05",
    "fromZoning": "R-1",
    "toZoning": "RMRP",
@@ -1601,7 +1601,7 @@
   },
   {
    "caseNumber": "PZ2024-218",
-   "name": "O\u2019Brien Road PUD Comprehensive Plan Map Amendment",
+   "name": "O’Brien Road PUD Comprehensive Plan Map Amendment",
    "date": "2026-01-06",
    "fromZoning": "",
    "toZoning": "",
@@ -1712,7 +1712,7 @@
   },
   {
    "caseNumber": "PZ2025-344",
-   "name": "Love Property District 4 \u2013 Leslie Campione",
+   "name": "Love Property District 4 – Leslie Campione",
    "date": "2026-08-04",
    "fromZoning": "R-3",
    "toZoning": "",
@@ -1794,7 +1794,7 @@
   },
   {
    "caseNumber": "PZ2026-155",
-   "name": "Ady\u2019s Marketplace LLC",
+   "name": "Ady’s Marketplace LLC",
    "date": "2026-10-06",
    "fromZoning": "CP",
    "toZoning": "CP",
@@ -1928,11 +1928,11 @@
    "size": "99.338 +/- acres",
    "location": "36515 N. Treasure Island Avenue, Leesburg",
    "staff": "",
-   "board": "Denied on the Regular Agenda, 6 \u2013 0.",
+   "board": "Denied on the Regular Agenda, 6 – 0.",
    "fromZoning": "",
    "toZoning": "",
    "reasons": [
-    "Planning & Zoning Board: Denied on the Regular Agenda, 6 \u2013 0."
+    "Planning & Zoning Board: Denied on the Regular Agenda, 6 – 0."
    ],
    "parcelKeys": [
     "1388830",
@@ -2032,7 +2032,7 @@
    "size": "1,321.86 +/- Acres",
    "location": "North of the Harbor Hills community, west of Lake Griffin and Ocklawaha River, in the unincorporated Lady Lake area.",
    "staff": "Staff finds the application inconsistent with the Comprehensive Plan.",
-   "board": "Approval on the Regular Agenda with a vote of 3 \u2013 1 and 1 abstained.",
+   "board": "Approval on the Regular Agenda with a vote of 3 – 1 and 1 abstained.",
    "fromZoning": "",
    "toZoning": "",
    "reasons": [
@@ -2084,7 +2084,7 @@
    "size": "1,424.71 +/- gross acres (899.8 +/- net acres excluding wetlands and water bodies)",
    "location": "North of the Harbor Hills community, west of Lake Griffin and Ocklawaha River, in the unincorporated Lady Lake area.",
    "staff": "Staff finds the application is not consistent with the Emeralda Marsh Rural Protection Area. A companion Map Amendment request to remove the subject parcels from the Emeralda Marsh Rural Protection Area PZ2024-150 is being proposed. Should the Map Amendment be approved by the BCC to remove the subject 1,321.86 +/- acres from the Emeralda Marsh Rural Protection Area, the proposed amendment would then be consistent with the Comprehensive Plan and Land Development Regulations (LDR).",
-   "board": "Approved on the Regular Agenda with a vote of 4 \u2013 0 and 1 abstained.",
+   "board": "Approved on the Regular Agenda with a vote of 4 – 0 and 1 abstained.",
    "fromZoning": "",
    "toZoning": "",
    "reasons": [
@@ -2138,7 +2138,7 @@
    "size": "17.242 +/- gross acres",
    "location": "14013 Auto Plex Lane, Clermont",
    "staff": "Staff finds the rezoning request consistent with the Land Development Regulations (LDR) and majority Comprehensive Plan. The request, however, is inconsistent with the Transportation Element of the Comprehensive Plan.",
-   "board": "Approved on the Consent Agenda with a vote of 5 \u2013 0.",
+   "board": "Approved on the Consent Agenda with a vote of 5 – 0.",
    "fromZoning": "MP",
    "toZoning": "CP",
    "reasons": [
@@ -2207,7 +2207,7 @@
    "size": "15.53 +/- acres",
    "location": "South of Hooks Street and East of US Highway 27, in the unincorporated Clermont area",
    "staff": "Staff find the request inconsistent with the Clermont JPA Land Development Regulations (LDR) and Comprehensive Plan.",
-   "board": "Approved 3 \u2013 2 on the Regular Agenda",
+   "board": "Approved 3 – 2 on the Regular Agenda",
    "fromZoning": "R-6",
    "toZoning": "",
    "reasons": [
@@ -2237,13 +2237,13 @@
     "2025-10-07",
     "2025-12-02"
    ],
-   "request": "1) Rezone approximately 15.53 +/- acres from Urban Residential (R-6) District to Planned Unit Development (PUD) 2) Waiver request to Land Development Regulations (LDR) Section 15.02.01\u00a9 to increase the maximum habitable building height to forty-five (45) feet and sixty (60) feet (including architectural features) in lieu of a maximum habitable building height of thirty- five (35) feet and forty-five (45) feet maximum finished building height 3) Waiver request to LDR Section 15.02.10(A)(6) to allow elevation changes in topography that exceed ten (10) feet and not to exceed twenty (20) feet over no more than 15% of the project site (excluding roads and stormwater areas) in lieu of elevation changes that are limited to ten (10) feet 4) Waiver request to LDR Section 15.02.10\u00a9 to allow elevation changes in topography that exceed ten (10) feet and not to exceed twenty (20) feet over no more than 15% of the project site (excluding roads and stormwater areas) in lieu of elevation changes that are limited to ten (10) feet 5) Waiver request to LDR Table 15.02.01E to exempt the development from the additional fifteen (15) feet setback for each story over two (2) stories.",
+   "request": "1) Rezone approximately 15.53 +/- acres from Urban Residential (R-6) District to Planned Unit Development (PUD) 2) Waiver request to Land Development Regulations (LDR) Section 15.02.01© to increase the maximum habitable building height to forty-five (45) feet and sixty (60) feet (including architectural features) in lieu of a maximum habitable building height of thirty- five (35) feet and forty-five (45) feet maximum finished building height 3) Waiver request to LDR Section 15.02.10(A)(6) to allow elevation changes in topography that exceed ten (10) feet and not to exceed twenty (20) feet over no more than 15% of the project site (excluding roads and stormwater areas) in lieu of elevation changes that are limited to ten (10) feet 4) Waiver request to LDR Section 15.02.10© to allow elevation changes in topography that exceed ten (10) feet and not to exceed twenty (20) feet over no more than 15% of the project site (excluding roads and stormwater areas) in lieu of elevation changes that are limited to ten (10) feet 5) Waiver request to LDR Table 15.02.01E to exempt the development from the additional fifteen (15) feet setback for each story over two (2) stories.",
    "owner": "Fox Hill Builders, Inc.",
    "applicant": "Clermont West Investors, LLC",
    "size": "15.53 +/- acres unincorporated Clermont area",
    "location": "Generally located south of Hooks Street and east of US Highway 27, in the unincorporated Clermont area",
    "staff": "Staff find the waiver requests and rezoning request inconsistent with the Clermont JPA Land Development Regulations (LDR) and Comprehensive Plan.",
-   "board": "Approved 4 \u2013 1 on the Regular Agenda",
+   "board": "Approved 4 – 1 on the Regular Agenda",
    "fromZoning": "R-6",
    "toZoning": "",
    "reasons": [
@@ -2372,7 +2372,7 @@
    "meetings": [
     "2026-10-06"
    ],
-   "request": "Conditional Use P ermit (CUP) approval on approximately 10 +/- acres for a 199\u2019 monopole tele communications tower with a waiver to Land Development Regulation (LDR) Section 3.13.09(B)(1) to allow the proposed telecommunications tower to be constructed off-center within the boundaries of the parent parcel within the Agriculture (A) District.",
+   "request": "Conditional Use P ermit (CUP) approval on approximately 10 +/- acres for a 199’ monopole tele communications tower with a waiver to Land Development Regulation (LDR) Section 3.13.09(B)(1) to allow the proposed telecommunications tower to be constructed off-center within the boundaries of the parent parcel within the Agriculture (A) District.",
    "owner": "",
    "applicant": "",
    "size": "10 +/- gross acre parent parcel (10,000 square foot lease area)",
@@ -2427,7 +2427,7 @@
    },
    "sources": [
     {
-     "label": "Lake County development applications layer (2018\u20132021)",
+     "label": "Lake County development applications layer (2018–2021)",
      "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
     }
    ]
@@ -2463,7 +2463,7 @@
    },
    "sources": [
     {
-     "label": "Lake County development applications layer (2018\u20132021)",
+     "label": "Lake County development applications layer (2018–2021)",
      "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
     }
    ]
@@ -2499,7 +2499,7 @@
    },
    "sources": [
     {
-     "label": "Lake County development applications layer (2018\u20132021)",
+     "label": "Lake County development applications layer (2018–2021)",
      "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
     }
    ]
@@ -2535,7 +2535,7 @@
    },
    "sources": [
     {
-     "label": "Lake County development applications layer (2018\u20132021)",
+     "label": "Lake County development applications layer (2018–2021)",
      "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
     }
    ]
@@ -2571,7 +2571,7 @@
    },
    "sources": [
     {
-     "label": "Lake County development applications layer (2018\u20132021)",
+     "label": "Lake County development applications layer (2018–2021)",
      "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
     }
    ]
@@ -2607,7 +2607,7 @@
    },
    "sources": [
     {
-     "label": "Lake County development applications layer (2018\u20132021)",
+     "label": "Lake County development applications layer (2018–2021)",
      "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
     }
    ]
@@ -2643,7 +2643,7 @@
    },
    "sources": [
     {
-     "label": "Lake County development applications layer (2018\u20132021)",
+     "label": "Lake County development applications layer (2018–2021)",
      "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
     }
    ]
@@ -2679,7 +2679,7 @@
    },
    "sources": [
     {
-     "label": "Lake County development applications layer (2018\u20132021)",
+     "label": "Lake County development applications layer (2018–2021)",
      "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
     }
    ]
@@ -2715,7 +2715,7 @@
    },
    "sources": [
     {
-     "label": "Lake County development applications layer (2018\u20132021)",
+     "label": "Lake County development applications layer (2018–2021)",
      "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/Planning/CD_Plus_AppRequets/MapServer/0"
     }
    ]
