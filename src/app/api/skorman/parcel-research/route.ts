@@ -66,7 +66,8 @@ const tools = {
       })),
   }),
   nearbyApplications: tool({
-    description: "Development applications filed with Lake County (unincorporated areas only) near a point, with their outcome. Shows what neighbors tried to build and whether it went through.",
+    description:
+      "Development applications filed with Lake County (unincorporated areas only) near a point. This layer stopped updating in April 2021, so it only covers 2018 to early 2021, and a PENDING status means pending as of 2021, not today. Use it for history, not current activity.",
     inputSchema: z.object({ lat: z.number(), lng: z.number(), radiusMiles: z.number().min(0.25).max(2) }),
     execute: async ({ lat, lng, radiusMiles }) => {
       const rows = await countyQuery("Planning/CD_Plus_AppRequets/MapServer/0", {
@@ -100,14 +101,15 @@ const briefSchema = z.object({
 });
 
 const agent = new ToolLoopAgent({
-  model: "anthropic/claude-sonnet-5.5",
+  model: process.env.SKORMAN_RESEARCH_MODEL || "anthropic/claude-sonnet-5.5",
   instructions: `You research land for Skorman Development, an Orlando developer. Skorman develops rather than buying finished buildings. It looks for well-located land, especially near Hills City Center and the Crooked Can food hall in Minneola, that is held back by zoning or approval problems it can solve. Its team is experienced at rezoning and entitlements.
 
 Use the tools to check this parcel's sale history, recent vacant land sales nearby (look up acreage on a few to estimate price per acre), and nearby county development applications. Then write a short brief for Max, who decides whether to call the owner.
 
 Rules:
 - Use only facts from the parcel record and tool results. Say when something is unknown.
-- County applications cover unincorporated Lake County only, not city applications in Minneola or Clermont.
+- County applications cover unincorporated Lake County only, from 2018 to early 2021, not city applications in Minneola or Clermont. Never describe them as currently pending.
+- Price per acre is the sale price divided by the acreage from parcelLookup. Only report it when you have both numbers, and show both.
 - Do not give legal advice, valuations, or claims about the owner's willingness to sell.
 - Keep each list item to one sentence.`,
   tools,
