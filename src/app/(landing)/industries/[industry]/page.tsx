@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { industries } from "@/lib/industries";
+import { JsonLd } from "@/components/seo/json-ld";
+import { industries, type Industry } from "@/lib/industries";
+import { breadcrumbNode, graph, pageMetadata } from "@/lib/seo";
 import { ConstructionPage, constructionHeadline, constructionSummary } from "./construction";
 import { DesignEngineeringPage, designEngineeringMetadata } from "./design-engineering";
 import { EquipmentRentalPage, equipmentRentalHeadline, equipmentRentalSummary } from "./equipment-rental";
@@ -13,29 +15,21 @@ export function generateStaticParams() {
   return industries.map((industry) => ({ industry: industry.slug }));
 }
 
-function industryMetadata(slug: string, description: string): Metadata {
+function industryMetadata(slug: string, description: Metadata["description"]): Metadata {
   const industry = industries.find((item) => item.slug === slug);
   if (!industry) notFound();
-  const title = `Pontian for ${industry.name}`;
-  const url = `/industries/${industry.slug}`;
-  return {
-    title: industry.name,
-    description,
-    alternates: { canonical: url },
-    openGraph: { title, description, url, siteName: "Pontian", type: "website", images: [{ url: "/og.png", width: 1200, height: 630, alt: "Pontian" }] },
-    twitter: { card: "summary_large_image", title, description, images: ["/og.png"] },
-  };
+  return pageMetadata({ title: industry.name, description: description ?? industry.headline, path: `/industries/${industry.slug}`, socialTitle: `Pontian for ${industry.name}` });
 }
 
 export async function generateMetadata({ params }: PageProps<"/industries/[industry]">): Promise<Metadata> {
   const { industry: slug } = await params;
   switch (slug) {
     case "construction": return industryMetadata(slug, `${constructionHeadline} ${constructionSummary}`);
-    case "design-engineering": return designEngineeringMetadata;
-    case "logistics": return logisticsMetadata;
+    case "design-engineering": return industryMetadata(slug, designEngineeringMetadata.description);
+    case "logistics": return industryMetadata(slug, logisticsMetadata.description);
     case "manufacturing": return industryMetadata(slug, `${manufacturingHeadline} ${manufacturingSummary}`);
-    case "retail": return retailMetadata;
-    case "property-services": return propertyServicesMetadata;
+    case "retail": return industryMetadata(slug, retailMetadata.description);
+    case "property-services": return industryMetadata(slug, propertyServicesMetadata.description);
     case "equipment-rental": return industryMetadata(slug, `${equipmentRentalHeadline} ${equipmentRentalSummary}`);
     default: notFound();
   }
@@ -46,6 +40,15 @@ export default async function IndustryPage({ params }: PageProps<"/industries/[i
   const index = industries.findIndex((item) => item.slug === slug);
   const industry = industries[index];
   if (!industry) notFound();
+  return (
+    <>
+      <JsonLd data={graph(breadcrumbNode([{ name: "Pontian", path: "/" }, { name: industry.name, path: `/industries/${industry.slug}` }]))} />
+      <IndustryContent slug={slug} industry={industry} index={index} />
+    </>
+  );
+}
+
+function IndustryContent({ slug, industry, index }: { slug: string; industry: Industry; index: number }) {
   const next = industries[(index + 1) % industries.length];
   switch (slug) {
     case "construction": return <ConstructionPage industry={industry} index={index} next={next} />;

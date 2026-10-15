@@ -1,0 +1,36 @@
+/* The plan keeps the drawing's aspect so plan chips sit on what they label. */
+.plan { position: relative; width: min(100cqw, calc(100cqh * 1.7)); aspect-ratio: 680 / 400; }
+.plan[data-portrait] { width: min(100cqw, calc(100cqh * 400 / 680)); aspect-ratio: 400 / 680; }
+.plan > svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.plan > [data-align="start"] { transform: translate(-14px, -100%); }
+.plan > [data-align="end"] { transform: translate(calc(-100% + 14px), -100%); }
+.plan > [data-below] { transform: translate(-50%, 0); }
+.plan > [data-below][data-align="start"] { transform: translate(-14px, 0); }
+.plan > [data-below][data-align="end"] { transform: translate(calc(-100% + 14px), 0); }
+
+.side { display: grid; gap: 12px; align-content: start; }
+.list { margin: 0; padding: 0; list-style: none; }
+.list li { border-bottom: 1px solid #efefed; }
+.list li:last-child { border-bottom: 0; }
+.pick { position: relative; display: grid; gap: 2px; width: 100%; padding: 12px 18px 12px 34px; background: transparent; text-align: left; font-size: 15px; line-height: 1.45; color: #555758; cursor: pointer; transition: background 180ms cubic-bezier(.22, .61, .36, 1); }
+.pick::before { content: ""; position: absolute; left: 18px; top: 18px; width: 8px; height: 8px; background: #d8d9d9; }
+.pick:hover { background: #f7f7f5; }
+.pick[aria-pressed="true"] { background: #fbfaf3; box-shadow: inset 3px 0 0 #fed603; }
+.pick[aria-pressed="true"]::before { background: #fed603; box-shadow: inset 0 0 0 1px #17191a; }
+.pick strong { font-weight: 600; color: #17191a; }
+.excluded { position: relative; display: grid; gap: 2px; padding: 12px 18px 12px 34px; font-size: 15px; line-height: 1.45; color: #555758; }
+.excluded::before { content: ""; position: absolute; left: 18px; top: 18px; width: 8px; height: 8px; background: #f51625; }
+.excluded strong { font-weight: 600; color: #17191a; }
+.hint { margin: 0; padding: 12px 18px 14px; border-top: 1px solid #e4e4e2; font-size: 14px; line-height: 1.45; color: #707273; }
+
+.pick:focus-visible { outline: 2px solid #0068e8; outline-offset: -2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pick { transition: none; }
+}
+@media (max-width: 700px) {
+  .plan > span { width: max-content; max-width: 88%; white-space: normal; padding: 5px 8px 6px; font-size: 12px; }
+  .plan > span > span { display: none; }
+  .pick, .excluded { font-size: 14px; padding-top: 10px; padding-bottom: 10px; }
+  .pick::before, .excluded::before { top: 16px; }
+}

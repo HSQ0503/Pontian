@@ -48,11 +48,25 @@ export function tinted(material: THREE.Material, strength = 0.72) {
 export const EDGE_INK = new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.85 });
 export const EDGE_SOFT = new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.28 });
 export const EDGE_OK = new THREE.LineBasicMaterial({ color: OK, transparent: true, opacity: 0.9 });
-const edgeCache = new WeakMap<THREE.BufferGeometry, THREE.EdgesGeometry>();
+const edgeCache = new WeakMap<THREE.BufferGeometry, THREE.BufferGeometry>();
+// Rounded boxes bevel in small steps, so a crease threshold finds no edges on
+// them. Those fall back to the outline of their bounding box.
 export function edgesOf(geometry: THREE.BufferGeometry) {
   let edges = edgeCache.get(geometry);
   if (!edges) {
-    edges = new THREE.EdgesGeometry(geometry, 32);
+    const creases = new THREE.EdgesGeometry(geometry, 32);
+    if (creases.getAttribute("position").count > 0) {
+      edges = creases;
+    } else {
+      creases.dispose();
+      geometry.computeBoundingBox();
+      const box = geometry.boundingBox ?? new THREE.Box3();
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const shell = new THREE.BoxGeometry(size.x, size.y, size.z).translate(center.x, center.y, center.z);
+      edges = new THREE.EdgesGeometry(shell);
+      shell.dispose();
+    }
     edgeCache.set(geometry, edges);
   }
   return edges;
