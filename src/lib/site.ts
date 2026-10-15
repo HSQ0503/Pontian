@@ -2,7 +2,8 @@
 // defaults so Vercel can carry the real values without a code change.
 export const site = {
   name: "Pontian",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://pontian.co",
+  // The apex domain 308-redirects here, so canonical URLs must use www.
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.pontian.co",
   // Digits only, country code first. Used for the call link and wa.me.
   phone: process.env.NEXT_PUBLIC_PHONE ?? "14073998113",
 };

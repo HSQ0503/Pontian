@@ -34,7 +34,7 @@ export function Close({ print }: { print?: boolean }) {
             </div>
             <div>
               <dt className="label text-mist/60">Web</dt>
-              <dd className="mt-1 text-paper">{site.url.replace(/^https?:\/\//, "")}/story</dd>
+              <dd className="mt-1 text-paper">{site.url.replace(/^https?:\/\/(www\.)?/, "")}/story</dd>
             </div>
           </motion.dl>
         ) : (
