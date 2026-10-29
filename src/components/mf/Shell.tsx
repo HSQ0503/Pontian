@@ -159,7 +159,7 @@ export function MfShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
 
   // The print view is a bare sheet of paper.
-  if (pathname.endsWith("/imprimir")) return <>{children}</>;
+  if (pathname.endsWith("/imprimir") || pathname === "/mf/acesso") return <>{children}</>;
 
   return (
     <div className="flex min-h-dvh bg-mf-50 text-mf-900">

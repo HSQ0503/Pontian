@@ -143,6 +143,7 @@ const pt = {
     retry: "Tentar novamente",
     interrupted: "A aba foi fechada durante o processamento.",
     audioMissing: "O áudio desta reunião não está mais neste navegador. Crie a ata novamente.",
+    tooLarge: "Este arquivo é grande demais para converter neste navegador. Use o Chrome ou o Edge, ou envie um áudio menor.",
   },
   ws: {
     tabs: { ata: "Ata", transcript: "Transcrição", speakers: "Falantes", actions: "Plano de ação" },
@@ -390,6 +391,7 @@ const en: Copy = {
     retry: "Try again",
     interrupted: "The tab was closed while processing.",
     audioMissing: "This meeting's audio is no longer in this browser. Create the minutes again.",
+    tooLarge: "This file is too large to convert in this browser. Use Chrome or Edge, or upload a smaller audio file.",
   },
   ws: {
     tabs: { ata: "Minutes", transcript: "Transcript", speakers: "Speakers", actions: "Action plan" },

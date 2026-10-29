@@ -606,7 +606,13 @@ function Waiting({ text }: { text: string }) {
 function FailedView({ meeting, onDelete }: { meeting: Meeting; onDelete: () => void }) {
   const { c } = useCopy();
   const message =
-    meeting.error === "interrupted" ? c.job.interrupted : meeting.error === "audio-missing" ? c.job.audioMissing : meeting.error;
+    meeting.error === "interrupted"
+      ? c.job.interrupted
+      : meeting.error === "audio-missing"
+        ? c.job.audioMissing
+        : meeting.error === "file-too-large"
+          ? c.job.tooLarge
+          : meeting.error;
   const canRetry = meeting.error !== "audio-missing" || meeting.segments.length > 0;
   return (
     <Card className="mt-8 flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center">
