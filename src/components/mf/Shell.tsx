@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BookOpen,
+  ChevronRight,
   Box,
   Brain,
   Building,
@@ -23,7 +24,7 @@ import { Fragment, useState, type ReactNode } from "react";
 import { useCopy } from "@/lib/mf/copy";
 import { arCode } from "@/lib/mf/format";
 import { useMf } from "@/lib/mf/store";
-import { cx } from "./ui";
+import { cx, usePersistentToggle } from "./ui";
 
 type NavItem = { href: string; label: string; icon: LucideIcon; preview?: boolean; exact?: boolean };
 
@@ -68,6 +69,30 @@ function Logo() {
   );
 }
 
+function NavGroup({ label, collapsible, children }: { label: string; collapsible?: boolean; children: ReactNode }) {
+  const [open, toggle] = usePersistentToggle(`sidebar-${label}`, !collapsible);
+  if (!label.trim()) return <div className="mb-4 flex flex-col gap-px">{children}</div>;
+  if (!collapsible) {
+    return (
+      <div className="mb-4">
+        <div className="mb-1 px-2.5 text-[12px] font-medium text-mf-600">{label}</div>
+        <div className="flex flex-col gap-px">{children}</div>
+      </div>
+    );
+  }
+  return (
+    <div className="mb-4">
+      <button type="button" onClick={toggle} aria-expanded={open} className="mb-1 flex w-full items-center gap-1 rounded-md px-2.5 py-0.5 text-[12px] font-medium text-mf-600 hover:text-mf-800">
+        {label}
+        <ChevronRight className={cx("size-3 transition-transform duration-200", open && "rotate-90")} strokeWidth={2.5} />
+      </button>
+      <div className={cx("grid transition-[grid-template-rows] duration-300 ease-out", open ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
+        <div className="flex flex-col gap-px overflow-hidden">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const groups = useNav();
@@ -84,7 +109,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <Link
           href="/mf/atas/nova"
           onClick={onNavigate}
-          className="flex h-9 w-full items-center justify-center gap-2 rounded-[2px] bg-white text-[13px] font-semibold text-black transition-colors hover:bg-mf-900"
+          className="flex h-9 w-full items-center justify-center gap-2 rounded-[10px] bg-white text-[13.5px] font-medium text-black transition-colors hover:bg-mf-900"
         >
           <Plus className="size-4" />
           {c.newAta}
@@ -93,8 +118,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <nav className="mf-scroll mt-5 flex-1 overflow-y-auto px-3">
         {groups.map((group) => (
-          <div key={group.label} className="mb-5">
-            {group.label.trim() && <div className="mb-1.5 px-3 text-[11.5px] font-medium text-mf-600">{group.label}</div>}
+          <NavGroup key={group.label} label={group.label} collapsible={group.muted}>
             {group.items.map((item) => {
               const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
               return (
@@ -103,20 +127,20 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   href={item.href}
                   onClick={onNavigate}
                   className={cx(
-                    "group relative flex h-8 items-center gap-2.5 rounded-[2px] px-3 text-[13px] font-medium transition-colors",
-                    active ? "bg-mf-200 text-white" : item.preview ? "text-mf-600 hover:bg-mf-150 hover:text-mf-900" : "text-mf-800 hover:bg-mf-150 hover:text-white",
+                    "group relative flex h-8 items-center gap-2.5 rounded-[9px] px-2.5 text-[13.5px] transition-colors",
+                    active ? "bg-white/[0.1] font-medium text-white" : item.preview ? "text-mf-600 hover:bg-white/[0.05] hover:text-mf-900" : "text-mf-800 hover:bg-white/[0.05] hover:text-white",
                   )}
                 >
-                  <item.icon className={cx("size-4", active ? "text-white" : "text-mf-600 group-hover:text-mf-900")} strokeWidth={1.75} />
+                  <item.icon className={cx("size-4", active ? "text-white" : "text-mf-600 group-hover:text-mf-800")} strokeWidth={1.75} />
                   <span className="flex-1">{item.label}</span>
                 </Link>
               );
             })}
-          </div>
+          </NavGroup>
         ))}
 
         {processing.length > 0 && (
-          <div className="mb-5 rounded-none border border-mf-400 bg-mf-150 p-3">
+          <div className="mb-5 rounded-xl bg-white/[0.05] p-3">
             {processing.map((meeting) => (
               <Link key={meeting.id} href={`/mf/atas/${meeting.id}`} onClick={onNavigate} className="flex items-center gap-2.5 py-1 text-[12px] text-mf-800 hover:text-white">
                 <LoaderCircle className="size-3.5 animate-spin" />
@@ -128,8 +152,8 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         )}
       </nav>
 
-      <div className="flex items-center gap-3 border-t border-mf-300 px-5 py-3.5">
-        <span className="flex size-7 items-center justify-center bg-mf-200 text-[10.5px] font-semibold text-white">MF</span>
+      <div className="flex items-center gap-3 border-t border-white/[0.06] px-5 py-3.5">
+        <span className="flex size-7 items-center justify-center rounded-full bg-white/[0.1] text-[10.5px] font-semibold text-white">MF</span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[12.5px] font-medium text-mf-900">{c.user}</span>
           <span className="block text-[11px] text-mf-600">{c.builtBy}</span>
@@ -178,7 +202,7 @@ function SystemBar() {
   const processing = meetings.filter((m) => m.status === "processing").length;
 
   return (
-    <div className="sticky top-0 z-30 hidden h-11 items-center justify-between border-b border-mf-300 bg-mf-50/95 px-6 backdrop-blur lg:flex lg:px-10">
+    <div className="sticky top-0 z-30 hidden h-11 items-center justify-between border-b border-white/[0.06] bg-black/80 px-6 backdrop-blur-xl lg:flex lg:px-10">
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[12.5px]">
         {crumbs.map((crumb, index) => (
           <Fragment key={crumb.href}>
@@ -211,7 +235,7 @@ export function MfShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-dvh bg-mf-50 text-mf-900">
-      <aside className="sticky top-0 hidden h-dvh w-[264px] shrink-0 border-r border-mf-300 bg-mf-0 lg:block">
+      <aside className="sticky top-0 hidden h-dvh w-[264px] shrink-0 border-r border-white/[0.06] bg-[#0b0b0d] lg:block">
         <Sidebar />
       </aside>
 
@@ -223,7 +247,7 @@ export function MfShell({ children }: { children: ReactNode }) {
               type="button"
               aria-label={c.close}
               onClick={() => setOpen(false)}
-              className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-none text-mf-700 hover:text-white"
+              className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-xl text-mf-700 hover:text-white"
             >
               <X className="size-4" />
             </button>
@@ -238,7 +262,7 @@ export function MfShell({ children }: { children: ReactNode }) {
             type="button"
             aria-label={c.menu}
             onClick={() => setOpen(true)}
-            className="flex size-9 items-center justify-center rounded-none text-mf-800 hover:bg-mf-200"
+            className="flex size-9 items-center justify-center rounded-xl text-mf-800 hover:bg-mf-200"
           >
             <Menu className="size-5" />
           </button>
@@ -246,7 +270,7 @@ export function MfShell({ children }: { children: ReactNode }) {
             <Image src="/mf/mf-logo-black.png" alt="Minerbo-Fuchs" width={206} height={105} className="h-6 w-auto invert" />
             <span className="mf-brand text-[11px] font-bold text-white">{c.brand.toUpperCase()}</span>
           </Link>
-          <Link href="/mf/atas/nova" aria-label={c.newAta} className="flex size-9 items-center justify-center rounded-none bg-white text-black">
+          <Link href="/mf/atas/nova" aria-label={c.newAta} className="flex size-9 items-center justify-center rounded-xl bg-white text-black">
             <Plus className="size-4" />
           </Link>
         </header>

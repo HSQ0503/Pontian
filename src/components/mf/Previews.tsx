@@ -53,7 +53,7 @@ export function BrainPreview() {
       <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <Card className="flex flex-col overflow-hidden">
           <div className="flex-1 space-y-6 p-6">
-            <div className="ml-auto max-w-md rounded-none rounded-none-sm bg-white px-4 py-3 text-[13.5px] text-black">
+            <div className="ml-auto max-w-md rounded-xl rounded-xl-sm bg-white px-4 py-3 text-[13.5px] text-black">
               {pt ? "O que ficou decidido sobre a portaria de caminhões do CD da Atlas, e quem ainda tem pendência?" : "What was decided about the truck gatehouse at the Atlas DC, and who still has open items?"}
             </div>
             <div className="max-w-xl">
@@ -73,7 +73,7 @@ export function BrainPreview() {
             </div>
           </div>
           <div className="border-t border-mf-300 p-4">
-            <div className="flex items-center gap-3 rounded-none border border-mf-400 bg-mf-50 px-4 py-3 text-[13px] text-mf-600">
+            <div className="flex items-center gap-3 rounded-xl border border-mf-400 bg-mf-50 px-4 py-3 text-[13px] text-mf-600">
               <span className="flex-1">{pt ? "Pergunte sobre qualquer projeto que você pode acessar…" : "Ask about any project you can access…"}</span>
               <Send className="size-4" />
             </div>
@@ -105,7 +105,7 @@ export function BrainPreview() {
 }
 
 function Cite({ children }: { children: ReactNode }) {
-  return <span className="mf-num ml-1.5 inline-flex h-5 items-center rounded-none border border-mf-500 px-1.5 align-middle text-[10.5px] text-mf-800">{children}</span>;
+  return <span className="mf-num ml-1.5 inline-flex h-5 items-center rounded-xl border border-mf-500 px-1.5 align-middle text-[10.5px] text-mf-800">{children}</span>;
 }
 
 const MONTHS_PT = ["Nov", "Dez", "Jan", "Fev", "Mar", "Abr"];
@@ -153,7 +153,7 @@ export function SchedulePreview() {
                   {row.phases.map(([start, end, label], index) => (
                     <div
                       key={label}
-                      className={cx("absolute top-0 flex h-7 items-center overflow-hidden rounded-none px-2 text-[10.5px] font-semibold", ["bg-white text-black", "bg-mf-600 text-white", "bg-mf-400 text-mf-950"][index % 3])}
+                      className={cx("absolute top-0 flex h-7 items-center overflow-hidden rounded-xl px-2 text-[10.5px] font-semibold", ["bg-white text-black", "bg-mf-600 text-white", "bg-mf-400 text-mf-950"][index % 3])}
                       style={{ left: `${(start / 6) * 100}%`, width: `calc(${((end - start) / 6) * 100}% - 3px)` }}
                     >
                       {label}
@@ -189,7 +189,7 @@ export function SchedulePreview() {
                   </td>
                   {person.hours.map((h, i) => (
                     <td key={i} className="p-1">
-                      <div className={cx("mf-num flex h-9 items-center justify-center rounded-none text-[12px] font-medium", shade(h))}>{h}</div>
+                      <div className={cx("mf-num flex h-9 items-center justify-center rounded-xl text-[12px] font-medium", shade(h))}>{h}</div>
                     </td>
                   ))}
                 </tr>

@@ -183,7 +183,7 @@ export function Registro({ initialProject }: { initialProject?: string }) {
               return (
                 <li key={`${step.origin}-${index}`} className="relative flex gap-4 pb-6 last:pb-0">
                   {index < selected.history.length - 1 && <span className="absolute left-[5px] top-4 h-full w-px bg-mf-400" />}
-                  <span className={cx("relative mt-1.5 size-[11px] shrink-0 rounded-none border-2", index === selected.history.length - 1 ? "border-white bg-white" : "border-mf-600 bg-mf-100")} />
+                  <span className={cx("relative mt-1.5 size-[11px] shrink-0 rounded-xl border-2", index === selected.history.length - 1 ? "border-white bg-white" : "border-mf-600 bg-mf-100")} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       {meeting ? (
@@ -247,7 +247,7 @@ export function Projetos() {
                   </div>
                   <div className="flex items-center gap-1">
                     {project.demo && <Tag>{c.demo}</Tag>}
-                    <button type="button" aria-label={c.delete} onClick={() => setRemoving(project.id)} className="flex size-8 items-center justify-center rounded-none text-mf-600 opacity-0 transition-opacity hover:bg-mf-200 hover:text-white group-hover:opacity-100">
+                    <button type="button" aria-label={c.delete} onClick={() => setRemoving(project.id)} className="flex size-8 items-center justify-center rounded-xl text-mf-600 opacity-0 transition-opacity hover:bg-mf-200 hover:text-white group-hover:opacity-100">
                       <Trash className="size-3.5" />
                     </button>
                   </div>

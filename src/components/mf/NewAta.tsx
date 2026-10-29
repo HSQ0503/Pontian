@@ -25,7 +25,7 @@ export function NewAta({ initialProject, initialMode }: { initialProject?: strin
 
 function Step({ n, title, lead, done, children }: { n: number; title: string; lead?: string; done: boolean; children: ReactNode }) {
   return (
-    <section className="relative rounded-none border border-mf-300 bg-mf-100 p-5 sm:p-7">
+    <section className="relative rounded-xl border border-mf-300 bg-mf-100 p-5 sm:p-7">
       <header className="flex items-start gap-4">
         <span
           className={cx(
@@ -197,11 +197,11 @@ function NewAtaForm({
                     onClick={() => setProjectId(p.id)}
                     aria-pressed={selected}
                     className={cx(
-                      "relative flex items-center gap-4 rounded-none border p-4 text-left transition-colors",
+                      "relative flex items-center gap-4 rounded-xl border p-4 text-left transition-colors",
                       selected ? "border-white bg-mf-200" : "border-mf-400 bg-mf-50 hover:border-mf-600",
                     )}
                   >
-                    <span className={cx("mf-num flex h-12 min-w-14 items-center justify-center rounded-none px-2 text-[17px] font-medium", selected ? "bg-white text-black" : "bg-mf-200 text-white")}>
+                    <span className={cx("mf-num flex h-12 min-w-14 items-center justify-center rounded-xl px-2 text-[17px] font-medium", selected ? "bg-white text-black" : "bg-mf-200 text-white")}>
                       {p.on}
                     </span>
                     <span className="min-w-0 flex-1">
@@ -217,7 +217,7 @@ function NewAtaForm({
               <button
                 type="button"
                 onClick={() => setCreatingProject(true)}
-                className="flex min-h-20 items-center justify-center gap-2 rounded-none border border-dashed border-mf-500 text-[14px] font-semibold text-mf-800 transition-colors hover:border-white hover:text-white"
+                className="flex min-h-20 items-center justify-center gap-2 rounded-xl border border-dashed border-mf-500 text-[14px] font-semibold text-mf-800 transition-colors hover:border-white hover:text-white"
               >
                 <Plus className="size-4" />
                 {c.form.newProject}
@@ -241,11 +241,11 @@ function NewAtaForm({
                     onClick={() => setKind(mode.value)}
                     aria-pressed={selected}
                     className={cx(
-                      "group flex flex-col items-start rounded-none border p-5 text-left transition-colors",
+                      "group flex flex-col items-start rounded-xl border p-5 text-left transition-colors",
                       selected ? "border-white bg-white text-black" : "border-mf-400 bg-mf-50 text-white hover:border-mf-600",
                     )}
                   >
-                    <span className={cx("flex size-11 items-center justify-center rounded-none", selected ? "bg-black text-white" : "bg-mf-200 text-white")}>
+                    <span className={cx("flex size-11 items-center justify-center rounded-xl", selected ? "bg-black text-white" : "bg-mf-200 text-white")}>
                       <mode.icon className="size-5" />
                     </span>
                     <span className="mt-4 text-[16px] font-semibold">{mode.title}</span>
@@ -276,7 +276,7 @@ function NewAtaForm({
             title={tr("Detalhes da reunião", "Meeting details")}
             lead={tr("Opcional. O que ficar em branco a IA tenta preencher pela conversa.", "Optional. Anything left blank, the AI tries to fill in from the conversation.")}
           >
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-none border border-mf-400 bg-mf-50 px-4 py-3 text-[14px] text-mf-800">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-mf-400 bg-mf-50 px-4 py-3 text-[14px] text-mf-800">
               <span>{longDate(date, lang)}</span>
               <span className="text-mf-600">·</span>
               <span className="mf-num">{startTime}</span>
@@ -345,7 +345,7 @@ function NewAtaForm({
                             disabled={added}
                             onClick={() => addSuggestion(person)}
                             className={cx(
-                              "inline-flex h-9 items-center gap-1.5 rounded-none border px-3 text-[13px] transition-colors",
+                              "inline-flex h-9 items-center gap-1.5 rounded-xl border px-3 text-[13px] transition-colors",
                               added ? "border-mf-300 bg-mf-200 text-mf-600" : "border-mf-500 text-mf-900 hover:border-white hover:text-white",
                             )}
                           >
@@ -366,7 +366,7 @@ function NewAtaForm({
                         type="button"
                         aria-label={c.delete}
                         onClick={() => setParticipants((current) => (current.length > 1 ? current.filter((p) => p.id !== person.id) : [blankParticipant()]))}
-                        className="flex size-10 items-center justify-center rounded-none text-mf-600 hover:bg-mf-200 hover:text-white"
+                        className="flex size-10 items-center justify-center rounded-xl text-mf-600 hover:bg-mf-200 hover:text-white"
                       >
                         <X className="size-4" />
                       </button>
@@ -391,7 +391,7 @@ function NewAtaForm({
           <div className="flex items-center gap-4">
             {checklist.map((item) => (
               <span key={item.label} className={cx("inline-flex items-center gap-2 text-[13.5px] font-medium", item.done ? "text-white" : "text-mf-600")}>
-                <span className={cx("flex size-5 items-center justify-center rounded-none border", item.done ? "border-white bg-white text-black" : "border-mf-500")}>
+                <span className={cx("flex size-5 items-center justify-center rounded-xl border", item.done ? "border-white bg-white text-black" : "border-mf-500")}>
                   {item.done && <Check className="size-3" strokeWidth={3} />}
                 </span>
                 {item.label}

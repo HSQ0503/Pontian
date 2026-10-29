@@ -39,21 +39,21 @@
 
   /* Minerbo-Fuchs workspace (/mf): MF's monochrome palette, 0 = black. */
   --color-mf-0: #000000;
-  --color-mf-50: #030303;
-  --color-mf-100: #0a0a0a;
-  --color-mf-150: #101010;
-  --color-mf-200: #161616;
-  --color-mf-300: #1f1f1f;
-  --color-mf-400: #2b2b2b;
-  --color-mf-500: #454545;
-  --color-mf-600: #808080;
-  --color-mf-700: #a6a6a6;
-  --color-mf-800: #c6c6c6;
-  --color-mf-900: #e4e4e4;
-  --color-mf-950: #f5f5f5;
+  --color-mf-50: #000000;
+  --color-mf-100: #121214;
+  --color-mf-150: #18181b;
+  --color-mf-200: #1f1f22;
+  --color-mf-300: #262629;
+  --color-mf-400: #323236;
+  --color-mf-500: #48484a;
+  --color-mf-600: #8e8e93;
+  --color-mf-700: #aeaeb2;
+  --color-mf-800: #c7c7cc;
+  --color-mf-900: #e5e5ea;
+  --color-mf-950: #f2f2f7;
   --color-mf-rec: #ff453a;
-  --color-mf-warn: #f2b64a;
-  --color-mf-ok: #46cf7f;
+  --color-mf-warn: #ff9f0a;
+  --color-mf-ok: #30d158;
   --font-mf: var(--font-mf-sans), "Helvetica Neue", Arial, sans-serif;
   --font-mf-mono: var(--font-mf-code), ui-monospace, monospace;
 }

@@ -71,7 +71,7 @@ export function ItemDrawer({
       title={
         <span className="flex items-center gap-3">
           {isNew ? c.item.newItem : c.item.edit}
-          {draft.number && <span className="mf-num rounded-none border border-mf-400 px-1.5 text-[12px] text-mf-800">{draft.number}</span>}
+          {draft.number && <span className="mf-num rounded-xl border border-mf-400 px-1.5 text-[12px] text-mf-800">{draft.number}</span>}
         </span>
       }
       onClose={onClose}
@@ -101,7 +101,7 @@ export function ItemDrawer({
     >
       <fieldset disabled={readOnly} className="flex flex-col gap-5">
         {draft.updates && (
-          <div className="rounded-none border border-mf-400 bg-mf-50 px-3.5 py-2.5 text-[12.5px] text-mf-800">
+          <div className="rounded-xl border border-mf-400 bg-mf-50 px-3.5 py-2.5 text-[12.5px] text-mf-800">
             {c.item.carried} <span className="mf-num font-semibold text-white">{draft.updates}</span> · {draft.origins.join(" · ")}
           </div>
         )}
@@ -195,7 +195,7 @@ export function ItemDrawer({
                   key={index}
                   type="button"
                   onClick={() => onJump(evidence.time)}
-                  className="group flex gap-3 rounded-none border border-mf-400 bg-mf-50 px-3.5 py-2.5 text-left transition-colors hover:border-mf-700"
+                  className="group flex gap-3 rounded-xl border border-mf-400 bg-mf-50 px-3.5 py-2.5 text-left transition-colors hover:border-mf-700"
                 >
                   <Quote className="mt-0.5 size-3.5 shrink-0 text-mf-600" />
                   <span className="flex-1 text-[12.5px] italic leading-relaxed text-mf-900">{evidence.quote}</span>
@@ -218,11 +218,11 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (val
       aria-checked={checked}
       onClick={() => onChange(!checked)}
       className={cx(
-        "inline-flex h-9 items-center gap-2 rounded-none border px-3 text-[12.5px] font-semibold transition-colors",
+        "inline-flex h-9 items-center gap-2 rounded-xl border px-3 text-[12.5px] font-semibold transition-colors",
         checked ? "border-white bg-white text-black" : "border-mf-400 text-mf-700 hover:text-white",
       )}
     >
-      <span className={cx("size-2 rounded-none", checked ? "bg-black" : "bg-mf-500")} />
+      <span className={cx("size-2 rounded-xl", checked ? "bg-black" : "bg-mf-500")} />
       {label}
     </button>
   );
@@ -345,7 +345,7 @@ function highlight(text: string, query: string): ReactNode {
   const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi"));
   return parts.map((part, index) =>
     index % 2 ? (
-      <mark key={index} className="rounded-none bg-white px-0.5 text-black">
+      <mark key={index} className="rounded-xl bg-white px-0.5 text-black">
         {part}
       </mark>
     ) : (
@@ -434,7 +434,7 @@ export function TranscriptPanel({ meeting, focus }: { meeting: Meeting; focus: {
               onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
               onLoadedMetadata={(e) => Number.isFinite(e.currentTarget.duration) && setDuration(e.currentTarget.duration)}
             />
-            <button type="button" onClick={toggle} aria-label="Play" className="flex size-9 shrink-0 items-center justify-center rounded-none bg-white text-black">
+            <button type="button" onClick={toggle} aria-label="Play" className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-black">
               {playing ? <Pause className="size-4 fill-current" /> : <Play className="ml-0.5 size-4 fill-current" />}
             </button>
             <span className="mf-num w-14 text-[12px] text-mf-800">{clock(time)}</span>
@@ -451,7 +451,7 @@ export function TranscriptPanel({ meeting, focus }: { meeting: Meeting; focus: {
               aria-label="Seek"
             />
             <span className="mf-num w-14 text-right text-[12px] text-mf-600">{clock(duration)}</span>
-            <button type="button" onClick={cycleRate} className="mf-num h-7 rounded-none border border-mf-400 px-2 text-[11px] text-mf-800 hover:text-white">
+            <button type="button" onClick={cycleRate} className="mf-num h-7 rounded-xl border border-mf-400 px-2 text-[11px] text-mf-800 hover:text-white">
               {rate}×
             </button>
           </div>
@@ -486,7 +486,7 @@ export function TranscriptPanel({ meeting, focus }: { meeting: Meeting; focus: {
           const speaker = meeting.speakers.find((s) => s.id === group.speakerId);
           const name = speaker?.name || c.transcript.unknown;
           return (
-            <div key={`${group.speakerId}-${index}`} className="flex gap-4 rounded-none px-3 py-3 transition-colors hover:bg-mf-100">
+            <div key={`${group.speakerId}-${index}`} className="flex gap-4 rounded-xl px-3 py-3 transition-colors hover:bg-mf-100">
               <Avatar name={speaker?.name ?? ""} index={speakerIndex.get(group.speakerId) ?? 0} size={34} />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-baseline gap-x-2">
@@ -500,7 +500,7 @@ export function TranscriptPanel({ meeting, focus }: { meeting: Meeting; focus: {
                       key={segment.id}
                       id={`seg-${segment.id}`}
                       className={cx(
-                        "group/seg -mx-2 flex gap-3 rounded-none px-2 py-0.5 text-[14px] leading-relaxed transition-colors",
+                        "group/seg -mx-2 flex gap-3 rounded-xl px-2 py-0.5 text-[14px] leading-relaxed transition-colors",
                         active === segment.id && playing ? "bg-mf-200 text-white" : "text-mf-900",
                       )}
                     >
@@ -575,7 +575,7 @@ export function SpeakersPanel({ meeting, onRegenerate }: { meeting: Meeting; onR
           const stats = totals.get(speaker.id) ?? { turns: 0, chars: 0, sample: "" };
           const draft = drafts[speaker.id] ?? { name: "", company: "" };
           return (
-            <div key={speaker.id} className={cx("rounded-none border bg-mf-100 p-5 transition-opacity", merges[speaker.id] ? "border-dashed border-mf-500 opacity-50" : "border-mf-300")}>
+            <div key={speaker.id} className={cx("rounded-xl border bg-mf-100 p-5 transition-opacity", merges[speaker.id] ? "border-dashed border-mf-500 opacity-50" : "border-mf-300")}>
               <div className="flex items-start gap-4">
                 <Avatar name={draft.name} index={index} size={44} />
                 <div className="min-w-0 flex-1">
@@ -647,7 +647,7 @@ export function ActionPlanPanel({ meeting, readOnly, onUpdate }: { meeting: Meet
   return (
     <div className="flex flex-col gap-4">
       <p className="text-[13px] text-mf-700">{c.actions.lead}</p>
-      <div className="overflow-x-auto rounded-none border border-mf-300">
+      <div className="overflow-x-auto rounded-xl border border-mf-300">
         <table className="w-full min-w-[820px] text-left text-[13px]">
           <thead className="border-b border-mf-300 bg-mf-100 text-[11.5px] text-mf-600">
             <tr>

@@ -213,8 +213,8 @@ export function Recorder({ onChange }: { onChange: (recording: Recording | null)
   if (phase === "done" && result) {
     return (
       <div className="mf-rise flex flex-col gap-5">
-        <div className="flex items-center gap-4 rounded-none border border-mf-400 bg-mf-50 p-4">
-          <span className="flex size-11 items-center justify-center rounded-none bg-white text-black">
+        <div className="flex items-center gap-4 rounded-xl border border-mf-400 bg-mf-50 p-4">
+          <span className="flex size-11 items-center justify-center rounded-xl bg-white text-black">
             <Mic className="size-5" />
           </span>
           <div className="min-w-0 flex-1">
@@ -253,7 +253,7 @@ export function Recorder({ onChange }: { onChange: (recording: Recording | null)
             aria-checked={withSystem}
             onClick={() => setWithSystem((value) => !value)}
             className={cx(
-              "flex items-start gap-3 rounded-none border px-3.5 py-2.5 text-left transition-colors",
+              "flex items-start gap-3 rounded-xl border px-3.5 py-2.5 text-left transition-colors",
               withSystem ? "border-white bg-mf-200" : "border-mf-400 bg-mf-50 hover:border-mf-600",
             )}
           >
@@ -262,14 +262,14 @@ export function Recorder({ onChange }: { onChange: (recording: Recording | null)
               <span className="block text-[13px] font-semibold text-white">{c.source.system}</span>
               <span className="mt-0.5 block text-[11.5px] leading-snug text-mf-700">{c.source.systemHelp}</span>
             </span>
-            <span className={cx("mt-0.5 flex h-5 w-9 shrink-0 items-center rounded-none p-0.5 transition-colors", withSystem ? "bg-white" : "bg-mf-400")}>
-              <span className={cx("size-4 rounded-none transition-transform", withSystem ? "translate-x-4 bg-black" : "bg-mf-800")} />
+            <span className={cx("mt-0.5 flex h-5 w-9 shrink-0 items-center rounded-xl p-0.5 transition-colors", withSystem ? "bg-white" : "bg-mf-400")}>
+              <span className={cx("size-4 rounded-xl transition-transform", withSystem ? "translate-x-4 bg-black" : "bg-mf-800")} />
             </span>
           </button>
         </div>
       )}
 
-      <div className="relative overflow-hidden rounded-none border border-mf-400 bg-mf-50">
+      <div className="relative overflow-hidden rounded-xl border border-mf-400 bg-mf-50">
         <div className="mf-grid-bg absolute inset-0 opacity-40" />
         <div className="relative flex flex-col items-center px-6 py-10">
           {live ? (
@@ -307,7 +307,7 @@ export function Recorder({ onChange }: { onChange: (recording: Recording | null)
           )}
         </div>
       </div>
-      {warning && <p className="rounded-none border border-mf-warn/40 bg-mf-warn/10 px-3.5 py-2.5 text-[12.5px] text-mf-warn">{warning}</p>}
+      {warning && <p className="rounded-xl border border-mf-warn/40 bg-mf-warn/10 px-3.5 py-2.5 text-[12.5px] text-mf-warn">{warning}</p>}
     </div>
   );
 }

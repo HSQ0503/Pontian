@@ -9,19 +9,21 @@ body:has(.mf-root)::after {
   display: none;
 }
 
+/* SF Pro where the system has it (Mac, iPhone), Inter everywhere else. */
 .mf-root {
-  font-family: var(--font-mf-sans), "Helvetica Neue", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", var(--font-mf-sans), "Helvetica Neue", Arial, sans-serif;
   color: #dcdcdc;
   -webkit-font-smoothing: antialiased;
-  font-feature-settings: "cv11", "ss03";
   font-size: 14px;
-  letter-spacing: -0.006em;
 }
 
-.mf-root h1,
+.mf-root h1 {
+  letter-spacing: -0.022em;
+}
+
 .mf-root h2,
 .mf-root h3 {
-  letter-spacing: -0.018em;
+  letter-spacing: -0.012em;
 }
 
 .mf-brand {
@@ -42,9 +44,7 @@ body:has(.mf-root)::after {
 }
 
 .mf-num {
-  font-family: var(--font-mf-code), ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0;
 }
 
 .mf-scroll {
@@ -261,8 +261,8 @@ body:has(.mf-root)::after {
 }
 
 .mf-root :focus-visible {
-  outline: 1px solid rgba(255, 255, 255, 0.7);
-  outline-offset: 1px;
+  outline: 2px solid rgba(255, 255, 255, 0.55);
+  outline-offset: 2px;
 }
 
 .mf-card-hover {
