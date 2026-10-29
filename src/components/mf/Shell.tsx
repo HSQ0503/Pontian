@@ -19,7 +19,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { useCopy } from "@/lib/mf/copy";
 import { arCode } from "@/lib/mf/format";
 import { useMf } from "@/lib/mf/store";
@@ -84,7 +84,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <Link
           href="/mf/atas/nova"
           onClick={onNavigate}
-          className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-white text-[13px] font-semibold text-black transition-colors hover:bg-mf-900"
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-none bg-white text-[13px] font-semibold text-black transition-colors hover:bg-mf-900"
         >
           <Plus className="size-4" />
           {c.newAta}
@@ -103,11 +103,11 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   href={item.href}
                   onClick={onNavigate}
                   className={cx(
-                    "group relative flex h-10 items-center gap-3 rounded-md px-3 text-[14px] font-medium transition-colors",
+                    "group relative flex h-10 items-center gap-3 rounded-none px-3 text-[14px] font-medium transition-colors",
                     active ? "bg-mf-200 text-white" : item.preview ? "text-mf-600 hover:bg-mf-150 hover:text-mf-900" : "text-mf-800 hover:bg-mf-150 hover:text-white",
                   )}
                 >
-                  {active && <span className="absolute -left-3 top-2 h-5 w-[3px] rounded-r bg-white" />}
+                  {active && <span className="absolute -left-3 top-2 h-5 w-[3px] rounded-none bg-white" />}
                   <item.icon className={cx("size-[17px]", active ? "text-white" : "text-mf-600 group-hover:text-mf-900")} strokeWidth={1.75} />
                   <span className="flex-1">{item.label}</span>
 
@@ -118,7 +118,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         ))}
 
         {processing.length > 0 && (
-          <div className="mb-5 rounded-lg border border-mf-400 bg-mf-150 p-3">
+          <div className="mb-5 rounded-none border border-mf-400 bg-mf-150 p-3">
             {processing.map((meeting) => (
               <Link key={meeting.id} href={`/mf/atas/${meeting.id}`} onClick={onNavigate} className="flex items-center gap-2.5 py-1 text-[12px] text-mf-800 hover:text-white">
                 <LoaderCircle className="size-3.5 animate-spin" />
@@ -133,7 +133,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="border-t border-mf-300 px-5 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="flex size-8 items-center justify-center rounded-full border border-mf-400 text-[11px] font-semibold text-white">MF</span>
+            <span className="flex size-8 items-center justify-center rounded-none border border-mf-400 text-[11px] font-semibold text-white">MF</span>
             <span className="text-[12px] font-medium text-mf-800">{c.user}</span>
           </div>
           <Segmented
@@ -147,6 +147,55 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           />
         </div>
         <p className="mt-3 text-[10.5px] text-mf-600">{c.builtBy}</p>
+      </div>
+    </div>
+  );
+}
+
+function SystemBar() {
+  const pathname = usePathname();
+  const { c, lang } = useCopy();
+  const { meetings } = useMf();
+  const labels: Record<string, string> = {
+    atas: c.nav.atas,
+    nova: c.newAta,
+    registro: c.nav.registry,
+    projetos: c.nav.projects,
+    brain: c.nav.brain,
+    documentos: c.nav.documents,
+    prazos: c.nav.schedule,
+    revit: c.nav.revit,
+    ajuda: lang === "pt" ? "Como usar" : "How to use",
+  };
+  const parts = pathname.split("/").filter(Boolean).slice(1);
+  const crumbs = [
+    { href: "/mf", label: c.brand },
+    ...parts.map((part, index) => {
+      const meeting = meetings.find((m) => m.id === part);
+      return { href: `/mf/${parts.slice(0, index + 1).join("/")}`, label: meeting ? arCode(meeting.ar) : (labels[part] ?? part) };
+    }),
+  ];
+  const processing = meetings.filter((m) => m.status === "processing").length;
+
+  return (
+    <div className="sticky top-0 z-30 hidden h-11 items-center justify-between border-b border-mf-300 bg-black/95 px-6 backdrop-blur lg:flex lg:px-10">
+      <nav aria-label="Breadcrumb" className="mf-num flex items-center gap-2.5 text-[11.5px] uppercase tracking-[0.06em]">
+        {crumbs.map((crumb, index) => (
+          <Fragment key={crumb.href}>
+            {index > 0 && <span className="text-mf-500">/</span>}
+            {index === crumbs.length - 1 ? (
+              <span className="text-white">{crumb.label}</span>
+            ) : (
+              <Link href={crumb.href} className="text-mf-600 transition-colors hover:text-white">
+                {crumb.label}
+              </Link>
+            )}
+          </Fragment>
+        ))}
+      </nav>
+      <div className="mf-num flex items-center gap-2 text-[11px] uppercase tracking-[0.06em] text-mf-600">
+        <span className={cx("size-1.5", processing ? "mf-blink bg-mf-warn" : "bg-mf-ok")} />
+        {processing ? `${processing} ${lang === "pt" ? "em processamento" : "processing"}` : lang === "pt" ? "Sistema pronto" : "System ready"}
       </div>
     </div>
   );
@@ -174,7 +223,7 @@ export function MfShell({ children }: { children: ReactNode }) {
               type="button"
               aria-label={c.close}
               onClick={() => setOpen(false)}
-              className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-md text-mf-700 hover:text-white"
+              className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-none text-mf-700 hover:text-white"
             >
               <X className="size-4" />
             </button>
@@ -189,7 +238,7 @@ export function MfShell({ children }: { children: ReactNode }) {
             type="button"
             aria-label={c.menu}
             onClick={() => setOpen(true)}
-            className="flex size-9 items-center justify-center rounded-md text-mf-800 hover:bg-mf-200"
+            className="flex size-9 items-center justify-center rounded-none text-mf-800 hover:bg-mf-200"
           >
             <Menu className="size-5" />
           </button>
@@ -197,10 +246,11 @@ export function MfShell({ children }: { children: ReactNode }) {
             <Image src="/mf/mf-logo-black.png" alt="Minerbo-Fuchs" width={206} height={105} className="h-6 w-auto invert" />
             <span className="text-[11px] font-bold tracking-[0.18em] text-white">{c.brand.toUpperCase()}</span>
           </Link>
-          <Link href="/mf/atas/nova" aria-label={c.newAta} className="flex size-9 items-center justify-center rounded-md bg-white text-black">
+          <Link href="/mf/atas/nova" aria-label={c.newAta} className="flex size-9 items-center justify-center rounded-none bg-white text-black">
             <Plus className="size-4" />
           </Link>
         </header>
+        <SystemBar />
         <main className="min-w-0 flex-1">{children}</main>
       </div>
     </div>

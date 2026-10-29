@@ -95,8 +95,8 @@ export function Help() {
 
         <ol className="mt-8 grid gap-3 sm:grid-cols-2">
           {steps.map((step) => (
-            <li key={step.title} className="rounded-2xl border border-mf-300 bg-mf-100 p-6">
-              <span className="flex size-11 items-center justify-center rounded-full bg-white text-black">
+            <li key={step.title} className="rounded-none border border-mf-300 bg-mf-100 p-6">
+              <span className="flex size-11 items-center justify-center rounded-none bg-white text-black">
                 <step.icon className="size-5" />
               </span>
               <h2 className="mt-5 text-[17px] font-semibold text-white">{step.title}</h2>
@@ -107,14 +107,14 @@ export function Help() {
 
         <Link
           href="/mf/atas/nova"
-          className="mt-4 flex items-center justify-between rounded-2xl bg-white px-6 py-5 text-black transition-colors hover:bg-mf-900"
+          className="mt-4 flex items-center justify-between rounded-none bg-white px-6 py-5 text-black transition-colors hover:bg-mf-900"
         >
           <span className="text-[16px] font-semibold">{tr("Criar minha primeira ata", "Create my first minutes")}</span>
           <ArrowRight className="size-5" />
         </Link>
 
         <h2 className="mt-12 text-[13px] font-semibold uppercase tracking-[0.14em] text-white">{tr("Perguntas frequentes", "Frequently asked questions")}</h2>
-        <div className="mt-4 divide-y divide-mf-300 overflow-hidden rounded-2xl border border-mf-300 bg-mf-100">
+        <div className="mt-4 divide-y divide-mf-300 overflow-hidden rounded-none border border-mf-300 bg-mf-100">
           {faq.map((item) => (
             <details key={item.q} className="group">
               <summary className="flex list-none items-center gap-4 px-6 py-5 [&::-webkit-details-marker]:hidden">

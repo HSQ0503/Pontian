@@ -68,7 +68,7 @@ export function Dashboard() {
         <p className="mt-2 text-[15px] text-mf-700">{tr("O que você quer fazer hoje?", "What would you like to do today?")}</p>
       </header>
 
-      <section className="mt-8 overflow-hidden rounded-2xl border border-mf-400 bg-[radial-gradient(110%_140%_at_0%_0%,#1d1d1d_0%,#0b0b0b_55%,#060606_100%)]">
+      <section className="mt-8 overflow-hidden rounded-none border border-mf-400 bg-mf-100">
         <div className="flex flex-col gap-2 px-6 pt-6 sm:px-8 sm:pt-8">
           <h2 className="text-[20px] font-semibold text-white">{tr("Nova ata de reunião", "New meeting minutes")}</h2>
           <p className="text-[14px] text-mf-700">{tr("Escolha como a reunião chega. A IA faz o resto em cerca de um minuto.", "Choose how the meeting comes in. The AI does the rest in about a minute.")}</p>
@@ -79,12 +79,11 @@ export function Dashboard() {
               key={start.href}
               href={start.href}
               className={cx(
-                "group flex items-center gap-4 rounded-xl border p-4 transition-colors xl:flex-col xl:items-start xl:p-5",
+                "group flex items-center gap-4 rounded-none border p-4 transition-colors xl:flex-col xl:items-start xl:p-5",
                 start.primary ? "border-white bg-white text-black hover:bg-mf-900" : "border-mf-400 bg-black/40 text-white hover:border-mf-600 hover:bg-mf-150",
               )}
             >
-              <span className={cx("relative flex size-12 shrink-0 items-center justify-center rounded-full", start.primary ? "bg-black text-white" : "bg-mf-200")}>
-                {start.primary && <span className="mf-rec-ring absolute inset-0 rounded-full" />}
+              <span className={cx("relative flex size-12 shrink-0 items-center justify-center rounded-none", start.primary ? "bg-black text-white" : "bg-mf-200")}>
                 <start.icon className="size-5" />
               </span>
               <span className="min-w-0 flex-1">
@@ -100,7 +99,7 @@ export function Dashboard() {
         <ol className="grid border-t border-mf-300 sm:grid-cols-2 xl:grid-cols-4">
           {how.map((step, index) => (
             <li key={step.title} className={cx("flex gap-3.5 px-6 py-5 sm:px-8", index > 0 && "border-t border-mf-300 sm:border-t-0", index % 2 === 1 && "sm:border-l", index > 1 && "sm:border-t xl:border-t-0", index === 2 && "xl:border-l")}>
-              <span className="mf-num flex size-7 shrink-0 items-center justify-center rounded-full border border-mf-500 text-[12px] text-white">{index + 1}</span>
+              <span className="mf-num shrink-0 pt-0.5 text-[12px] text-mf-600">{String(index + 1).padStart(2, "0")}</span>
               <span>
                 <span className="block text-[14px] font-semibold text-white">{step.title}</span>
                 <span className="mt-0.5 block text-[13px] leading-snug text-mf-700">{step.text}</span>
@@ -111,9 +110,9 @@ export function Dashboard() {
       </section>
 
       {drafts.length > 0 && (
-        <section className="mt-6 rounded-2xl border border-mf-warn/30 bg-mf-warn/[0.06] p-5 sm:p-6">
+        <section className="mt-6 rounded-none border border-mf-warn/30 bg-mf-warn/[0.06] p-5 sm:p-6">
           <div className="flex items-center gap-3">
-            <span className="flex size-9 items-center justify-center rounded-full bg-mf-warn/15 text-mf-warn">
+            <span className="flex size-9 items-center justify-center rounded-none bg-mf-warn/15 text-mf-warn">
               <CheckCheck className="size-4" />
             </span>
             <div>
@@ -125,7 +124,7 @@ export function Dashboard() {
           </div>
           <div className="mt-4 grid gap-2 md:grid-cols-2">
             {drafts.slice(0, 4).map((meeting) => (
-              <Link key={meeting.id} href={`/mf/atas/${meeting.id}`} className="flex items-center gap-3 rounded-lg border border-mf-400 bg-black/40 px-4 py-3 transition-colors hover:border-mf-600">
+              <Link key={meeting.id} href={`/mf/atas/${meeting.id}`} className="flex items-center gap-3 rounded-none border border-mf-400 bg-black/40 px-4 py-3 transition-colors hover:border-mf-600">
                 <span className="mf-num text-[12.5px] text-mf-800">{arCode(meeting.ar)}</span>
                 <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-white">{meeting.ata ? pick(meeting.ata.title, lang) : meeting.title}</span>
                 <span className="text-[13px] font-semibold text-white">{tr("Revisar", "Review")}</span>
@@ -227,7 +226,7 @@ export function Dashboard() {
 
 function Stat({ value, label, tone }: { value: number; label: string; tone?: "warn" | "rec" }) {
   return (
-    <span className={cx("inline-flex items-baseline gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-1", tone === "rec" ? "border-mf-rec/40 text-mf-rec" : tone === "warn" ? "border-mf-warn/40 text-mf-warn" : "border-mf-400 text-white")}>
+    <span className={cx("inline-flex items-baseline gap-1.5 whitespace-nowrap rounded-none border px-2.5 py-1", tone === "rec" ? "border-mf-rec/40 text-mf-rec" : tone === "warn" ? "border-mf-warn/40 text-mf-warn" : "border-mf-400 text-white")}>
       <span className="mf-num text-[14px] font-medium">{value}</span>
       <span className="text-[11.5px] opacity-80">{label}</span>
     </span>

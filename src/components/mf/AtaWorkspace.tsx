@@ -143,7 +143,7 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="mf-num rounded-md bg-white px-2 py-0.5 text-[13px] font-medium text-black">{arCode(meeting.ar)}</span>
+            <span className="mf-num rounded-none bg-white px-2 py-0.5 text-[13px] font-medium text-black">{arCode(meeting.ar)}</span>
             <MeetingStatusTag status={meeting.status} />
             {project.demo && <Tag>{c.demo}</Tag>}
           </div>
@@ -189,9 +189,9 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
         )}
       </div>
       {ata && meeting.status === "draft" && (
-        <div className="flex flex-col gap-4 rounded-2xl border border-mf-warn/30 bg-mf-warn/[0.06] p-5 lg:flex-row lg:items-center">
+        <div className="flex flex-col gap-4 rounded-none border border-mf-warn/30 bg-mf-warn/[0.06] p-5 lg:flex-row lg:items-center">
           <div className="flex items-center gap-3 lg:w-64 lg:shrink-0">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-mf-warn/15 text-mf-warn">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-none bg-mf-warn/15 text-mf-warn">
               <PenLine className="size-4" />
             </span>
             <div>
@@ -206,8 +206,8 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
               { label: tr("Aprove para entrar no Registro Geral", "Approve to enter the General Register"), action: () => setApproving(true) },
             ].map((step, index) => (
               <li key={step.label}>
-                <button type="button" onClick={step.action} className="flex w-full items-center gap-3 rounded-lg border border-mf-400 bg-black/40 px-3.5 py-2.5 text-left text-[13.5px] text-mf-900 transition-colors hover:border-mf-600 hover:text-white">
-                  <span className="mf-num flex size-6 shrink-0 items-center justify-center rounded-full border border-mf-500 text-[11.5px] text-white">{index + 1}</span>
+                <button type="button" onClick={step.action} className="flex w-full items-center gap-3 rounded-none border border-mf-400 bg-black/40 px-3.5 py-2.5 text-left text-[13.5px] text-mf-900 transition-colors hover:border-mf-600 hover:text-white">
+                  <span className="mf-num flex size-6 shrink-0 items-center justify-center rounded-none border border-mf-500 text-[11.5px] text-white">{index + 1}</span>
                   {step.label}
                 </button>
               </li>
@@ -216,8 +216,8 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
         </div>
       )}
       {ata && approved && (
-        <div className="flex flex-col gap-4 rounded-2xl border border-mf-ok/30 bg-mf-ok/[0.06] p-5 sm:flex-row sm:items-center">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-mf-ok/15 text-mf-ok">
+        <div className="flex flex-col gap-4 rounded-none border border-mf-ok/30 bg-mf-ok/[0.06] p-5 sm:flex-row sm:items-center">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-none bg-mf-ok/15 text-mf-ok">
             <Lock className="size-4" />
           </span>
           <div className="flex-1">
@@ -243,7 +243,7 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
 
       {ata && meeting.status !== "processing" && meeting.status !== "failed" && (
         <>
-          <div className="mf-scroll sticky top-14 z-20 -mx-4 mt-2 flex gap-1 overflow-x-auto border-b border-mf-300 bg-mf-50/95 px-4 backdrop-blur sm:-mx-6 sm:px-6 lg:top-0 lg:-mx-10 lg:px-10">
+          <div className="mf-scroll sticky top-14 z-20 -mx-4 mt-2 flex gap-1 overflow-x-auto border-b border-mf-300 bg-mf-50/95 px-4 backdrop-blur sm:-mx-6 sm:px-6 lg:top-11 lg:-mx-10 lg:px-10">
             {(
               [
                 { key: "ata", icon: FileText, count: ata.items.length },
@@ -264,7 +264,7 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
               >
                 <Icon className="size-4" />
                 {c.ws.tabs[key]}
-                <span className={cx("mf-num rounded px-1.5 text-[11px]", tab === key ? "bg-white text-black" : "bg-mf-300 text-mf-700")}>{count}</span>
+                <span className={cx("mf-num rounded-none px-1.5 text-[11px]", tab === key ? "bg-white text-black" : "bg-mf-300 text-mf-700")}>{count}</span>
                 {tab === key && <span className="absolute inset-x-3 bottom-0 h-[2px] bg-white" />}
               </button>
             ))}
@@ -285,7 +285,7 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
                     </div>
                     {!approved && <span className="text-[11.5px] text-mf-600">{c.ws.editHint}</span>}
                   </div>
-                  <div className="mf-scroll overflow-x-auto rounded-xl bg-mf-150 p-3 sm:p-6">
+                  <div className="mf-scroll overflow-x-auto rounded-none bg-mf-150 p-3 sm:p-6">
                     <div className="min-w-[780px]">
                       <AtaDocument meeting={meeting} project={project} ata={ata} subsections={subsections} view={view} onEditItem={(item) => setEditing({ item, isNew: false })} />
                     </div>
@@ -365,7 +365,7 @@ function MoreMenu({ items }: { items: { icon: LucideIcon; label: string; action:
       {open && (
         <>
           <button type="button" aria-label={tr("Fechar", "Close")} className="fixed inset-0 z-30 cursor-default" onClick={() => setOpen(false)} />
-          <div className="mf-rise absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-lg border border-mf-400 bg-mf-150 py-1 shadow-2xl">
+          <div className="mf-rise absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-none border border-mf-400 bg-mf-150 py-1">
             {items.map((item) => (
               <button
                 key={item.label}
@@ -412,7 +412,7 @@ function ExportMenu({ meeting, onXlsx, view }: { meeting: Meeting; onXlsx: () =>
       {open && (
         <>
           <button type="button" aria-label={c.close} className="fixed inset-0 z-30 cursor-default" onClick={() => setOpen(false)} />
-          <div className="mf-rise absolute right-0 z-40 mt-2 w-60 overflow-hidden rounded-lg border border-mf-400 bg-mf-150 py-1 shadow-2xl">
+          <div className="mf-rise absolute right-0 z-40 mt-2 w-60 overflow-hidden rounded-none border border-mf-400 bg-mf-150 py-1">
             {options.map((option) => (
               <button
                 key={option.label}
@@ -446,7 +446,7 @@ function ReviewRail({ meeting, onApprove }: { meeting: Meeting; onApprove: () =>
   const sections = [...new Set(ata.items.map((i) => i.section))].sort((a, b) => a - b);
 
   return (
-    <aside className="flex flex-col gap-4 xl:sticky xl:top-20 xl:self-start">
+    <aside className="flex flex-col gap-4 xl:sticky xl:top-28 xl:self-start">
       <Card>
         <div className="grid grid-cols-2">
           {stats.map((stat, index) => (
@@ -458,7 +458,7 @@ function ReviewRail({ meeting, onApprove }: { meeting: Meeting; onApprove: () =>
         </div>
         <div className="flex flex-wrap gap-1.5 border-t border-mf-300 px-5 py-4">
           {sections.map((n) => (
-            <span key={n} className="rounded border border-mf-400 px-1.5 py-0.5 text-[10.5px] text-mf-800">
+            <span key={n} className="rounded-none border border-mf-400 px-1.5 py-0.5 text-[10.5px] text-mf-800">
               <span className="mf-num mr-1 text-mf-600">{n}</span>
               {sectionOf(n)[lang]}
             </span>
@@ -477,7 +477,7 @@ function ReviewRail({ meeting, onApprove }: { meeting: Meeting; onApprove: () =>
             <ul className="flex flex-col gap-3">
               {ata.reviewFlags.map((flag, index) => (
                 <li key={index} className="flex gap-2.5 text-[12.5px] leading-relaxed text-mf-900">
-                  <span className="mt-[7px] size-1.5 shrink-0 rounded-full bg-mf-warn" />
+                  <span className="mt-[7px] size-1.5 shrink-0 rounded-none bg-mf-warn" />
                   {pick(flag, lang)}
                 </li>
               ))}
@@ -491,7 +491,7 @@ function ReviewRail({ meeting, onApprove }: { meeting: Meeting; onApprove: () =>
       <Card className="px-5 py-4">
         {meeting.status === "approved" ? (
           <div className="flex items-start gap-3">
-            <span className="flex size-8 items-center justify-center rounded-full bg-mf-ok/15 text-mf-ok">
+            <span className="flex size-8 items-center justify-center rounded-none bg-mf-ok/15 text-mf-ok">
               <Lock className="size-4" />
             </span>
             <div>
@@ -602,7 +602,7 @@ function ProcessingView({ meeting, job }: { meeting: Meeting; job: JobView | nul
               <li key={step.key} className="flex items-start gap-3.5">
                 <span
                   className={cx(
-                    "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border text-[11px]",
+                    "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-none border text-[11px]",
                     state === "done" && "border-white bg-white text-black",
                     state === "active" && "border-white text-white",
                     state === "waiting" && "border-mf-400 text-mf-600",
@@ -618,9 +618,9 @@ function ProcessingView({ meeting, job }: { meeting: Meeting; job: JobView | nul
                     </div>
                   )}
                   {state === "active" && (
-                    <div className="relative mt-3 h-1 overflow-hidden rounded-full bg-mf-300">
+                    <div className="relative mt-3 h-1 overflow-hidden rounded-none bg-mf-300">
                       {determinate ? (
-                        <div className="h-full rounded-full bg-white transition-[width] duration-500" style={{ width: `${Math.max(4, percent)}%` }} />
+                        <div className="h-full rounded-none bg-white transition-[width] duration-500" style={{ width: `${Math.max(4, percent)}%` }} />
                       ) : (
                         <div className="mf-indeterminate absolute inset-0" />
                       )}
@@ -639,7 +639,7 @@ function ProcessingView({ meeting, job }: { meeting: Meeting; job: JobView | nul
 
       <Card className="flex min-h-[420px] flex-col overflow-hidden">
         <div className="flex items-center gap-2.5 border-b border-mf-300 px-5 py-3.5">
-          <span className="size-2 rounded-full bg-mf-rec mf-blink" />
+          <span className="size-2 rounded-none bg-mf-rec mf-blink" />
           <h2 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-white">
             {stage === "drafting" ? c.job.liveItems : c.job.liveTranscript}
           </h2>
@@ -666,7 +666,7 @@ function ProcessingView({ meeting, job }: { meeting: Meeting; job: JobView | nul
             (job?.liveItems.length ? (
               <div className="flex flex-col gap-2.5">
                 {job.liveItems.map((item, index) => (
-                  <div key={index} className="mf-rise flex gap-3 rounded-lg border border-mf-300 bg-mf-50 px-4 py-3 text-[13px] leading-relaxed">
+                  <div key={index} className="mf-rise flex gap-3 rounded-none border border-mf-300 bg-mf-50 px-4 py-3 text-[13px] leading-relaxed">
                     <span className="mf-num shrink-0 text-[11px] text-mf-600">{String(item.section).padStart(2, "0")}</span>
                     <div>
                       <div className="mb-0.5 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-mf-600">{sectionOf(item.section).pt}</div>
@@ -689,7 +689,7 @@ function Waiting({ text }: { text: string }) {
     <div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-4 text-center">
       <div className="flex h-8 items-end gap-1">
         {[0, 1, 2, 3, 4].map((bar) => (
-          <span key={bar} className="w-1 animate-pulse rounded-full bg-white" style={{ height: 10 + ((bar * 7) % 20), animationDelay: `${bar * 140}ms` }} />
+          <span key={bar} className="w-1 animate-pulse rounded-none bg-white" style={{ height: 10 + ((bar * 7) % 20), animationDelay: `${bar * 140}ms` }} />
         ))}
       </div>
       <p className="text-[13px] text-mf-700">{text}</p>
@@ -710,7 +710,7 @@ function FailedView({ meeting, onDelete }: { meeting: Meeting; onDelete: () => v
   const canRetry = meeting.error !== "audio-missing" || meeting.segments.length > 0;
   return (
     <Card className="mt-8 flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-mf-rec/10 text-mf-rec">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-none bg-mf-rec/10 text-mf-rec">
         <CircleAlert className="size-5" />
       </span>
       <div className="flex-1">

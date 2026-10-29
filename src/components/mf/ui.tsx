@@ -35,7 +35,7 @@ type ButtonProps = {
 
 export function Button({ variant = "secondary", size = "md", icon, loading, href, className, children, ...rest }: ButtonProps) {
   const classes = cx(
-    "inline-flex shrink-0 select-none items-center justify-center rounded-md font-semibold tracking-[0.01em] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed",
+    "inline-flex shrink-0 select-none items-center justify-center rounded-[2px] font-semibold tracking-[0.01em] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed",
     VARIANTS[variant],
     SIZES[size],
     className,
@@ -67,7 +67,7 @@ export function IconButton({ label, className, children, ...rest }: { label: str
       aria-label={label}
       title={label}
       className={cx(
-        "inline-flex size-10 items-center justify-center rounded-md text-mf-700 transition-colors hover:bg-mf-200 hover:text-white focus-visible:outline-2 focus-visible:outline-white",
+        "inline-flex size-10 items-center justify-center rounded-none text-mf-700 transition-colors hover:bg-mf-200 hover:text-white focus-visible:outline-2 focus-visible:outline-white",
         className,
       )}
       {...rest}
@@ -110,7 +110,7 @@ export function Page({ children, wide }: { children: ReactNode; wide?: boolean }
 
 export function Card({ className, children, ...rest }: ComponentProps<"div">) {
   return (
-    <div className={cx("rounded-xl border border-mf-300 bg-mf-100", className)} {...rest}>
+    <div className={cx("rounded-none border border-mf-300 bg-mf-100", className)} {...rest}>
       {children}
     </div>
   );
@@ -120,7 +120,7 @@ export function CardHeader({ title, lead, action }: { title: ReactNode; lead?: R
   return (
     <div className="flex items-start justify-between gap-4 border-b border-mf-300 px-5 py-4">
       <div>
-        <h2 className="text-[13.5px] font-semibold uppercase tracking-[0.12em] text-white">{title}</h2>
+        <h2 className="mf-eyebrow text-white">{title}</h2>
         {lead && <p className="mt-1 text-[13.5px] leading-relaxed text-mf-700">{lead}</p>}
       </div>
       {action}
@@ -139,7 +139,7 @@ export function Tag({ children, className, tone = "default" }: { children: React
   return (
     <span
       className={cx(
-        "inline-flex h-[22px] shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 text-[10.5px] font-semibold uppercase tracking-[0.1em]",
+        "mf-num inline-flex h-[22px] shrink-0 items-center gap-1.5 whitespace-nowrap rounded-none border px-2 text-[10.5px] font-medium uppercase tracking-[0.06em]",
         tones[tone],
         className,
       )}
@@ -154,7 +154,7 @@ export function MeetingStatusTag({ status }: { status: MeetingStatus }) {
   const tone = { processing: "default", draft: "warn", approved: "ok", failed: "rec" } as const;
   return (
     <Tag tone={tone[status]}>
-      {status === "processing" ? <LoaderCircle className="size-3 animate-spin" /> : <span className="size-1.5 rounded-full bg-current" />}
+      {status === "processing" ? <LoaderCircle className="size-3 animate-spin" /> : <span className="size-1.5 rounded-none bg-current" />}
       {c.meetingStatus[status]}
     </Tag>
   );
@@ -167,7 +167,7 @@ export function ItemStatusTag({ status, lang }: { status: ItemStatus; lang: "pt"
     closed: "border-mf-400 bg-mf-300 text-mf-700 line-through decoration-mf-600",
   };
   return (
-    <span className={cx("inline-flex h-5 items-center whitespace-nowrap rounded border px-1.5 text-[10.5px] font-semibold", style[status])}>
+    <span className={cx("inline-flex h-5 items-center whitespace-nowrap rounded-none border px-1.5 text-[10.5px] font-semibold", style[status])}>
       {STATUS[status][lang]}
     </span>
   );
@@ -194,7 +194,7 @@ export function RiskBars({ risk, lang, showLabel = true }: { risk: Risk; lang: "
 export function Field({ label, hint, children, className }: { label: ReactNode; hint?: ReactNode; children: ReactNode; className?: string }) {
   return (
     <label className={cx("flex flex-col gap-1.5", className)}>
-      <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-mf-700">{label}</span>
+      <span className="mf-eyebrow text-mf-700">{label}</span>
       {children}
       {hint && <span className="text-[12.5px] leading-snug text-mf-600">{hint}</span>}
     </label>
@@ -202,7 +202,7 @@ export function Field({ label, hint, children, className }: { label: ReactNode; 
 }
 
 const control =
-  "w-full rounded-lg border border-mf-500 bg-mf-50 px-3.5 text-[14.5px] text-white placeholder:text-mf-600 transition-colors focus:border-mf-800 focus:outline-none focus:ring-2 focus:ring-white/10 disabled:opacity-60";
+  "w-full rounded-[2px] border border-mf-500 bg-mf-50 px-3.5 text-[14.5px] text-white placeholder:text-mf-600 transition-colors focus:border-mf-800 focus:outline-none focus:ring-2 focus:ring-white/10 disabled:opacity-60";
 
 export function Input({ className, ...rest }: ComponentProps<"input">) {
   return <input className={cx(control, "h-11", className)} {...rest} />;
@@ -235,7 +235,7 @@ export function Segmented<T extends string>({
   size?: "sm" | "md";
 }) {
   return (
-    <div className="inline-flex rounded-lg border border-mf-500 bg-mf-50 p-0.5" role="radiogroup">
+    <div className="inline-flex rounded-none border border-mf-500 bg-mf-50 p-0.5" role="radiogroup">
       {options.map((option) => (
         <button
           key={option.value}
@@ -271,7 +271,7 @@ export function Drawer({ title, onClose, children, footer }: { title: ReactNode;
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <button type="button" aria-label="Close" className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={onClose} />
-      <aside className="mf-rise relative flex h-full w-full max-w-[540px] flex-col border-l border-mf-400 bg-mf-100 shadow-2xl">
+      <aside className="mf-rise relative flex h-full w-full max-w-[540px] flex-col border-l border-mf-400 bg-mf-100">
         <div className="flex items-center justify-between border-b border-mf-300 px-6 py-4">
           <h2 className="text-[15px] font-semibold text-white">{title}</h2>
           <IconButton label="Close" onClick={onClose}>
@@ -290,7 +290,7 @@ export function Modal({ title, onClose, children, footer }: { title: ReactNode; 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <button type="button" aria-label="Close" className="absolute inset-0 bg-black/70 backdrop-blur-[2px]" onClick={onClose} />
-      <div className="mf-rise relative w-full max-w-lg rounded-xl border border-mf-400 bg-mf-100 shadow-2xl">
+      <div className="mf-rise relative w-full max-w-lg rounded-none border border-mf-400 bg-mf-100">
         <div className="flex items-center justify-between border-b border-mf-300 px-6 py-4">
           <h2 className="text-[15px] font-semibold text-white">{title}</h2>
           <IconButton label="Close" onClick={onClose}>
@@ -306,8 +306,8 @@ export function Modal({ title, onClose, children, footer }: { title: ReactNode; 
 
 export function Empty({ icon, title, lead, action }: { icon: ReactNode; title: ReactNode; lead?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-mf-400 px-6 py-16 text-center">
-      <div className="mb-4 flex size-12 items-center justify-center rounded-full border border-mf-400 text-mf-800">{icon}</div>
+    <div className="flex flex-col items-center justify-center rounded-none border border-dashed border-mf-400 px-6 py-16 text-center">
+      <div className="mb-4 flex size-12 items-center justify-center rounded-none border border-mf-400 text-mf-800">{icon}</div>
       <h3 className="text-[17px] font-semibold text-white">{title}</h3>
       {lead && <p className="mt-2 max-w-md text-[14px] leading-relaxed text-mf-700">{lead}</p>}
       {action && <div className="mt-6">{action}</div>}
@@ -316,7 +316,7 @@ export function Empty({ icon, title, lead, action }: { icon: ReactNode; title: R
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cx("mf-skeleton rounded-md", className)} />;
+  return <div className={cx("mf-skeleton rounded-none", className)} />;
 }
 
 export function LoadingPage() {
@@ -349,7 +349,7 @@ export function Avatar({ name, index, size = 32 }: { name: string; index: number
     : "?";
   return (
     <span
-      className={cx("inline-flex shrink-0 items-center justify-center rounded-full font-semibold", shades[index % shades.length])}
+      className={cx("inline-flex shrink-0 items-center justify-center rounded-none font-semibold", shades[index % shades.length])}
       style={{ width: size, height: size, fontSize: size * 0.36 }}
     >
       {initialsText}

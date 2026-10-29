@@ -33,8 +33,8 @@ export function AudioUpload({ value, onChange }: { value: AudioFile | null; onCh
     <div>
       <input ref={input} type="file" accept={AUDIO_ACCEPT} className="hidden" onChange={(event) => accept(event.target.files?.[0])} />
       {value ? (
-        <div className="mf-rise flex items-center gap-4 rounded-lg border border-mf-400 bg-mf-50 p-4">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white text-black">
+        <div className="mf-rise flex items-center gap-4 rounded-none border border-mf-400 bg-mf-50 p-4">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-none bg-white text-black">
             <Music className="size-5" />
           </span>
           <div className="min-w-0 flex-1">
@@ -59,16 +59,16 @@ export function AudioUpload({ value, onChange }: { value: AudioFile | null; onCh
           onDragLeave={() => setDragging(false)}
           onDrop={drop}
           className={cx(
-            "flex w-full flex-col items-center justify-center rounded-xl border border-dashed px-6 py-14 text-center transition-colors",
+            "flex w-full flex-col items-center justify-center rounded-none border border-dashed px-6 py-14 text-center transition-colors",
             dragging ? "border-white bg-mf-200" : "border-mf-500 bg-mf-50 hover:border-mf-700 hover:bg-mf-100",
           )}
         >
-          <span className="flex size-12 items-center justify-center rounded-full border border-mf-500 text-white">
+          <span className="flex size-12 items-center justify-center rounded-none border border-mf-500 text-white">
             <Upload className="size-5" />
           </span>
           <span className="mt-5 text-[15px] font-semibold text-white">{c.source.drop}</span>
           <span className="mt-2 max-w-sm text-[12.5px] leading-relaxed text-mf-700">{c.source.dropLead}</span>
-          <span className="mt-5 inline-flex h-8 items-center rounded-md border border-mf-500 px-3 text-[12px] font-semibold text-mf-900">
+          <span className="mt-5 inline-flex h-8 items-center rounded-none border border-mf-500 px-3 text-[12px] font-semibold text-mf-900">
             {c.source.choose}
           </span>
         </button>
@@ -118,7 +118,7 @@ export function TranscriptUpload({ value, onChange }: { value: TranscriptInput; 
       />
       {error && <p className="text-[12.5px] text-mf-rec">{error}</p>}
       {parsed && (
-        <div className="mf-rise rounded-lg border border-mf-400 bg-mf-50 p-4">
+        <div className="mf-rise rounded-none border border-mf-400 bg-mf-50 p-4">
           <div className="flex items-center gap-2 text-[12px] text-mf-800">
             <FileText className="size-3.5" />
             <span className="mf-eyebrow text-mf-700">{c.source.detected}</span>
@@ -128,7 +128,7 @@ export function TranscriptUpload({ value, onChange }: { value: TranscriptInput; 
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             {parsed.speakers.slice(0, 10).map((speaker, index) => (
-              <span key={speaker.id} className="inline-flex items-center gap-2 rounded-full border border-mf-400 py-1 pl-1 pr-3 text-[12px] text-mf-900">
+              <span key={speaker.id} className="inline-flex items-center gap-2 rounded-none border border-mf-400 py-1 pl-1 pr-3 text-[12px] text-mf-900">
                 <Avatar name={speaker.name} index={index} size={22} />
                 {speaker.name || speaker.id}
               </span>
