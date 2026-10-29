@@ -1,33 +1,68 @@
 "use client";
 
-import { ArrowRight, FileText, Mic, Plus, Upload, X } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, FileText, Mic, Plus, Sparkles, Upload, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-import { useCopy } from "@/lib/mf/copy";
-import { arCode, clockNow, todayIso, uid } from "@/lib/mf/format";
+import { useMemo, useState, type ReactNode } from "react";
+import { useCopy, useTr } from "@/lib/mf/copy";
+import { arCode, clockNow, longDate, todayIso, uid } from "@/lib/mf/format";
 import { runPipeline } from "@/lib/mf/pipeline";
 import { putAudio, saveMeeting, useMf } from "@/lib/mf/store";
 import type { Meeting, Modality, Participant, Project, SourceKind } from "@/lib/mf/types";
 import { ProjectModal } from "./ProjectModal";
 import { Recorder, type Recording } from "./Recorder";
 import { AudioUpload, TranscriptUpload, type AudioFile, type TranscriptInput } from "./SourceInputs";
-import { Button, Card, cx, Field, Input, LoadingPage, Page, PageHeader, Segmented, Select, Textarea } from "./ui";
+import { Button, cx, Field, Input, LoadingPage, Page, Segmented, Textarea } from "./ui";
 
 const blankParticipant = (): Participant => ({ id: uid(), name: "", company: "", role: "", present: true });
 
-export function NewAta({ initialProject }: { initialProject?: string }) {
+const MODES: Record<string, SourceKind> = { gravar: "recording", arquivo: "audio", texto: "transcript" };
+
+export function NewAta({ initialProject, initialMode }: { initialProject?: string; initialMode?: string }) {
   const mf = useMf();
   if (!mf.ready) return <LoadingPage />;
-  return <NewAtaForm projects={mf.projects} meetings={mf.meetings} initialProject={initialProject} />;
+  return <NewAtaForm projects={mf.projects} meetings={mf.meetings} initialProject={initialProject} initialMode={initialMode ? MODES[initialMode] : undefined} />;
 }
 
-function NewAtaForm({ projects, meetings, initialProject }: { projects: Project[]; meetings: Meeting[]; initialProject?: string }) {
-  const { c, lang } = useCopy();
-  const router = useRouter();
-  const [projectId, setProjectId] = useState(
-    projects.find((p) => p.id === initialProject)?.id ?? projects.find((p) => !p.demo)?.id ?? projects[0]?.id ?? "",
+function Step({ n, title, lead, done, children }: { n: number; title: string; lead?: string; done: boolean; children: ReactNode }) {
+  return (
+    <section className="relative rounded-2xl border border-mf-300 bg-mf-100 p-5 sm:p-7">
+      <header className="flex items-start gap-4">
+        <span
+          className={cx(
+            "flex size-9 shrink-0 items-center justify-center rounded-full border text-[14px] font-semibold transition-colors",
+            done ? "border-white bg-white text-black" : "border-mf-500 text-white",
+          )}
+        >
+          {done ? <Check className="size-4" strokeWidth={2.5} /> : n}
+        </span>
+        <div className="pt-0.5">
+          <h2 className="text-[18px] font-semibold leading-snug text-white">{title}</h2>
+          {lead && <p className="mt-1 text-[14px] leading-relaxed text-mf-700">{lead}</p>}
+        </div>
+      </header>
+      <div className="mt-6 sm:pl-13">{children}</div>
+    </section>
   );
+}
+
+function NewAtaForm({
+  projects,
+  meetings,
+  initialProject,
+  initialMode,
+}: {
+  projects: Project[];
+  meetings: Meeting[];
+  initialProject?: string;
+  initialMode?: SourceKind;
+}) {
+  const { c, lang } = useCopy();
+  const tr = useTr();
+  const router = useRouter();
+  const [projectId, setProjectId] = useState(projects.find((p) => p.id === initialProject)?.id ?? (projects.length === 1 ? projects[0].id : ""));
   const [creatingProject, setCreatingProject] = useState(false);
+  const [kind, setKind] = useState<SourceKind | null>(initialMode ?? null);
+  const [showDetails, setShowDetails] = useState(false);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState(todayIso);
   const [startTime, setStartTime] = useState(clockNow);
@@ -37,7 +72,6 @@ function NewAtaForm({ projects, meetings, initialProject }: { projects: Project[
   const [secretary, setSecretary] = useState("");
   const [participants, setParticipants] = useState<Participant[]>([blankParticipant()]);
   const [agenda, setAgenda] = useState("");
-  const [kind, setKind] = useState<SourceKind>("recording");
   const [recording, setRecording] = useState<Recording | null>(null);
   const [audioFile, setAudioFile] = useState<AudioFile | null>(null);
   const [transcript, setTranscript] = useState<TranscriptInput>({ text: "", name: "", parsed: null });
@@ -57,17 +91,21 @@ function NewAtaForm({ projects, meetings, initialProject }: { projects: Project[
     return [...seen.values()];
   }, [projectMeetings]);
 
-  const ready =
-    (kind === "recording" && recording) ||
-    (kind === "audio" && audioFile) ||
-    (kind === "transcript" && transcript.parsed);
-  const blocker = !project ? c.form.needProject : !ready ? c.form.needSource : "";
+  const sourceReady = Boolean(
+    (kind === "recording" && recording) || (kind === "audio" && audioFile) || (kind === "transcript" && transcript.parsed),
+  );
+  const ready = Boolean(project) && sourceReady;
+
+  const modes = [
+    { value: "recording" as const, icon: Mic, title: tr("Gravar agora", "Record now"), text: tr("Grave pelo computador durante a reunião, presencial ou no Teams.", "Record from this computer during the meeting, in person or on Teams.") },
+    { value: "audio" as const, icon: Upload, title: tr("Enviar gravação", "Upload a recording"), text: tr("Áudio ou vídeo do Teams, do celular ou de um gravador.", "Audio or video from Teams, a phone or a recorder.") },
+    { value: "transcript" as const, icon: FileText, title: tr("Colar transcrição", "Paste a transcript"), text: tr("Texto pronto do Teams, Zoom ou Meet.", "Ready-made text from Teams, Zoom or Meet.") },
+  ];
 
   function addSuggestion(person: Participant) {
     setParticipants((current) => {
       if (current.some((p) => p.name.toLowerCase() === person.name.toLowerCase())) return current;
-      const filled = current.filter((p) => p.name.trim());
-      return [...filled, { ...person, id: uid(), present: true }];
+      return [...current.filter((p) => p.name.trim()), { ...person, id: uid(), present: true }];
     });
   }
 
@@ -83,7 +121,7 @@ function NewAtaForm({ projects, meetings, initialProject }: { projects: Project[
   }
 
   async function submit() {
-    if (!project || !ready || submitting) return;
+    if (!project || !kind || !sourceReady || submitting) return;
     setSubmitting(true);
     const id = uid();
     const now = new Date().toISOString();
@@ -128,177 +166,244 @@ function NewAtaForm({ projects, meetings, initialProject }: { projects: Project[
     router.push(`/mf/atas/${id}`);
   }
 
-  const sources = [
-    { value: "recording" as const, label: <><Mic className="size-3.5" />{c.source.record}</> },
-    { value: "audio" as const, label: <><Upload className="size-3.5" />{c.source.upload}</> },
-    { value: "transcript" as const, label: <><FileText className="size-3.5" />{c.source.transcript}</> },
+  const checklist = [
+    { done: Boolean(project), label: tr("Projeto", "Project") },
+    { done: sourceReady, label: tr("Reunião", "Meeting") },
   ];
 
   return (
-    <Page wide>
-      <PageHeader
-        eyebrow={
-          project ? (
-            <span className="mf-num">
-              ON {project.on} · {c.form.nextAr} {arCode(nextAr)}
-            </span>
-          ) : (
-            c.nav.atas
-          )
-        }
-        title={c.form.title}
-        lead={c.form.lead}
-      />
+    <Page>
+      <div className="mx-auto max-w-[920px]">
+        <header className="mb-8">
+          <div className="mf-eyebrow text-mf-600">{project ? `ON ${project.on} · ${c.form.nextAr} ${arCode(nextAr)}` : c.nav.atas}</div>
+          <h1 className="mt-3 text-[30px] font-semibold leading-tight tracking-[-0.01em] text-white md:text-[36px]">{c.form.title}</h1>
+          <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-mf-700">
+            {tr(
+              "Três passos simples. A inteligência artificial escreve a ata no modelo da MF e você revisa tudo antes de aprovar.",
+              "Three simple steps. The AI writes the minutes in MF's format and you review everything before approving.",
+            )}
+          </p>
+        </header>
 
-      <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-        <Card className="overflow-hidden">
-          <div className="flex flex-col gap-4 border-b border-mf-300 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-white">{c.form.source}</h2>
-            <div className="overflow-x-auto">
-              <Segmented value={kind} onChange={setKind} options={sources} />
+        <div className="flex flex-col gap-5 pb-32">
+          <Step n={1} done={Boolean(project)} title={tr("Para qual projeto é a ata?", "Which project are these minutes for?")}>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {projects.map((p) => {
+                const selected = p.id === projectId;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setProjectId(p.id)}
+                    aria-pressed={selected}
+                    className={cx(
+                      "relative flex items-center gap-4 rounded-xl border p-4 text-left transition-colors",
+                      selected ? "border-white bg-mf-200" : "border-mf-400 bg-mf-50 hover:border-mf-600",
+                    )}
+                  >
+                    <span className={cx("mf-num flex h-12 min-w-14 items-center justify-center rounded-lg px-2 text-[17px] font-medium", selected ? "bg-white text-black" : "bg-mf-200 text-white")}>
+                      {p.on}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[15px] font-semibold text-white">{p.name}</span>
+                      <span className="mt-0.5 block truncate text-[13px] text-mf-700">
+                        {p.client} · {p.city}
+                      </span>
+                    </span>
+                    {selected && <Check className="size-5 shrink-0 text-white" strokeWidth={2.5} />}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => setCreatingProject(true)}
+                className="flex min-h-20 items-center justify-center gap-2 rounded-xl border border-dashed border-mf-500 text-[14px] font-semibold text-mf-800 transition-colors hover:border-white hover:text-white"
+              >
+                <Plus className="size-4" />
+                {c.form.newProject}
+              </button>
             </div>
-          </div>
-          <div className="p-5 sm:p-6">
-            <div className={cx(kind !== "recording" && "hidden")}>
+          </Step>
+
+          <Step
+            n={2}
+            done={sourceReady}
+            title={tr("Como a reunião vai chegar?", "How will the meeting come in?")}
+            lead={tr("Escolha uma opção. Você pode trocar a qualquer momento.", "Pick one option. You can switch at any time.")}
+          >
+            <div className="grid gap-3 md:grid-cols-3">
+              {modes.map((mode) => {
+                const selected = kind === mode.value;
+                return (
+                  <button
+                    key={mode.value}
+                    type="button"
+                    onClick={() => setKind(mode.value)}
+                    aria-pressed={selected}
+                    className={cx(
+                      "group flex flex-col items-start rounded-xl border p-5 text-left transition-colors",
+                      selected ? "border-white bg-white text-black" : "border-mf-400 bg-mf-50 text-white hover:border-mf-600",
+                    )}
+                  >
+                    <span className={cx("flex size-11 items-center justify-center rounded-full", selected ? "bg-black text-white" : "bg-mf-200 text-white")}>
+                      <mode.icon className="size-5" />
+                    </span>
+                    <span className="mt-4 text-[16px] font-semibold">{mode.title}</span>
+                    <span className={cx("mt-1 text-[13.5px] leading-snug", selected ? "text-black/70" : "text-mf-700")}>{mode.text}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className={cx("mt-6", kind !== "recording" && "hidden")}>
               <Recorder onChange={onRecording} />
             </div>
-            {kind === "audio" && <AudioUpload value={audioFile} onChange={setAudioFile} />}
-            {kind === "transcript" && <TranscriptUpload value={transcript} onChange={setTranscript} />}
-          </div>
-        </Card>
-
-        <Card>
-          <div className="border-b border-mf-300 px-5 py-4">
-            <h2 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-white">{c.form.details}</h2>
-          </div>
-          <div className="flex flex-col gap-5 p-5 sm:p-6">
-            <Field label={c.form.project}>
-              <div className="flex gap-2">
-                <Select value={projectId} onChange={(event) => setProjectId(event.target.value)} className="flex-1">
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      ON {p.on} · {p.name} · {p.client}
-                    </option>
-                  ))}
-                </Select>
-                <Button icon={<Plus className="size-4" />} onClick={() => setCreatingProject(true)} aria-label={c.form.newProject}>
-                  <span className="hidden sm:inline">{c.form.newProject}</span>
-                </Button>
+            {kind === "audio" && (
+              <div className="mt-6">
+                <AudioUpload value={audioFile} onChange={setAudioFile} />
               </div>
-            </Field>
-
-            <Field label={c.form.meetingTitle}>
-              <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={c.form.meetingTitlePlaceholder} />
-            </Field>
-
-            <div className="grid grid-cols-2 gap-4">
-              <Field label={c.form.date}>
-                <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="mf-num [color-scheme:dark]" />
-              </Field>
-              <Field label={c.form.start}>
-                <Input
-                  type="time"
-                  value={startTime}
-                  onChange={(event) => {
-                    setStartTouched(true);
-                    setStartTime(event.target.value);
-                  }}
-                  className="mf-num [color-scheme:dark]"
-                />
-              </Field>
-            </div>
-
-            <Field label={c.form.modality}>
-              <Segmented
-                value={modality}
-                onChange={setModality}
-                options={(["teams", "presencial", "hibrida"] as const).map((value) => ({ value, label: c.modality[value] }))}
-              />
-            </Field>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={c.form.location}>
-                <Input value={location} onChange={(event) => setLocation(event.target.value)} placeholder={c.form.locationPlaceholder} />
-              </Field>
-              <Field label={c.form.secretary}>
-                <Input value={secretary} onChange={(event) => setSecretary(event.target.value)} placeholder="Nome / Name" />
-              </Field>
-            </div>
-
-            <div className="flex flex-col gap-2.5">
-              <div className="flex items-baseline justify-between">
-                <span className="text-[11.5px] font-semibold uppercase tracking-[0.1em] text-mf-700">{c.form.participants}</span>
-                <span className="text-[11.5px] text-mf-600">{c.form.participantsLead}</span>
+            )}
+            {kind === "transcript" && (
+              <div className="mt-6">
+                <TranscriptUpload value={transcript} onChange={setTranscript} />
               </div>
-              {participants.map((person) => (
-                <div key={person.id} className="grid grid-cols-[1.4fr_1fr_1fr_auto] gap-2">
-                  <Input value={person.name} onChange={(e) => updateParticipant(person.id, { name: e.target.value })} placeholder={c.form.name} className="h-9 text-[13px]" />
-                  <Input value={person.company} onChange={(e) => updateParticipant(person.id, { company: e.target.value })} placeholder={c.form.company} className="h-9 text-[13px]" />
-                  <Input value={person.role} onChange={(e) => updateParticipant(person.id, { role: e.target.value })} placeholder={c.form.role} className="h-9 text-[13px]" />
-                  <button
-                    type="button"
-                    aria-label={c.delete}
-                    onClick={() => setParticipants((current) => (current.length > 1 ? current.filter((p) => p.id !== person.id) : [blankParticipant()]))}
-                    className="flex size-9 items-center justify-center rounded-md text-mf-600 hover:bg-mf-200 hover:text-white"
-                  >
-                    <X className="size-4" />
-                  </button>
-                </div>
-              ))}
-              <div className="flex flex-wrap items-center gap-2">
-                <Button size="sm" variant="ghost" icon={<Plus className="size-3.5" />} onClick={() => setParticipants((current) => [...current, blankParticipant()])}>
-                  {c.form.addParticipant}
-                </Button>
-              </div>
-              {suggestions.length > 0 && (
-                <div className="mt-1">
-                  <div className="mb-2 text-[11px] text-mf-600">{c.form.suggested}</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {suggestions.map((person) => {
-                      const added = participants.some((p) => p.name.toLowerCase() === person.name.toLowerCase());
-                      return (
-                        <button
-                          key={person.name}
-                          type="button"
-                          disabled={added}
-                          onClick={() => addSuggestion(person)}
-                          className={cx(
-                            "inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-[11.5px] transition-colors",
-                            added ? "border-mf-300 text-mf-600" : "border-mf-400 text-mf-900 hover:border-white hover:text-white",
-                          )}
-                        >
-                          {!added && <Plus className="size-3" />}
-                          {person.name}
-                          <span className="text-mf-600">{person.company}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+            )}
+          </Step>
+
+          <Step
+            n={3}
+            done={false}
+            title={tr("Detalhes da reunião", "Meeting details")}
+            lead={tr("Opcional. O que ficar em branco a IA tenta preencher pela conversa.", "Optional. Anything left blank, the AI tries to fill in from the conversation.")}
+          >
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-mf-400 bg-mf-50 px-4 py-3 text-[14px] text-mf-800">
+              <span>{longDate(date, lang)}</span>
+              <span className="text-mf-600">·</span>
+              <span className="mf-num">{startTime}</span>
+              <span className="text-mf-600">·</span>
+              <span>{c.modality[modality]}</span>
+              {participants.some((p) => p.name.trim()) && (
+                <>
+                  <span className="text-mf-600">·</span>
+                  <span>
+                    {participants.filter((p) => p.name.trim()).length} {tr("participantes", "participants")}
+                  </span>
+                </>
               )}
+              <button type="button" onClick={() => setShowDetails((v) => !v)} className="ml-auto inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-white hover:underline">
+                {showDetails ? tr("Ocultar detalhes", "Hide details") : tr("Adicionar detalhes", "Add details")}
+                <ChevronDown className={cx("size-4 transition-transform", showDetails && "rotate-180")} />
+              </button>
             </div>
 
-            <Field label={c.form.agenda} hint={c.optional}>
-              <Textarea value={agenda} onChange={(event) => setAgenda(event.target.value)} placeholder={c.form.agendaPlaceholder} className="min-h-20" />
-            </Field>
-          </div>
-        </Card>
+            {showDetails && (
+              <div className="mf-rise mt-5 flex flex-col gap-5">
+                <Field label={c.form.meetingTitle}>
+                  <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={c.form.meetingTitlePlaceholder} />
+                </Field>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <Field label={c.form.date}>
+                    <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="mf-num [color-scheme:dark]" />
+                  </Field>
+                  <Field label={c.form.start}>
+                    <Input
+                      type="time"
+                      value={startTime}
+                      onChange={(event) => {
+                        setStartTouched(true);
+                        setStartTime(event.target.value);
+                      }}
+                      className="mf-num [color-scheme:dark]"
+                    />
+                  </Field>
+                  <Field label={c.form.modality}>
+                    <Segmented value={modality} onChange={setModality} options={(["teams", "presencial", "hibrida"] as const).map((value) => ({ value, label: c.modality[value].replace("Microsoft ", "") }))} />
+                  </Field>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label={c.form.location}>
+                    <Input value={location} onChange={(event) => setLocation(event.target.value)} placeholder={c.form.locationPlaceholder} />
+                  </Field>
+                  <Field label={c.form.secretary}>
+                    <Input value={secretary} onChange={(event) => setSecretary(event.target.value)} placeholder={tr("Seu nome", "Your name")} />
+                  </Field>
+                </div>
+
+                <div className="flex flex-col gap-2.5">
+                  <div>
+                    <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-mf-700">{c.form.participants}</span>
+                    <p className="mt-1 text-[13px] text-mf-600">{c.form.participantsLead}</p>
+                  </div>
+                  {suggestions.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {suggestions.map((person) => {
+                        const added = participants.some((p) => p.name.toLowerCase() === person.name.toLowerCase());
+                        return (
+                          <button
+                            key={person.name}
+                            type="button"
+                            disabled={added}
+                            onClick={() => addSuggestion(person)}
+                            className={cx(
+                              "inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-[13px] transition-colors",
+                              added ? "border-mf-300 bg-mf-200 text-mf-600" : "border-mf-500 text-mf-900 hover:border-white hover:text-white",
+                            )}
+                          >
+                            {added ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}
+                            {person.name}
+                            <span className="text-mf-600">{person.company}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {participants.map((person) => (
+                    <div key={person.id} className="grid grid-cols-[1.4fr_1fr_auto] gap-2 sm:grid-cols-[1.4fr_1fr_1fr_auto]">
+                      <Input value={person.name} onChange={(e) => updateParticipant(person.id, { name: e.target.value })} placeholder={c.form.name} aria-label={c.form.name} />
+                      <Input value={person.company} onChange={(e) => updateParticipant(person.id, { company: e.target.value })} placeholder={c.form.company} aria-label={c.form.company} />
+                      <Input value={person.role} onChange={(e) => updateParticipant(person.id, { role: e.target.value })} placeholder={c.form.role} aria-label={c.form.role} className="hidden sm:block" />
+                      <button
+                        type="button"
+                        aria-label={c.delete}
+                        onClick={() => setParticipants((current) => (current.length > 1 ? current.filter((p) => p.id !== person.id) : [blankParticipant()]))}
+                        className="flex size-10 items-center justify-center rounded-md text-mf-600 hover:bg-mf-200 hover:text-white"
+                      >
+                        <X className="size-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <Button size="sm" variant="ghost" className="self-start" icon={<Plus className="size-3.5" />} onClick={() => setParticipants((current) => [...current, blankParticipant()])}>
+                    {c.form.addParticipant}
+                  </Button>
+                </div>
+
+                <Field label={c.form.agenda} hint={c.optional}>
+                  <Textarea value={agenda} onChange={(event) => setAgenda(event.target.value)} placeholder={c.form.agendaPlaceholder} className="min-h-20" />
+                </Field>
+              </div>
+            )}
+          </Step>
+        </div>
       </div>
 
-      <div className="sticky bottom-0 z-20 -mx-4 mt-8 border-t border-mf-300 bg-mf-50/90 px-4 py-4 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10">
-        <div className="mx-auto flex max-w-[1480px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-[12.5px] text-mf-700">
-            {blocker ? (
-              blocker
-            ) : (
-              <span className="text-mf-900">
-                <span className="mf-num">{arCode(nextAr)}</span> · ON {project?.on} · {project?.name}
-                {lang === "pt" ? " · pronto para gerar" : " · ready to generate"}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-mf-300 bg-black/90 backdrop-blur lg:left-[264px]">
+        <div className="mx-auto flex max-w-[920px] flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="flex items-center gap-4">
+            {checklist.map((item) => (
+              <span key={item.label} className={cx("inline-flex items-center gap-2 text-[13.5px] font-medium", item.done ? "text-white" : "text-mf-600")}>
+                <span className={cx("flex size-5 items-center justify-center rounded-full border", item.done ? "border-white bg-white text-black" : "border-mf-500")}>
+                  {item.done && <Check className="size-3" strokeWidth={3} />}
+                </span>
+                {item.label}
               </span>
-            )}
+            ))}
+            <span className="hidden text-[13px] text-mf-600 md:inline">
+              {ready ? tr("Leva cerca de 1 minuto. Você revisa antes de aprovar.", "Takes about a minute. You review before approving.") : !project ? c.form.needProject : c.form.needSource}
+            </span>
           </div>
-          <Button variant="primary" size="lg" disabled={Boolean(blocker)} loading={submitting} onClick={submit} icon={<ArrowRight className="size-4" />}>
+          <Button variant="primary" size="lg" disabled={!ready} loading={submitting} onClick={submit} icon={submitting ? undefined : <Sparkles className="size-4" />} className="sm:min-w-56">
             {c.form.generate}
+            {!submitting && <ArrowRight className="size-4" />}
           </Button>
         </div>
       </div>

@@ -506,3 +506,9 @@ export function useCopy() {
 }
 
 export const pick = (text: Bilingual, lang: Lang) => text[lang] || text.pt;
+
+// Short bilingual strings for guidance copy that lives next to the component using it.
+export function useTr() {
+  const { lang } = useCopy();
+  return (pt: string, en: string) => (lang === "pt" ? pt : en);
+}

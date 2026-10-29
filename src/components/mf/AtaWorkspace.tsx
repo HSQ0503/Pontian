@@ -2,26 +2,32 @@
 
 import {
   ArrowLeft,
+  AudioLines,
   Check,
   ChevronDown,
   CircleAlert,
   Download,
+  Ellipsis,
   FileSpreadsheet,
   FileText,
   LoaderCircle,
+  ListChecks,
   Lock,
   Pencil,
+  PenLine,
   Plus,
   Printer,
   RefreshCw,
   Trash,
   TriangleAlert,
   Undo2,
+  Users,
+  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { pick, useCopy } from "@/lib/mf/copy";
+import { pick, useCopy, useTr } from "@/lib/mf/copy";
 import { arCode, clock, download, durationLabel, longDate, meetingDuration, transcriptFileName } from "@/lib/mf/format";
 import { runPipeline, transcriptText, useJob, type JobView } from "@/lib/mf/pipeline";
 import { buildRegistry, numberAta, resolveSubsection } from "@/lib/mf/registry";
@@ -67,6 +73,7 @@ async function commitItems(meeting: Meeting, items: AtaItem[], newSubsection?: {
 
 function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: Project; meetings: Meeting[] }) {
   const { c, lang } = useCopy();
+  const tr = useTr();
   const router = useRouter();
   const job = useJob(meeting.id);
   const [tab, setTab] = useState<Tab>("ata");
@@ -140,8 +147,8 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
             <MeetingStatusTag status={meeting.status} />
             {project.demo && <Tag>{c.demo}</Tag>}
           </div>
-          <h1 className="mt-3 text-[24px] font-semibold leading-tight text-white md:text-[30px]">
-            {ata ? pick(ata.title, lang) : meeting.title || c.form.title}
+          <h1 className="mt-3 text-[26px] font-semibold leading-tight text-white md:text-[32px]">
+            {ata ? pick(ata.title, lang) : meeting.title || (meeting.status === "processing" ? tr("Gerando a ata…", "Generating the minutes…") : c.form.title)}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-mf-700">
             <span className="mf-num">ON {project.on}</span>
@@ -164,18 +171,16 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
         </div>
         {ata && meeting.status !== "processing" && (
           <div className="flex flex-wrap items-center gap-2">
+            <MoreMenu
+              items={[
+                ...(approved
+                  ? [{ icon: Undo2, label: c.ws.reopen, disabled: laterApproved, action: () => patchMeeting(meeting.id, { status: "draft", approvedBy: "", approvedAt: "" }) }]
+                  : [{ icon: RefreshCw, label: c.ws.regenerate, action: () => setConfirm("regenerate") }]),
+                { icon: Trash, label: c.delete, danger: true, action: () => setConfirm("delete") },
+              ]}
+            />
             <ExportMenu meeting={meeting} onXlsx={exportXlsx} view={view} />
             {!approved && (
-              <Button variant="ghost" icon={<RefreshCw className="size-4" />} onClick={() => setConfirm("regenerate")}>
-                <span className="hidden sm:inline">{c.ws.regenerate}</span>
-              </Button>
-            )}
-            <Button variant="ghost" icon={<Trash className="size-4" />} onClick={() => setConfirm("delete")} aria-label={c.delete} />
-            {approved ? (
-              <Button icon={<Undo2 className="size-4" />} disabled={laterApproved} onClick={() => patchMeeting(meeting.id, { status: "draft", approvedBy: "", approvedAt: "" })}>
-                {c.ws.reopen}
-              </Button>
-            ) : (
               <Button variant="primary" icon={<Check className="size-4" />} onClick={() => setApproving(true)}>
                 {c.ws.approve}
               </Button>
@@ -183,6 +188,49 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
           </div>
         )}
       </div>
+      {ata && meeting.status === "draft" && (
+        <div className="flex flex-col gap-4 rounded-2xl border border-mf-warn/30 bg-mf-warn/[0.06] p-5 lg:flex-row lg:items-center">
+          <div className="flex items-center gap-3 lg:w-64 lg:shrink-0">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-mf-warn/15 text-mf-warn">
+              <PenLine className="size-4" />
+            </span>
+            <div>
+              <div className="text-[15px] font-semibold text-white">{tr("Rascunho pronto", "Draft ready")}</div>
+              <div className="text-[13px] text-mf-700">{tr("Revise antes de aprovar.", "Review before approving.")}</div>
+            </div>
+          </div>
+          <ol className="grid flex-1 gap-2 sm:grid-cols-3">
+            {[
+              { label: tr("Leia os itens e clique para corrigir", "Read the items and click to correct"), action: () => setTab("ata") },
+              { label: tr("Confira quem falou na aba Falantes", "Check who spoke in the Speakers tab"), action: () => setTab("speakers") },
+              { label: tr("Aprove para entrar no Registro Geral", "Approve to enter the General Register"), action: () => setApproving(true) },
+            ].map((step, index) => (
+              <li key={step.label}>
+                <button type="button" onClick={step.action} className="flex w-full items-center gap-3 rounded-lg border border-mf-400 bg-black/40 px-3.5 py-2.5 text-left text-[13.5px] text-mf-900 transition-colors hover:border-mf-600 hover:text-white">
+                  <span className="mf-num flex size-6 shrink-0 items-center justify-center rounded-full border border-mf-500 text-[11.5px] text-white">{index + 1}</span>
+                  {step.label}
+                </button>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+      {ata && approved && (
+        <div className="flex flex-col gap-4 rounded-2xl border border-mf-ok/30 bg-mf-ok/[0.06] p-5 sm:flex-row sm:items-center">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-mf-ok/15 text-mf-ok">
+            <Lock className="size-4" />
+          </span>
+          <div className="flex-1">
+            <div className="text-[15px] font-semibold text-white">
+              {tr("Ata aprovada", "Minutes approved")} · {meeting.approvedBy}
+            </div>
+            <div className="text-[13px] text-mf-700">{tr("Os itens já estão no Registro Geral do projeto. Baixe o PDF para enviar aos participantes.", "The items are in the project's General Register. Download the PDF to send to participants.")}</div>
+          </div>
+          <Button variant="primary" icon={<Printer className="size-4" />} onClick={() => window.open(`/mf/atas/${meeting.id}/imprimir?view=${view}&auto=1`, "_blank")}>
+            {tr("Baixar PDF", "Download PDF")}
+          </Button>
+        </div>
+      )}
     </div>
   );
 
@@ -196,20 +244,27 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
       {ata && meeting.status !== "processing" && meeting.status !== "failed" && (
         <>
           <div className="mf-scroll sticky top-14 z-20 -mx-4 mt-2 flex gap-1 overflow-x-auto border-b border-mf-300 bg-mf-50/95 px-4 backdrop-blur sm:-mx-6 sm:px-6 lg:top-0 lg:-mx-10 lg:px-10">
-            {(["ata", "transcript", "speakers", "actions"] as const).map((key) => (
+            {(
+              [
+                { key: "ata", icon: FileText, count: ata.items.length },
+                { key: "transcript", icon: AudioLines, count: meeting.segments.length },
+                { key: "speakers", icon: Users, count: meeting.speakers.length },
+                { key: "actions", icon: ListChecks, count: ata.items.filter((i) => i.isAction || i.status === "progress").length },
+              ] as const
+            ).map(({ key, icon: Icon, count }) => (
               <button
                 key={key}
                 type="button"
                 onClick={() => setTab(key)}
+                aria-current={tab === key ? "page" : undefined}
                 className={cx(
-                  "relative h-12 shrink-0 px-3 text-[13px] font-semibold transition-colors",
+                  "relative inline-flex h-13 shrink-0 items-center gap-2 px-3.5 text-[14px] font-semibold transition-colors",
                   tab === key ? "text-white" : "text-mf-600 hover:text-mf-900",
                 )}
               >
+                <Icon className="size-4" />
                 {c.ws.tabs[key]}
-                {key === "actions" && (
-                  <span className="mf-num ml-1.5 text-[11px] text-mf-600">{ata.items.filter((i) => i.isAction || i.status === "progress").length}</span>
-                )}
+                <span className={cx("mf-num rounded px-1.5 text-[11px]", tab === key ? "bg-white text-black" : "bg-mf-300 text-mf-700")}>{count}</span>
                 {tab === key && <span className="absolute inset-x-3 bottom-0 h-[2px] bg-white" />}
               </button>
             ))}
@@ -298,6 +353,41 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
         </Modal>
       )}
     </Page>
+  );
+}
+
+function MoreMenu({ items }: { items: { icon: LucideIcon; label: string; action: () => void; danger?: boolean; disabled?: boolean }[] }) {
+  const tr = useTr();
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <Button variant="ghost" icon={<Ellipsis className="size-4" />} onClick={() => setOpen(!open)} aria-label={tr("Mais ações", "More actions")} aria-expanded={open} />
+      {open && (
+        <>
+          <button type="button" aria-label={tr("Fechar", "Close")} className="fixed inset-0 z-30 cursor-default" onClick={() => setOpen(false)} />
+          <div className="mf-rise absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-lg border border-mf-400 bg-mf-150 py-1 shadow-2xl">
+            {items.map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                disabled={item.disabled}
+                onClick={() => {
+                  setOpen(false);
+                  item.action();
+                }}
+                className={cx(
+                  "flex w-full items-center gap-3 px-4 py-2.5 text-left text-[13.5px] hover:bg-mf-300 disabled:opacity-40",
+                  item.danger ? "text-mf-rec" : "text-mf-900 hover:text-white",
+                )}
+              >
+                <item.icon className="size-4" />
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -472,6 +562,7 @@ const STAGES = ["preparing", "transcribing", "drafting"] as const;
 
 function ProcessingView({ meeting, job }: { meeting: Meeting; job: JobView | null }) {
   const { c } = useCopy();
+  const tr = useTr();
   const [now, setNow] = useState(() => Date.now());
   const feed = useRef<HTMLDivElement>(null);
 
@@ -540,7 +631,10 @@ function ProcessingView({ meeting, job }: { meeting: Meeting; job: JobView | nul
             );
           })}
         </ol>
-        <p className="mt-7 border-t border-mf-300 pt-4 text-[12px] leading-relaxed text-mf-600">{c.job.roam}</p>
+        <p className="mt-7 border-t border-mf-300 pt-4 text-[13px] leading-relaxed text-mf-700">
+          {tr("Normalmente leva de 1 a 3 minutos, conforme a duração da reunião.", "Usually takes 1 to 3 minutes, depending on the meeting length.")}
+        </p>
+        <p className="mt-2 text-[13px] leading-relaxed text-mf-600">{c.job.roam}</p>
       </Card>
 
       <Card className="flex min-h-[420px] flex-col overflow-hidden">

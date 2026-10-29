@@ -36,7 +36,7 @@ body:has(.mf-root)::after {
 
 .mf-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #2a2a2a transparent;
+  scrollbar-color: #3a3a3a transparent;
 }
 
 .mf-hairline {
@@ -236,5 +236,37 @@ body:has(.mf-root)::after {
 
   .mf-watermark {
     position: fixed;
+  }
+}
+
+/* Tailwind v4 resets buttons to the default cursor; everything clickable here shows a hand. */
+.mf-root button:not(:disabled),
+.mf-root [role="button"],
+.mf-root summary,
+.mf-root label:has(input[type="checkbox"]) {
+  cursor: pointer;
+}
+
+.mf-root :focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.mf-card-hover {
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+.mf-card-hover:hover {
+  border-color: #6b6b6b;
+  background-color: #141414;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mf-root *,
+  .mf-root *::before,
+  .mf-root *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
   }
 }

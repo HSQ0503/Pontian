@@ -39,18 +39,18 @@
 
   /* Minerbo-Fuchs workspace (/mf): MF's monochrome palette, 0 = black. */
   --color-mf-0: #000000;
-  --color-mf-50: #060606;
-  --color-mf-100: #0b0b0b;
-  --color-mf-150: #101010;
-  --color-mf-200: #161616;
-  --color-mf-300: #1e1e1e;
-  --color-mf-400: #2a2a2a;
-  --color-mf-500: #3b3b3b;
-  --color-mf-600: #5c5c5c;
-  --color-mf-700: #8a8a8a;
-  --color-mf-800: #b3b3b3;
-  --color-mf-900: #dcdcdc;
-  --color-mf-950: #f3f3f3;
+  --color-mf-50: #070707;
+  --color-mf-100: #0d0d0d;
+  --color-mf-150: #121212;
+  --color-mf-200: #191919;
+  --color-mf-300: #232323;
+  --color-mf-400: #2f2f2f;
+  --color-mf-500: #454545;
+  --color-mf-600: #808080;
+  --color-mf-700: #a6a6a6;
+  --color-mf-800: #c6c6c6;
+  --color-mf-900: #e4e4e4;
+  --color-mf-950: #f5f5f5;
   --color-mf-rec: #ff453a;
   --color-mf-warn: #f2b64a;
   --color-mf-ok: #46cf7f;

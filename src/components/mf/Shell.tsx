@@ -9,6 +9,7 @@ import {
   Brain,
   Building,
   CalendarRange,
+  LifeBuoy,
   FileText,
   FolderOpen,
   LayoutDashboard,
@@ -27,10 +28,10 @@ import { cx, Segmented } from "./ui";
 type NavItem = { href: string; label: string; icon: LucideIcon; preview?: boolean; exact?: boolean };
 
 function useNav() {
-  const { c } = useCopy();
-  const groups: { label: string; items: NavItem[] }[] = [
+  const { c, lang } = useCopy();
+  const groups: { label: string; muted?: boolean; items: NavItem[] }[] = [
     {
-      label: c.groups.operation,
+      label: lang === "pt" ? "Trabalho" : "Work",
       items: [
         { href: "/mf", label: c.nav.dashboard, icon: LayoutDashboard, exact: true },
         { href: "/mf/atas", label: c.nav.atas, icon: FileText },
@@ -39,14 +40,16 @@ function useNav() {
       ],
     },
     {
-      label: c.groups.knowledge,
+      label: lang === "pt" ? "Em breve" : "Coming soon",
+      muted: true,
       items: [
         { href: "/mf/brain", label: c.nav.brain, icon: Brain, preview: true },
         { href: "/mf/documentos", label: c.nav.documents, icon: FolderOpen, preview: true },
+        { href: "/mf/prazos", label: c.nav.schedule, icon: CalendarRange, preview: true },
+        { href: "/mf/revit", label: c.nav.revit, icon: Box, preview: true },
       ],
     },
-    { label: c.groups.management, items: [{ href: "/mf/prazos", label: c.nav.schedule, icon: CalendarRange, preview: true }] },
-    { label: c.groups.engineering, items: [{ href: "/mf/revit", label: c.nav.revit, icon: Box, preview: true }] },
+    { label: lang === "pt" ? "Suporte" : "Support", items: [{ href: "/mf/ajuda", label: lang === "pt" ? "Como usar" : "How to use", icon: LifeBuoy }] },
   ];
   return groups;
 }
@@ -100,18 +103,14 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   href={item.href}
                   onClick={onNavigate}
                   className={cx(
-                    "group relative flex h-9 items-center gap-3 rounded-md px-3 text-[13px] font-medium transition-colors",
-                    active ? "bg-mf-200 text-white" : "text-mf-700 hover:bg-mf-150 hover:text-white",
+                    "group relative flex h-10 items-center gap-3 rounded-md px-3 text-[14px] font-medium transition-colors",
+                    active ? "bg-mf-200 text-white" : item.preview ? "text-mf-600 hover:bg-mf-150 hover:text-mf-900" : "text-mf-800 hover:bg-mf-150 hover:text-white",
                   )}
                 >
                   {active && <span className="absolute -left-3 top-2 h-5 w-[3px] rounded-r bg-white" />}
                   <item.icon className={cx("size-[17px]", active ? "text-white" : "text-mf-600 group-hover:text-mf-900")} strokeWidth={1.75} />
                   <span className="flex-1">{item.label}</span>
-                  {item.preview && (
-                    <span className="rounded-sm border border-mf-400 px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.12em] text-mf-600">
-                      {c.preview}
-                    </span>
-                  )}
+
                 </Link>
               );
             })}

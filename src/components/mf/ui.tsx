@@ -20,9 +20,9 @@ const VARIANTS: Record<Variant, string> = {
 };
 
 const SIZES: Record<Size, string> = {
-  sm: "h-8 gap-1.5 px-3 text-[12px]",
-  md: "h-10 gap-2 px-4 text-[13px]",
-  lg: "h-12 gap-2.5 px-6 text-[14px]",
+  sm: "h-9 gap-1.5 px-3.5 text-[13px]",
+  md: "h-11 gap-2 px-4.5 text-[14px]",
+  lg: "h-13 gap-2.5 px-6 text-[15px]",
 };
 
 type ButtonProps = {
@@ -67,7 +67,7 @@ export function IconButton({ label, className, children, ...rest }: { label: str
       aria-label={label}
       title={label}
       className={cx(
-        "inline-flex size-9 items-center justify-center rounded-md text-mf-700 transition-colors hover:bg-mf-200 hover:text-white focus-visible:outline-2 focus-visible:outline-white",
+        "inline-flex size-10 items-center justify-center rounded-md text-mf-700 transition-colors hover:bg-mf-200 hover:text-white focus-visible:outline-2 focus-visible:outline-white",
         className,
       )}
       {...rest}
@@ -92,8 +92,8 @@ export function PageHeader({
     <header className="flex flex-col gap-5 border-b border-mf-300 pb-7 md:flex-row md:items-end md:justify-between">
       <div className="max-w-3xl">
         {eyebrow && <div className="mf-eyebrow mb-3 text-mf-700">{eyebrow}</div>}
-        <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.01em] text-white md:text-[32px]">{title}</h1>
-        {lead && <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-mf-700">{lead}</p>}
+        <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.01em] text-white md:text-[34px]">{title}</h1>
+        {lead && <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-mf-700">{lead}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </header>
@@ -120,8 +120,8 @@ export function CardHeader({ title, lead, action }: { title: ReactNode; lead?: R
   return (
     <div className="flex items-start justify-between gap-4 border-b border-mf-300 px-5 py-4">
       <div>
-        <h2 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-white">{title}</h2>
-        {lead && <p className="mt-1 text-[12.5px] leading-relaxed text-mf-700">{lead}</p>}
+        <h2 className="text-[13.5px] font-semibold uppercase tracking-[0.12em] text-white">{title}</h2>
+        {lead && <p className="mt-1 text-[13.5px] leading-relaxed text-mf-700">{lead}</p>}
       </div>
       {action}
     </div>
@@ -194,18 +194,18 @@ export function RiskBars({ risk, lang, showLabel = true }: { risk: Risk; lang: "
 export function Field({ label, hint, children, className }: { label: ReactNode; hint?: ReactNode; children: ReactNode; className?: string }) {
   return (
     <label className={cx("flex flex-col gap-1.5", className)}>
-      <span className="text-[11.5px] font-semibold uppercase tracking-[0.1em] text-mf-700">{label}</span>
+      <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-mf-700">{label}</span>
       {children}
-      {hint && <span className="text-[11.5px] leading-snug text-mf-600">{hint}</span>}
+      {hint && <span className="text-[12.5px] leading-snug text-mf-600">{hint}</span>}
     </label>
   );
 }
 
 const control =
-  "w-full rounded-md border border-mf-400 bg-mf-50 px-3 text-[13.5px] text-white placeholder:text-mf-600 transition-colors focus:border-mf-800 focus:outline-none focus:ring-2 focus:ring-white/10 disabled:opacity-60";
+  "w-full rounded-lg border border-mf-500 bg-mf-50 px-3.5 text-[14.5px] text-white placeholder:text-mf-600 transition-colors focus:border-mf-800 focus:outline-none focus:ring-2 focus:ring-white/10 disabled:opacity-60";
 
 export function Input({ className, ...rest }: ComponentProps<"input">) {
-  return <input className={cx(control, "h-10", className)} {...rest} />;
+  return <input className={cx(control, "h-11", className)} {...rest} />;
 }
 
 export function Textarea({ className, ...rest }: ComponentProps<"textarea">) {
@@ -215,7 +215,7 @@ export function Textarea({ className, ...rest }: ComponentProps<"textarea">) {
 export function Select({ className, children, ...rest }: ComponentProps<"select">) {
   return (
     <span className={cx("relative block", className)}>
-      <select className={cx(control, "h-10 appearance-none pr-9")} {...rest}>
+      <select className={cx(control, "h-11 appearance-none pr-9")} {...rest}>
         {children}
       </select>
       <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-mf-700" />
@@ -235,7 +235,7 @@ export function Segmented<T extends string>({
   size?: "sm" | "md";
 }) {
   return (
-    <div className="inline-flex rounded-md border border-mf-400 bg-mf-50 p-0.5" role="radiogroup">
+    <div className="inline-flex rounded-lg border border-mf-500 bg-mf-50 p-0.5" role="radiogroup">
       {options.map((option) => (
         <button
           key={option.value}
@@ -245,7 +245,7 @@ export function Segmented<T extends string>({
           onClick={() => onChange(option.value)}
           className={cx(
             "inline-flex items-center gap-1.5 whitespace-nowrap rounded-[5px] font-semibold transition-colors",
-            size === "sm" ? "h-7 px-2.5 text-[11.5px]" : "h-8 px-3 text-[12.5px]",
+            size === "sm" ? "h-8 px-3 text-[12.5px]" : "h-10 px-3.5 text-[13.5px]",
             value === option.value ? "bg-white text-black" : "text-mf-700 hover:text-white",
           )}
         >
@@ -308,8 +308,8 @@ export function Empty({ icon, title, lead, action }: { icon: ReactNode; title: R
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-mf-400 px-6 py-16 text-center">
       <div className="mb-4 flex size-12 items-center justify-center rounded-full border border-mf-400 text-mf-800">{icon}</div>
-      <h3 className="text-[15px] font-semibold text-white">{title}</h3>
-      {lead && <p className="mt-2 max-w-md text-[13px] leading-relaxed text-mf-700">{lead}</p>}
+      <h3 className="text-[17px] font-semibold text-white">{title}</h3>
+      {lead && <p className="mt-2 max-w-md text-[14px] leading-relaxed text-mf-700">{lead}</p>}
       {action && <div className="mt-6">{action}</div>}
     </div>
   );
