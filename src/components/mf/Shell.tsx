@@ -1,0 +1,209 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  BookOpen,
+  Box,
+  Brain,
+  Building,
+  CalendarRange,
+  FileText,
+  FolderOpen,
+  LayoutDashboard,
+  LoaderCircle,
+  Menu,
+  Plus,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { useCopy } from "@/lib/mf/copy";
+import { arCode } from "@/lib/mf/format";
+import { useMf } from "@/lib/mf/store";
+import { cx, Segmented } from "./ui";
+
+type NavItem = { href: string; label: string; icon: LucideIcon; preview?: boolean; exact?: boolean };
+
+function useNav() {
+  const { c } = useCopy();
+  const groups: { label: string; items: NavItem[] }[] = [
+    {
+      label: c.groups.operation,
+      items: [
+        { href: "/mf", label: c.nav.dashboard, icon: LayoutDashboard, exact: true },
+        { href: "/mf/atas", label: c.nav.atas, icon: FileText },
+        { href: "/mf/registro", label: c.nav.registry, icon: BookOpen },
+        { href: "/mf/projetos", label: c.nav.projects, icon: Building },
+      ],
+    },
+    {
+      label: c.groups.knowledge,
+      items: [
+        { href: "/mf/brain", label: c.nav.brain, icon: Brain, preview: true },
+        { href: "/mf/documentos", label: c.nav.documents, icon: FolderOpen, preview: true },
+      ],
+    },
+    { label: c.groups.management, items: [{ href: "/mf/prazos", label: c.nav.schedule, icon: CalendarRange, preview: true }] },
+    { label: c.groups.engineering, items: [{ href: "/mf/revit", label: c.nav.revit, icon: Box, preview: true }] },
+  ];
+  return groups;
+}
+
+function Logo() {
+  const { c } = useCopy();
+  return (
+    <Link href="/mf" className="flex items-center gap-3.5">
+      <Image src="/mf/mf-logo-black.png" alt="Minerbo-Fuchs" width={206} height={105} priority className="h-[34px] w-auto invert" />
+      <span className="h-8 w-px bg-mf-400" />
+      <span className="flex flex-col leading-none">
+        <span className="text-[13px] font-bold tracking-[0.18em] text-white">{c.brand.toUpperCase()}</span>
+        <span className="mt-1.5 text-[9.5px] font-medium uppercase tracking-[0.2em] text-mf-600">Engenharia</span>
+      </span>
+    </Link>
+  );
+}
+
+function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = usePathname();
+  const groups = useNav();
+  const { c, lang, setLocale } = useCopy();
+  const { meetings } = useMf();
+  const processing = meetings.filter((m) => m.status === "processing");
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="px-6 pb-6 pt-7">
+        <Logo />
+      </div>
+      <div className="px-4">
+        <Link
+          href="/mf/atas/nova"
+          onClick={onNavigate}
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-white text-[13px] font-semibold text-black transition-colors hover:bg-mf-900"
+        >
+          <Plus className="size-4" />
+          {c.newAta}
+        </Link>
+      </div>
+
+      <nav className="mf-scroll mt-6 flex-1 overflow-y-auto px-3">
+        {groups.map((group) => (
+          <div key={group.label} className="mb-5">
+            <div className="mf-eyebrow mb-2 px-3 text-mf-600">{group.label}</div>
+            {group.items.map((item) => {
+              const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onNavigate}
+                  className={cx(
+                    "group relative flex h-9 items-center gap-3 rounded-md px-3 text-[13px] font-medium transition-colors",
+                    active ? "bg-mf-200 text-white" : "text-mf-700 hover:bg-mf-150 hover:text-white",
+                  )}
+                >
+                  {active && <span className="absolute -left-3 top-2 h-5 w-[3px] rounded-r bg-white" />}
+                  <item.icon className={cx("size-[17px]", active ? "text-white" : "text-mf-600 group-hover:text-mf-900")} strokeWidth={1.75} />
+                  <span className="flex-1">{item.label}</span>
+                  {item.preview && (
+                    <span className="rounded-sm border border-mf-400 px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.12em] text-mf-600">
+                      {c.preview}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
+
+        {processing.length > 0 && (
+          <div className="mb-5 rounded-lg border border-mf-400 bg-mf-150 p-3">
+            {processing.map((meeting) => (
+              <Link key={meeting.id} href={`/mf/atas/${meeting.id}`} onClick={onNavigate} className="flex items-center gap-2.5 py-1 text-[12px] text-mf-800 hover:text-white">
+                <LoaderCircle className="size-3.5 animate-spin" />
+                <span className="mf-num text-[11px]">{arCode(meeting.ar)}</span>
+                <span className="truncate">{c.meetingStatus.processing}</span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </nav>
+
+      <div className="border-t border-mf-300 px-5 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="flex size-8 items-center justify-center rounded-full border border-mf-400 text-[11px] font-semibold text-white">MF</span>
+            <span className="text-[12px] font-medium text-mf-800">{c.user}</span>
+          </div>
+          <Segmented
+            size="sm"
+            value={lang}
+            onChange={setLocale}
+            options={[
+              { value: "pt", label: "PT" },
+              { value: "en", label: "EN" },
+            ]}
+          />
+        </div>
+        <p className="mt-3 text-[10.5px] text-mf-600">{c.builtBy}</p>
+      </div>
+    </div>
+  );
+}
+
+export function MfShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const { c } = useCopy();
+  const [open, setOpen] = useState(false);
+
+  // The print view is a bare sheet of paper.
+  if (pathname.endsWith("/imprimir")) return <>{children}</>;
+
+  return (
+    <div className="flex min-h-dvh bg-mf-50 text-mf-900">
+      <aside className="sticky top-0 hidden h-dvh w-[264px] shrink-0 border-r border-mf-300 bg-mf-0 lg:block">
+        <Sidebar />
+      </aside>
+
+      {open && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <button type="button" aria-label={c.close} className="absolute inset-0 bg-black/70" onClick={() => setOpen(false)} />
+          <aside className="mf-rise relative h-full w-[284px] max-w-[85vw] border-r border-mf-400 bg-mf-0">
+            <button
+              type="button"
+              aria-label={c.close}
+              onClick={() => setOpen(false)}
+              className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-md text-mf-700 hover:text-white"
+            >
+              <X className="size-4" />
+            </button>
+            <Sidebar onNavigate={() => setOpen(false)} />
+          </aside>
+        </div>
+      )}
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-mf-300 bg-mf-0/90 px-4 backdrop-blur lg:hidden">
+          <button
+            type="button"
+            aria-label={c.menu}
+            onClick={() => setOpen(true)}
+            className="flex size-9 items-center justify-center rounded-md text-mf-800 hover:bg-mf-200"
+          >
+            <Menu className="size-5" />
+          </button>
+          <Link href="/mf" className="flex items-center gap-2.5">
+            <Image src="/mf/mf-logo-black.png" alt="Minerbo-Fuchs" width={206} height={105} className="h-6 w-auto invert" />
+            <span className="text-[11px] font-bold tracking-[0.18em] text-white">{c.brand.toUpperCase()}</span>
+          </Link>
+          <Link href="/mf/atas/nova" aria-label={c.newAta} className="flex size-9 items-center justify-center rounded-md bg-white text-black">
+            <Plus className="size-4" />
+          </Link>
+        </header>
+        <main className="min-w-0 flex-1">{children}</main>
+      </div>
+    </div>
+  );
+}

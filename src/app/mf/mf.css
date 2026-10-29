@@ -1,0 +1,240 @@
+/* Brain MF workspace. Tokens live in globals.css (@theme, --color-mf-*). */
+
+body:has(.mf-root) {
+  background: #000;
+}
+
+/* The marketing site's film grain stays off inside the client workspace. */
+body:has(.mf-root)::after {
+  display: none;
+}
+
+.mf-root {
+  font-family: var(--font-mf-sans), "Helvetica Neue", Arial, sans-serif;
+  color: #dcdcdc;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "tnum" 0;
+}
+
+.mf-root ::selection {
+  background: rgba(255, 255, 255, 0.24);
+  color: #fff;
+}
+
+.mf-eyebrow {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.mf-num {
+  font-family: var(--font-mf-code), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.mf-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a2a transparent;
+}
+
+.mf-hairline {
+  background-image: linear-gradient(90deg, transparent, #2a2a2a, transparent);
+  height: 1px;
+}
+
+.mf-grid-bg {
+  background-image:
+    linear-gradient(#161616 1px, transparent 1px),
+    linear-gradient(90deg, #161616 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+@keyframes mf-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.mf-rise {
+  animation: mf-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes mf-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 69, 58, 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 22px rgba(255, 69, 58, 0);
+  }
+}
+
+.mf-rec-ring {
+  animation: mf-pulse-ring 1.6s ease-out infinite;
+}
+
+@keyframes mf-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.mf-blink {
+  animation: mf-blink 1.2s steps(2, start) infinite;
+}
+
+@keyframes mf-shimmer {
+  from {
+    background-position: -320px 0;
+  }
+  to {
+    background-position: 320px 0;
+  }
+}
+
+.mf-skeleton {
+  background: linear-gradient(90deg, #161616 0, #1e1e1e 160px, #161616 320px);
+  background-size: 640px 100%;
+  animation: mf-shimmer 1.4s linear infinite;
+}
+
+@keyframes mf-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+.mf-indeterminate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  animation: mf-sweep 1.6s ease-in-out infinite;
+}
+
+/* The ata itself: a white A4 sheet, the way MF issues it. */
+.mf-paper {
+  background: #fff;
+  color: #111;
+  font-family: var(--font-mf-sans), "Helvetica Neue", Arial, sans-serif;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.mf-paper table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mf-paper th,
+.mf-paper td {
+  border: 1px solid #cfcfcf;
+  padding: 5px 6px;
+  vertical-align: top;
+  text-align: left;
+}
+
+.mf-paper th {
+  background: #000;
+  color: #fff;
+  font-weight: 600;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-color: #000;
+}
+
+.mf-paper .mf-en {
+  color: #5a5a5a;
+  font-style: italic;
+}
+
+.mf-paper .mf-row-section td {
+  background: #e7e7e7;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mf-paper .mf-row-subsection td {
+  background: #f4f4f4;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 9.5px;
+}
+
+.mf-paper .mf-item:hover td {
+  background: #f7f7f7;
+}
+
+.mf-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  font-size: 120px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgba(0, 0, 0, 0.045);
+  transform: rotate(-28deg);
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 11mm 9mm 13mm;
+
+    @bottom-right {
+      content: counter(page) " / " counter(pages);
+      font: 8pt Arial, sans-serif;
+      color: #777;
+    }
+  }
+
+  html,
+  body,
+  body:has(.mf-root) {
+    background: #fff !important;
+  }
+
+  .mf-no-print {
+    display: none !important;
+  }
+
+  .mf-paper {
+    box-shadow: none !important;
+    margin: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    padding: 0 !important;
+    font-size: 9pt;
+  }
+
+  .mf-paper thead {
+    display: table-header-group;
+  }
+
+  .mf-paper tr {
+    break-inside: avoid;
+  }
+
+  .mf-paper .mf-item:hover td {
+    background: none;
+  }
+
+  .mf-watermark {
+    position: fixed;
+  }
+}

@@ -36,6 +36,26 @@
   --font-body: var(--font-body-serif), Georgia, serif;
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Minerbo-Fuchs workspace (/mf): MF's monochrome palette, 0 = black. */
+  --color-mf-0: #000000;
+  --color-mf-50: #060606;
+  --color-mf-100: #0b0b0b;
+  --color-mf-150: #101010;
+  --color-mf-200: #161616;
+  --color-mf-300: #1e1e1e;
+  --color-mf-400: #2a2a2a;
+  --color-mf-500: #3b3b3b;
+  --color-mf-600: #5c5c5c;
+  --color-mf-700: #8a8a8a;
+  --color-mf-800: #b3b3b3;
+  --color-mf-900: #dcdcdc;
+  --color-mf-950: #f3f3f3;
+  --color-mf-rec: #ff453a;
+  --color-mf-warn: #f2b64a;
+  --color-mf-ok: #46cf7f;
+  --font-mf: var(--font-mf-sans), "Helvetica Neue", Arial, sans-serif;
+  --font-mf-mono: var(--font-mf-code), ui-monospace, monospace;
 }
 
 html,
