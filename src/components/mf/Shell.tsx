@@ -20,7 +20,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { Fragment, useEffect, useState, type ReactNode } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { useCopy } from "@/lib/mf/copy";
 import { arCode } from "@/lib/mf/format";
 import { useMf } from "@/lib/mf/store";
@@ -229,31 +229,6 @@ export function MfShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { c } = useCopy();
   const [open, setOpen] = useState(false);
-
-  // Glass surfaces catch a soft light under the pointer; one listener serves them all.
-  useEffect(() => {
-    const surfaces = ".glass, .glass-strong, .glass-pill";
-    const move = (event: PointerEvent) => {
-      const surface = (event.target as Element | null)?.closest?.(surfaces) as HTMLElement | null;
-      if (!surface) return;
-      const rect = surface.getBoundingClientRect();
-      surface.style.setProperty("--mx", `${event.clientX - rect.left}px`);
-      surface.style.setProperty("--my", `${event.clientY - rect.top}px`);
-    };
-    const leave = (event: PointerEvent) => {
-      const surface = (event.target as Element | null)?.closest?.(surfaces) as HTMLElement | null;
-      if (surface && !surface.contains(event.relatedTarget as Node | null)) {
-        surface.style.removeProperty("--mx");
-        surface.style.removeProperty("--my");
-      }
-    };
-    document.addEventListener("pointermove", move, { passive: true });
-    document.addEventListener("pointerout", leave, { passive: true });
-    return () => {
-      document.removeEventListener("pointermove", move);
-      document.removeEventListener("pointerout", leave);
-    };
-  }, []);
 
   // The print view is a bare sheet of paper.
   if (pathname.endsWith("/imprimir") || pathname === "/mf/acesso") return <>{children}</>;

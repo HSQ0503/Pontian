@@ -350,7 +350,7 @@ body:has(.mf-root)::after {
     background: #fff;
   }
 
-  /* Specular sheen across the top, plus a soft light that follows the pointer. */
+  /* Specular sheen across the top. */
   .glass::before,
   .glass-strong::before,
   .glass-pill::before {
@@ -360,9 +360,7 @@ body:has(.mf-root)::after {
     z-index: -1;
     border-radius: inherit;
     pointer-events: none;
-    background:
-      radial-gradient(240px circle at var(--mx, -400px) var(--my, -400px), rgba(255, 255, 255, 0.15), transparent 70%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0) 42%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0) 42%);
   }
 
   /* Light-catching rim: brighter on the top-left edge, as on Apple's glass. */
