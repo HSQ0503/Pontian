@@ -80,7 +80,7 @@ export function AtasList() {
           <Card className="mt-4 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-left">
-                <thead className="border-b border-mf-300 text-[10.5px] uppercase tracking-[0.12em] text-mf-600">
+                <thead className="border-b border-mf-300 text-[11.5px] text-mf-600">
                   <tr>
                     <th className="px-5 py-3 font-semibold">{c.atas.colAr}</th>
                     <th className="px-5 py-3 font-semibold">{c.atas.colTitle}</th>

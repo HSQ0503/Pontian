@@ -237,7 +237,7 @@ export function Recorder({ onChange }: { onChange: (recording: Recording | null)
       {!live && (
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-1.5">
-            <span className="text-[11.5px] font-semibold uppercase tracking-[0.1em] text-mf-700">{c.source.mic}</span>
+            <span className="text-[12.5px] font-medium text-mf-700">{c.source.mic}</span>
             <Select value={deviceId} onChange={(event) => setDeviceId(event.target.value)}>
               <option value="">Padrão do sistema / System default</option>
               {devices.map((device) => (

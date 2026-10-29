@@ -1,14 +1,15 @@
 "use client";
 
-import { ArrowRight, ArrowUpRight, Box, Brain, CalendarRange, Download, FileText, FolderOpen, Mic, PenLine, Sparkles, Upload } from "lucide-react";
+import { ArrowRight, FileText, Upload } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, type ReactNode } from "react";
 import { pick, useCopy, useTr } from "@/lib/mf/copy";
-import { arCode, daysUntil, longDate, shortDate, todayIso } from "@/lib/mf/format";
+import { arCode, daysUntil, shortDate, todayIso } from "@/lib/mf/format";
 import { buildRegistry } from "@/lib/mf/registry";
 import { useMf } from "@/lib/mf/store";
 import type { Meeting, Project, RgEntry } from "@/lib/mf/types";
-import { Card, cx, LoadingPage, Page } from "./ui";
+import { Button, cx, LoadingPage, Page } from "./ui";
 
 type OpenAction = RgEntry & { project: Project };
 
@@ -31,214 +32,215 @@ export function Dashboard() {
   const actions = useOpenActions(mf.projects, mf.meetings);
   if (!mf.ready) return <LoadingPage />;
 
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? c.dashboard.morning : hour < 18 ? c.dashboard.afternoon : c.dashboard.evening;
   const drafts = mf.meetings.filter((m) => m.status === "draft");
-  const overdue = actions.filter((a) => (daysUntil(a.deadline) ?? 0) < 0).length;
-  const dueSoon = actions.filter((a) => {
+  const dueWeek = actions.filter((a) => {
     const days = daysUntil(a.deadline);
     return days !== null && days >= 0 && days <= 7;
   }).length;
+  const overdue = actions.filter((a) => (daysUntil(a.deadline) ?? 0) < 0).length;
+  const month = todayIso().slice(0, 7);
+  const monthMinutes = mf.meetings.filter((m) => m.date.startsWith(month)).length;
+  const activeProjects = new Set(actions.map((a) => a.project.id)).size;
   const projectOf = (id: string) => mf.projects.find((p) => p.id === id);
-
-  const starts = [
-    { href: "/mf/atas/nova?modo=gravar", icon: Mic, title: tr("Gravar reunião", "Record a meeting"), text: tr("Comece a gravar agora pelo computador.", "Start recording now from this computer."), primary: true },
-    { href: "/mf/atas/nova?modo=arquivo", icon: Upload, title: tr("Enviar gravação", "Upload a recording"), text: tr("Áudio ou vídeo do Teams ou do celular.", "Audio or video from Teams or a phone.") },
-    { href: "/mf/atas/nova?modo=texto", icon: FileText, title: tr("Colar transcrição", "Paste a transcript"), text: tr("Texto pronto do Teams, Zoom ou Meet.", "Ready text from Teams, Zoom or Meet.") },
-  ];
-  const how = [
-    { icon: Mic, title: tr("Grave ou envie", "Record or upload"), text: tr("A reunião entra por gravação, arquivo ou texto.", "The meeting comes in as a recording, file or text.") },
-    { icon: Sparkles, title: tr("A IA escreve", "AI drafts it"), text: tr("Itens por disciplina, em PT e EN, no modelo do RG.", "Items by discipline, in PT and EN, in the RG format.") },
-    { icon: PenLine, title: tr("Você revisa", "You review"), text: tr("Clique em qualquer item para corrigir.", "Click any item to correct it.") },
-    { icon: Download, title: tr("Aprove e baixe", "Approve and download"), text: tr("PDF da ata e linhas prontas para o RG.", "Minutes PDF and rows ready for the RG.") },
-  ];
-  const soon = [
-    { href: "/mf/brain", icon: Brain, title: c.nav.brain },
-    { href: "/mf/prazos", icon: CalendarRange, title: c.nav.schedule },
-    { href: "/mf/documentos", icon: FolderOpen, title: c.nav.documents },
-    { href: "/mf/revit", icon: Box, title: c.nav.revit },
-  ];
+  const today = new Date().toLocaleDateString(lang === "pt" ? "pt-BR" : "en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   return (
     <Page wide>
-      <header>
-        <div className="mf-eyebrow text-mf-600">{longDate(todayIso(), lang)}</div>
-        <h1 className="mt-2.5 text-[28px] font-semibold text-white md:text-[32px]">{greeting}</h1>
-        <p className="mt-1.5 text-[14px] text-mf-700">{tr("O que você quer fazer hoje?", "What would you like to do today?")}</p>
+      <header className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 className="text-[24px] font-semibold text-white">{tr("Visão geral", "Overview")}</h1>
+          <p className="mt-1 text-[13px] first-letter:uppercase text-mf-600">
+            {today} · Minerbo-Fuchs Engenharia
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" href="/mf/atas/nova?modo=arquivo" icon={<Upload className="size-3.5" />}>
+            {tr("Enviar gravação", "Upload recording")}
+          </Button>
+          <Button size="sm" href="/mf/atas/nova?modo=texto" icon={<FileText className="size-3.5" />}>
+            {tr("Colar transcrição", "Paste transcript")}
+          </Button>
+          <Button size="sm" variant="primary" href="/mf/atas/nova?modo=gravar" icon={<span className="size-2 rounded-full bg-mf-rec" />}>
+            {tr("Gravar reunião", "Record meeting")}
+          </Button>
+        </div>
       </header>
 
-      <section className="mt-7 border border-mf-400 bg-mf-100">
-        <div className="flex flex-col gap-1 border-b border-mf-300 px-6 py-5">
-          <h2 className="text-[15px] font-semibold text-white">{tr("Nova ata de reunião", "New meeting minutes")}</h2>
-          <p className="text-[13px] text-mf-600">{tr("Escolha como a reunião chega. A IA faz o resto em cerca de um minuto.", "Choose how the meeting comes in. The AI does the rest in about a minute.")}</p>
-        </div>
-        <div className="grid gap-px bg-mf-300 xl:grid-cols-3">
-          {starts.map((start) => (
-            <Link
-              key={start.href}
-              href={start.href}
-              className={cx("group flex items-center gap-4 px-6 py-5 transition-colors", start.primary ? "bg-white text-black hover:bg-mf-900" : "bg-mf-100 text-white hover:bg-mf-150")}
-            >
-              <span className={cx("flex size-10 shrink-0 items-center justify-center", start.primary ? "bg-black text-white" : "border border-mf-500 text-white")}>
-                <start.icon className="size-[18px]" strokeWidth={1.75} />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-[14.5px] font-semibold">{start.title}</span>
-                <span className={cx("mt-0.5 block text-[12.5px]", start.primary ? "text-black/60" : "text-mf-600")}>{start.text}</span>
-              </span>
-              <ArrowRight className={cx("size-4 shrink-0 transition-transform group-hover:translate-x-0.5", start.primary ? "text-black" : "text-mf-600 group-hover:text-white")} />
-            </Link>
-          ))}
-        </div>
-        <ol className="grid border-t border-mf-300 sm:grid-cols-2 xl:grid-cols-4">
-          {how.map((step, index) => (
-            <li key={step.title} className={cx("flex gap-3 px-6 py-4", index > 0 && "border-t border-mf-300 sm:border-t-0", index % 2 === 1 && "sm:border-l", index > 1 && "sm:border-t xl:border-t-0", index === 2 && "xl:border-l")}>
-              <span className="mf-num pt-px text-[11px] text-mf-600">{String(index + 1).padStart(2, "0")}</span>
-              <span>
-                <span className="block text-[13px] font-medium text-white">{step.title}</span>
-                <span className="mt-0.5 block text-[12.5px] leading-snug text-mf-600">{step.text}</span>
-              </span>
-            </li>
-          ))}
-        </ol>
+      <section className="mt-6 grid grid-cols-2 border border-mf-300 bg-mf-100 lg:grid-cols-4">
+        <Metric label={tr("Ações em aberto", "Open actions")} value={actions.length} note={tr(`em ${activeProjects} projetos`, `across ${activeProjects} projects`)} />
+        <Metric label={tr("Vencem nesta semana", "Due this week")} value={dueWeek} note={tr("próximos 7 dias", "next 7 days")} className="border-l border-mf-300" />
+        <Metric label={tr("Vencidas", "Overdue")} value={overdue} note={overdue ? tr("precisam de atenção", "need attention") : tr("nenhuma pendência atrasada", "nothing late")} alert={overdue > 0} className="border-t border-mf-300 lg:border-l lg:border-t-0" />
+        <Metric label={tr("Atas no mês", "Minutes this month")} value={monthMinutes} note={tr(`${drafts.length} aguardando revisão`, `${drafts.length} awaiting review`)} className="border-l border-t border-mf-300 lg:border-t-0" />
       </section>
 
       {drafts.length > 0 && (
-        <section className="mt-6 border border-mf-400 border-l-2 border-l-mf-warn bg-mf-100">
-          <div className="flex items-center justify-between gap-4 border-b border-mf-300 px-6 py-4">
-            <div>
-              <h2 className="text-[14px] font-semibold text-white">
-                {drafts.length === 1 ? tr("1 ata aguardando revisão", "1 set of minutes awaiting review") : tr(`${drafts.length} atas aguardando revisão`, `${drafts.length} sets of minutes awaiting review`)}
-              </h2>
-              <p className="mt-0.5 text-[12.5px] text-mf-600">{tr("Confira os itens e aprove para que entrem no Registro Geral.", "Check the items and approve them so they enter the General Register.")}</p>
-            </div>
-          </div>
-          <ul className="divide-y divide-mf-300">
-            {drafts.slice(0, 4).map((meeting) => (
-              <li key={meeting.id}>
-                <Link href={`/mf/atas/${meeting.id}`} className="group flex items-center gap-4 px-6 py-3 transition-colors hover:bg-mf-150">
-                  <span className="mf-num w-16 shrink-0 text-[12px] text-mf-600">{arCode(meeting.ar)}</span>
-                  <span className="min-w-0 flex-1 truncate text-[13.5px] font-medium text-white">{meeting.ata ? pick(meeting.ata.title, lang) : meeting.title}</span>
-                  <span className="hidden text-[12.5px] text-mf-600 sm:inline">ON {projectOf(meeting.projectId)?.on}</span>
-                  <span className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-white">
+        <Panel
+          className="mt-6"
+          title={tr("Aguardando revisão", "Awaiting review")}
+          aside={<span className="text-[12.5px] text-mf-600">{tr("Revise e aprove para entrar no Registro Geral", "Review and approve to add them to the General Register")}</span>}
+        >
+          <Table columns={["w-[88px]", "", "w-[120px] hidden md:table-cell", "w-[110px] hidden sm:table-cell", "w-[96px]"]} head={[tr("Ata", "Minutes"), tr("Reunião", "Meeting"), tr("Projeto", "Project"), tr("Data", "Date"), ""]}>
+            {drafts.slice(0, 5).map((meeting) => (
+              <Row key={meeting.id} href={`/mf/atas/${meeting.id}`}>
+                <td className="mf-num text-[12.5px] text-mf-700">{arCode(meeting.ar)}</td>
+                <td className="truncate text-[13.5px] font-medium text-white">{meeting.ata ? pick(meeting.ata.title, lang) : meeting.title}</td>
+                <td className="hidden whitespace-nowrap text-[13px] text-mf-700 md:table-cell">ON {projectOf(meeting.projectId)?.on}</td>
+                <td className="mf-num hidden text-[12.5px] text-mf-700 sm:table-cell">{shortDate(meeting.date)}</td>
+                <td className="text-right">
+                  <span className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-white">
                     {tr("Revisar", "Review")}
-                    <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+                    <ArrowRight className="size-3.5" />
                   </span>
-                </Link>
-              </li>
+                </td>
+              </Row>
             ))}
-          </ul>
-        </section>
+          </Table>
+        </Panel>
       )}
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <Card>
-          <div className="flex flex-wrap items-end justify-between gap-3 border-b border-mf-300 px-6 py-4">
-            <div>
-              <h2 className="mf-eyebrow text-white">{c.dashboard.actions}</h2>
-              <p className="mt-1.5 text-[12.5px] text-mf-600">{c.dashboard.actionsLead}</p>
-            </div>
-            <p className="text-[12.5px] text-mf-600">
-              <span className="font-semibold text-white">{actions.length}</span> {tr("abertas", "open")}
-              <span className="mx-2 text-mf-500">·</span>
-              <span className={cx("font-semibold", dueSoon ? "text-mf-warn" : "text-white")}>{dueSoon}</span> {tr("em 7 dias", "in 7 days")}
-              <span className="mx-2 text-mf-500">·</span>
-              <span className={cx("font-semibold", overdue ? "text-mf-rec" : "text-white")}>{overdue}</span> {tr("vencidas", "overdue")}
-            </p>
-          </div>
+      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <Panel
+          title={tr("Próximas ações", "Upcoming actions")}
+          aside={
+            <Link href="/mf/registro" className="text-[12.5px] text-mf-600 transition-colors hover:text-white">
+              {tr("Registro geral", "General register")} →
+            </Link>
+          }
+        >
           {actions.length ? (
-            <ul className="divide-y divide-mf-300">
-              {actions.slice(0, 7).map((action) => (
-                <li key={`${action.project.id}-${action.number}`}>
-                  <Link href={`/mf/registro?projeto=${action.project.id}`} className="grid grid-cols-[64px_minmax(0,1fr)_96px] gap-4 px-6 py-3.5 transition-colors hover:bg-mf-150">
-                    <span className="mf-num pt-px text-[12px] text-mf-700">{action.number}</span>
-                    <span className="min-w-0">
-                      <span className="line-clamp-2 text-[13.5px] leading-snug text-mf-950">{lang === "pt" ? action.pt : action.en}</span>
-                      <span className="mt-1 block truncate text-[12px] text-mf-600">
-                        ON {action.project.on} · {action.responsible || tr("Sem responsável", "No owner")}
-                      </span>
-                    </span>
-                    <DueCell deadline={action.deadline} />
-                  </Link>
-                </li>
+            <Table
+              columns={["w-[76px]", "", "w-[160px] hidden 2xl:table-cell", "w-[92px] hidden md:table-cell", "w-[104px]"]}
+              head={["Item", tr("Ação", "Action"), tr("Responsável", "Owner"), tr("Projeto", "Project"), tr("Prazo", "Due")]}
+            >
+              {actions.slice(0, 8).map((action) => (
+                <Row key={`${action.project.id}-${action.number}`} href={`/mf/registro?projeto=${action.project.id}`}>
+                  <td className="mf-num align-top text-[12.5px] text-mf-700">{action.number}</td>
+                  <td className="align-top">
+                    <span className="line-clamp-2 text-[13.5px] leading-snug text-mf-950">{lang === "pt" ? action.pt : action.en}</span>
+                    <span className="mt-1 block truncate text-[12px] text-mf-600 2xl:hidden">{action.responsible || "—"}</span>
+                  </td>
+                  <td className="hidden truncate align-top text-[13px] text-mf-700 2xl:table-cell">{action.responsible || "—"}</td>
+                  <td className="hidden whitespace-nowrap align-top text-[13px] text-mf-700 md:table-cell">ON {action.project.on}</td>
+                  <td className="align-top text-right">
+                    <Due deadline={action.deadline} />
+                  </td>
+                </Row>
               ))}
-            </ul>
+            </Table>
           ) : (
-            <p className="px-6 py-12 text-center text-[13.5px] text-mf-600">{c.dashboard.noActions}</p>
+            <p className="px-5 py-12 text-center text-[13.5px] text-mf-600">{c.dashboard.noActions}</p>
           )}
-        </Card>
+        </Panel>
 
-        <div className="flex flex-col gap-6">
-          <Card>
-            <div className="flex items-center justify-between border-b border-mf-300 px-6 py-4">
-              <h2 className="mf-eyebrow text-white">{c.dashboard.recent}</h2>
-              <Link href="/mf/atas" className="text-[12.5px] font-medium text-mf-600 hover:text-white">
-                {c.dashboard.seeAll}
-              </Link>
-            </div>
-            {mf.meetings.length ? (
-              <ul className="divide-y divide-mf-300">
-                {mf.meetings.slice(0, 5).map((meeting) => (
-                  <li key={meeting.id}>
-                    <Link href={`/mf/atas/${meeting.id}`} className="grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-4 px-6 py-3 transition-colors hover:bg-mf-150">
-                      <span className="mf-num text-[12px] text-mf-700">{arCode(meeting.ar)}</span>
-                      <span className="min-w-0">
-                        <span className="block truncate text-[13.5px] font-medium text-white">{meeting.ata ? pick(meeting.ata.title, lang) : meeting.title || "-"}</span>
-                        <span className="mt-0.5 block text-[12px] text-mf-600">
-                          ON {projectOf(meeting.projectId)?.on} · {shortDate(meeting.date)}
-                        </span>
-                      </span>
-                      <StatusText status={meeting.status} />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="px-6 py-10 text-center text-[13.5px] text-mf-600">{c.atas.emptyLead}</p>
-            )}
-          </Card>
-
-          <Card>
-            <div className="border-b border-mf-300 px-6 py-4">
-              <h2 className="mf-eyebrow text-white">{tr("Em breve", "Coming soon")}</h2>
-              <p className="mt-1.5 text-[12.5px] text-mf-600">{c.dashboard.modulesLead}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-px bg-mf-300">
-              {soon.map((module) => (
-                <Link key={module.href} href={module.href} className="group flex items-center gap-3 bg-mf-100 px-6 py-3.5 transition-colors hover:bg-mf-150">
-                  <module.icon className="size-4 text-mf-600 group-hover:text-white" strokeWidth={1.75} />
-                  <span className="flex-1 text-[13px] text-mf-800 group-hover:text-white">{module.title}</span>
-                  <ArrowUpRight className="size-3.5 text-mf-500 group-hover:text-white" />
-                </Link>
+        <Panel
+          title={tr("Atas recentes", "Recent minutes")}
+          aside={
+            <Link href="/mf/atas" className="text-[12.5px] text-mf-600 transition-colors hover:text-white">
+              {tr("Ver todas", "View all")} →
+            </Link>
+          }
+        >
+          {mf.meetings.length ? (
+            <Table columns={["w-[76px]", "", "w-[96px]"]} head={[tr("Ata", "Minutes"), tr("Reunião", "Meeting"), "Status"]}>
+              {mf.meetings.slice(0, 6).map((meeting) => (
+                <Row key={meeting.id} href={`/mf/atas/${meeting.id}`}>
+                  <td className="mf-num align-top text-[12.5px] text-mf-700">{arCode(meeting.ar)}</td>
+                  <td className="align-top">
+                    <span className="block truncate text-[13.5px] font-medium text-white">{meeting.ata ? pick(meeting.ata.title, lang) : meeting.title || "—"}</span>
+                    <span className="mt-0.5 block text-[12px] text-mf-600">
+                      ON {projectOf(meeting.projectId)?.on} · {shortDate(meeting.date)}
+                    </span>
+                  </td>
+                  <td className="align-top text-right">
+                    <Status status={meeting.status} />
+                  </td>
+                </Row>
               ))}
-            </div>
-          </Card>
-        </div>
+            </Table>
+          ) : (
+            <p className="px-5 py-12 text-center text-[13.5px] text-mf-600">{c.atas.emptyLead}</p>
+          )}
+        </Panel>
       </div>
     </Page>
   );
 }
 
-function DueCell({ deadline }: { deadline: string }) {
+function Metric({ label, value, note, alert, className }: { label: string; value: number; note: string; alert?: boolean; className?: string }) {
+  return (
+    <div className={cx("px-5 py-4", className)}>
+      <div className="text-[12.5px] text-mf-600">{label}</div>
+      <div className={cx("mt-1.5 text-[28px] font-semibold leading-none tabular-nums", alert ? "text-mf-rec" : "text-white")}>{value}</div>
+      <div className="mt-2 text-[12px] text-mf-600">{note}</div>
+    </div>
+  );
+}
+
+function Panel({ title, aside, children, className }: { title: string; aside?: ReactNode; children: ReactNode; className?: string }) {
+  return (
+    <section className={cx("border border-mf-300 bg-mf-100", className)}>
+      <div className="flex items-center justify-between gap-4 px-5 py-3.5">
+        <h2 className="text-[14px] font-semibold text-white">{title}</h2>
+        {aside}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Table({ head, columns, children }: { head: string[]; columns: string[]; children: ReactNode }) {
+  return (
+    <table className="w-full table-fixed border-t border-mf-300">
+      <thead>
+        <tr className="border-b border-mf-300">
+          {head.map((label, index) => (
+            <th key={index} className={cx("px-5 py-2 text-left text-[11.5px] font-medium text-mf-600 last:text-right", columns[index])}>
+              {label}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody className="[&_td]:px-5 [&_td]:py-3">{children}</tbody>
+    </table>
+  );
+}
+
+function Row({ href, children }: { href: string; children: ReactNode }) {
+  const router = useRouter();
+  return (
+    <tr
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(href)}
+      onKeyDown={(event) => event.key === "Enter" && router.push(href)}
+      className="cursor-pointer border-b border-mf-300 transition-colors last:border-0 hover:bg-mf-150"
+    >
+      {children}
+    </tr>
+  );
+}
+
+function Due({ deadline }: { deadline: string }) {
   const tr = useTr();
   const days = daysUntil(deadline);
-  if (days === null) return <span className="text-right text-[12px] text-mf-600">{tr("Sem prazo", "No deadline")}</span>;
-  const tone = days < 0 ? "text-mf-rec" : days <= 7 ? "text-mf-warn" : "text-mf-800";
-  const label = days < 0 ? tr(`Vencida há ${-days} d`, `${-days} d overdue`) : days === 0 ? tr("Hoje", "Today") : tr(`Em ${days} d`, `In ${days} d`);
+  if (days === null) return <span className="text-[12.5px] text-mf-600">—</span>;
+  const late = days < 0;
   return (
-    <span className="text-right">
-      <span className={cx("mf-num block text-[12.5px]", tone)}>{shortDate(deadline)}</span>
-      <span className={cx("mt-0.5 block text-[11.5px]", days <= 7 ? tone : "text-mf-600")}>{label}</span>
+    <span className="inline-block text-right">
+      <span className={cx("mf-num block text-[12.5px]", late ? "text-mf-rec" : "text-mf-900")}>{shortDate(deadline)}</span>
+      <span className={cx("mt-0.5 block text-[11.5px]", late ? "text-mf-rec" : days <= 7 ? "text-mf-700" : "text-mf-600")}>
+        {late ? tr(`${-days} d atrasada`, `${-days} d late`) : days === 0 ? tr("hoje", "today") : tr(`em ${days} d`, `in ${days} d`)}
+      </span>
     </span>
   );
 }
 
-function StatusText({ status }: { status: Meeting["status"] }) {
+function Status({ status }: { status: Meeting["status"] }) {
   const { c } = useCopy();
   const dot = { processing: "bg-mf-700 mf-blink", draft: "bg-mf-warn", approved: "bg-mf-ok", failed: "bg-mf-rec" }[status];
   return (
-    <span className="inline-flex items-center gap-2 text-[12px] text-mf-700">
-      <span className={cx("size-1.5", dot)} />
+    <span className="inline-flex items-center justify-end gap-2 text-[12.5px] text-mf-700">
+      <span className={cx("size-1.5 rounded-full", dot)} />
       {c.meetingStatus[status]}
     </span>
   );

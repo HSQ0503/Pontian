@@ -188,7 +188,7 @@ export function ItemDrawer({
         </Field>
         {draft.evidence.length > 0 && (
           <div>
-            <div className="mb-2 text-[11.5px] font-semibold uppercase tracking-[0.1em] text-mf-700">{c.item.evidence}</div>
+            <div className="mb-2 text-[12.5px] font-medium text-mf-700">{c.item.evidence}</div>
             <div className="flex flex-col gap-2">
               {draft.evidence.map((evidence, index) => (
                 <button
@@ -306,7 +306,7 @@ export function MetaDrawer({ meeting, onClose }: { meeting: Meeting; onClose: ()
           </Field>
         </div>
         <div>
-          <div className="mb-2 text-[11.5px] font-semibold uppercase tracking-[0.1em] text-mf-700">{c.form.participants}</div>
+          <div className="mb-2 text-[12.5px] font-medium text-mf-700">{c.form.participants}</div>
           <div className="flex flex-col gap-2">
             {people.map((person) => (
               <div key={person.id} className="grid grid-cols-[1.3fr_1fr_auto_auto] items-center gap-2">
@@ -649,7 +649,7 @@ export function ActionPlanPanel({ meeting, readOnly, onUpdate }: { meeting: Meet
       <p className="text-[13px] text-mf-700">{c.actions.lead}</p>
       <div className="overflow-x-auto rounded-none border border-mf-300">
         <table className="w-full min-w-[820px] text-left text-[13px]">
-          <thead className="border-b border-mf-300 bg-mf-100 text-[10.5px] uppercase tracking-[0.12em] text-mf-600">
+          <thead className="border-b border-mf-300 bg-mf-100 text-[11.5px] text-mf-600">
             <tr>
               <th className="px-4 py-3 font-semibold">{c.actions.colItem}</th>
               <th className="px-4 py-3 font-semibold">{c.actions.colAction}</th>

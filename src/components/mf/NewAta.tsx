@@ -176,8 +176,8 @@ function NewAtaForm({
       <div className="mx-auto max-w-[920px]">
         <header className="mb-8">
           <div className="mf-eyebrow text-mf-600">{project ? `ON ${project.on} · ${c.form.nextAr} ${arCode(nextAr)}` : c.nav.atas}</div>
-          <h1 className="mt-3 text-[30px] font-semibold leading-tight tracking-[-0.01em] text-white md:text-[36px]">{c.form.title}</h1>
-          <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-mf-700">
+          <h1 className="mt-2 text-[24px] font-semibold leading-tight text-white">{c.form.title}</h1>
+          <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-mf-700">
             {tr(
               "Três passos simples. A inteligência artificial escreve a ata no modelo da MF e você revisa tudo antes de aprovar.",
               "Three simple steps. The AI writes the minutes in MF's format and you review everything before approving.",
@@ -331,7 +331,7 @@ function NewAtaForm({
 
                 <div className="flex flex-col gap-2.5">
                   <div>
-                    <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-mf-700">{c.form.participants}</span>
+                    <span className="text-[12.5px] font-medium text-mf-700">{c.form.participants}</span>
                     <p className="mt-1 text-[13px] text-mf-600">{c.form.participantsLead}</p>
                   </div>
                   {suggestions.length > 0 && (

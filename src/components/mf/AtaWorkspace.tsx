@@ -147,7 +147,7 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
             <MeetingStatusTag status={meeting.status} />
             {project.demo && <Tag>{c.demo}</Tag>}
           </div>
-          <h1 className="mt-3 text-[26px] font-semibold leading-tight text-white md:text-[32px]">
+          <h1 className="mt-3 text-[24px] font-semibold leading-tight text-white">
             {ata ? pick(ata.title, lang) : meeting.title || (meeting.status === "processing" ? tr("Gerando a ata…", "Generating the minutes…") : c.form.title)}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-mf-700">
@@ -189,44 +189,25 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
         )}
       </div>
       {ata && meeting.status === "draft" && (
-        <div className="flex flex-col gap-4 rounded-none border border-mf-warn/30 bg-mf-warn/[0.06] p-5 lg:flex-row lg:items-center">
-          <div className="flex items-center gap-3 lg:w-64 lg:shrink-0">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-none bg-mf-warn/15 text-mf-warn">
-              <PenLine className="size-4" />
-            </span>
-            <div>
-              <div className="text-[15px] font-semibold text-white">{tr("Rascunho pronto", "Draft ready")}</div>
-              <div className="text-[13px] text-mf-700">{tr("Revise antes de aprovar.", "Review before approving.")}</div>
-            </div>
-          </div>
-          <ol className="grid flex-1 gap-2 sm:grid-cols-3">
-            {[
-              { label: tr("Leia os itens e clique para corrigir", "Read the items and click to correct"), action: () => setTab("ata") },
-              { label: tr("Confira quem falou na aba Falantes", "Check who spoke in the Speakers tab"), action: () => setTab("speakers") },
-              { label: tr("Aprove para entrar no Registro Geral", "Approve to enter the General Register"), action: () => setApproving(true) },
-            ].map((step, index) => (
-              <li key={step.label}>
-                <button type="button" onClick={step.action} className="flex w-full items-center gap-3 rounded-none border border-mf-400 bg-black/40 px-3.5 py-2.5 text-left text-[13.5px] text-mf-900 transition-colors hover:border-mf-600 hover:text-white">
-                  <span className="mf-num flex size-6 shrink-0 items-center justify-center rounded-none border border-mf-500 text-[11.5px] text-white">{index + 1}</span>
-                  {step.label}
-                </button>
-              </li>
-            ))}
-          </ol>
+        <div className="flex flex-col gap-3 border border-mf-300 border-l-2 border-l-mf-warn bg-mf-100 px-5 py-3 sm:flex-row sm:items-center">
+          <p className="flex-1 text-[13.5px] text-mf-700">
+            <span className="font-semibold text-white">{tr("Rascunho.", "Draft.")}</span>{" "}
+            {tr("Clique em um item para corrigir, confira os falantes e aprove para registrar no RG.", "Click an item to correct it, check the speakers, then approve to record it in the RG.")}
+          </p>
+          <Button size="sm" variant="ghost" icon={<PenLine className="size-3.5" />} onClick={() => setTab("speakers")}>
+            {tr("Conferir falantes", "Check speakers")}
+          </Button>
         </div>
       )}
       {ata && approved && (
-        <div className="flex flex-col gap-4 rounded-none border border-mf-ok/30 bg-mf-ok/[0.06] p-5 sm:flex-row sm:items-center">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-none bg-mf-ok/15 text-mf-ok">
-            <Lock className="size-4" />
-          </span>
-          <div className="flex-1">
-            <div className="text-[15px] font-semibold text-white">
-              {tr("Ata aprovada", "Minutes approved")} · {meeting.approvedBy}
-            </div>
-            <div className="text-[13px] text-mf-700">{tr("Os itens já estão no Registro Geral do projeto. Baixe o PDF para enviar aos participantes.", "The items are in the project's General Register. Download the PDF to send to participants.")}</div>
-          </div>
-          <Button variant="primary" icon={<Printer className="size-4" />} onClick={() => window.open(`/mf/atas/${meeting.id}/imprimir?view=${view}&auto=1`, "_blank")}>
+        <div className="flex flex-col gap-3 border border-mf-300 border-l-2 border-l-mf-ok bg-mf-100 px-5 py-3 sm:flex-row sm:items-center">
+          <p className="flex-1 text-[13.5px] text-mf-700">
+            <span className="font-semibold text-white">
+              {tr("Aprovada por", "Approved by")} {meeting.approvedBy}.
+            </span>{" "}
+            {tr("Os itens estão no Registro Geral do projeto.", "The items are in the project's General Register.")}
+          </p>
+          <Button size="sm" variant="primary" icon={<Printer className="size-3.5" />} onClick={() => window.open(`/mf/atas/${meeting.id}/imprimir?view=${view}&auto=1`, "_blank")}>
             {tr("Baixar PDF", "Download PDF")}
           </Button>
         </div>
@@ -452,7 +433,7 @@ function ReviewRail({ meeting, onApprove }: { meeting: Meeting; onApprove: () =>
           {stats.map((stat, index) => (
             <div key={stat.label} className={cx("px-5 py-4", index % 2 === 0 && "border-r border-mf-300", index < 2 && "border-b border-mf-300")}>
               <div className="mf-num text-[26px] font-medium leading-none text-white">{stat.value}</div>
-              <div className="mt-2 text-[11px] uppercase tracking-[0.1em] text-mf-600">{stat.label}</div>
+              <div className="mt-2 text-[12px] text-mf-600">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -469,7 +450,7 @@ function ReviewRail({ meeting, onApprove }: { meeting: Meeting; onApprove: () =>
       <Card>
         <div className="flex items-center gap-2 border-b border-mf-300 px-5 py-3.5">
           <TriangleAlert className={cx("size-4", ata.reviewFlags.length ? "text-mf-warn" : "text-mf-600")} />
-          <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-white">{c.ws.flags}</h3>
+          <h3 className="text-[13.5px] font-semibold text-white">{c.ws.flags}</h3>
           <span className="mf-num ml-auto text-[12px] text-mf-600">{ata.reviewFlags.length}</span>
         </div>
         <div className="px-5 py-4">
@@ -640,7 +621,7 @@ function ProcessingView({ meeting, job }: { meeting: Meeting; job: JobView | nul
       <Card className="flex min-h-[420px] flex-col overflow-hidden">
         <div className="flex items-center gap-2.5 border-b border-mf-300 px-5 py-3.5">
           <span className="size-2 rounded-none bg-mf-rec mf-blink" />
-          <h2 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-white">
+          <h2 className="text-[13.5px] font-semibold text-white">
             {stage === "drafting" ? c.job.liveItems : c.job.liveTranscript}
           </h2>
           {stage === "drafting" && job && <span className="mf-num ml-auto text-[12px] text-mf-700">{job.liveItems.length}</span>}
@@ -669,7 +650,7 @@ function ProcessingView({ meeting, job }: { meeting: Meeting; job: JobView | nul
                   <div key={index} className="mf-rise flex gap-3 rounded-none border border-mf-300 bg-mf-50 px-4 py-3 text-[13px] leading-relaxed">
                     <span className="mf-num shrink-0 text-[11px] text-mf-600">{String(item.section).padStart(2, "0")}</span>
                     <div>
-                      <div className="mb-0.5 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-mf-600">{sectionOf(item.section).pt}</div>
+                      <div className="mb-0.5 text-[11.5px] font-medium text-mf-600">{sectionOf(item.section).pt}</div>
                       <div className="text-mf-950">{item.pt}</div>
                     </div>
                   </div>

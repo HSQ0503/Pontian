@@ -23,7 +23,7 @@ import { Fragment, useState, type ReactNode } from "react";
 import { useCopy } from "@/lib/mf/copy";
 import { arCode } from "@/lib/mf/format";
 import { useMf } from "@/lib/mf/store";
-import { cx, Segmented } from "./ui";
+import { cx } from "./ui";
 
 type NavItem = { href: string; label: string; icon: LucideIcon; preview?: boolean; exact?: boolean };
 
@@ -31,7 +31,7 @@ function useNav() {
   const { c, lang } = useCopy();
   const groups: { label: string; muted?: boolean; items: NavItem[] }[] = [
     {
-      label: lang === "pt" ? "Trabalho" : "Work",
+      label: "",
       items: [
         { href: "/mf", label: c.nav.dashboard, icon: LayoutDashboard, exact: true },
         { href: "/mf/atas", label: c.nav.atas, icon: FileText },
@@ -49,7 +49,7 @@ function useNav() {
         { href: "/mf/revit", label: c.nav.revit, icon: Box, preview: true },
       ],
     },
-    { label: lang === "pt" ? "Suporte" : "Support", items: [{ href: "/mf/ajuda", label: lang === "pt" ? "Como usar" : "How to use", icon: LifeBuoy }] },
+    { label: " ", items: [{ href: "/mf/ajuda", label: lang === "pt" ? "Como usar" : "How to use", icon: LifeBuoy }] },
   ];
   return groups;
 }
@@ -77,24 +77,24 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="px-6 pb-6 pt-7">
+      <div className="px-5 pb-5 pt-6">
         <Logo />
       </div>
       <div className="px-4">
         <Link
           href="/mf/atas/nova"
           onClick={onNavigate}
-          className="flex h-10 w-full items-center justify-center gap-2 rounded-none bg-white text-[13px] font-semibold text-black transition-colors hover:bg-mf-900"
+          className="flex h-9 w-full items-center justify-center gap-2 rounded-[2px] bg-white text-[13px] font-semibold text-black transition-colors hover:bg-mf-900"
         >
           <Plus className="size-4" />
           {c.newAta}
         </Link>
       </div>
 
-      <nav className="mf-scroll mt-6 flex-1 overflow-y-auto px-3">
+      <nav className="mf-scroll mt-5 flex-1 overflow-y-auto px-3">
         {groups.map((group) => (
           <div key={group.label} className="mb-5">
-            <div className="mf-eyebrow mb-2 px-3 text-mf-600">{group.label}</div>
+            {group.label.trim() && <div className="mb-1.5 px-3 text-[11.5px] font-medium text-mf-600">{group.label}</div>}
             {group.items.map((item) => {
               const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
               return (
@@ -103,14 +103,12 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   href={item.href}
                   onClick={onNavigate}
                   className={cx(
-                    "group relative flex h-9 items-center gap-3 rounded-none px-3 text-[13.5px] font-medium transition-colors",
+                    "group relative flex h-8 items-center gap-2.5 rounded-[2px] px-3 text-[13px] font-medium transition-colors",
                     active ? "bg-mf-200 text-white" : item.preview ? "text-mf-600 hover:bg-mf-150 hover:text-mf-900" : "text-mf-800 hover:bg-mf-150 hover:text-white",
                   )}
                 >
-                  {active && <span className="absolute -left-3 top-2 h-5 w-[3px] rounded-none bg-white" />}
-                  <item.icon className={cx("size-[17px]", active ? "text-white" : "text-mf-600 group-hover:text-mf-900")} strokeWidth={1.75} />
+                  <item.icon className={cx("size-4", active ? "text-white" : "text-mf-600 group-hover:text-mf-900")} strokeWidth={1.75} />
                   <span className="flex-1">{item.label}</span>
-
                 </Link>
               );
             })}
@@ -130,23 +128,25 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         )}
       </nav>
 
-      <div className="border-t border-mf-300 px-5 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="flex size-8 items-center justify-center rounded-none border border-mf-400 text-[11px] font-semibold text-white">MF</span>
-            <span className="text-[12px] font-medium text-mf-800">{c.user}</span>
-          </div>
-          <Segmented
-            size="sm"
-            value={lang}
-            onChange={setLocale}
-            options={[
-              { value: "pt", label: "PT" },
-              { value: "en", label: "EN" },
-            ]}
-          />
-        </div>
-        <p className="mt-3 text-[10.5px] text-mf-600">{c.builtBy}</p>
+      <div className="flex items-center gap-3 border-t border-mf-300 px-5 py-3.5">
+        <span className="flex size-7 items-center justify-center bg-mf-200 text-[10.5px] font-semibold text-white">MF</span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[12.5px] font-medium text-mf-900">{c.user}</span>
+          <span className="block text-[11px] text-mf-600">{c.builtBy}</span>
+        </span>
+        <span className="flex text-[11.5px] font-medium">
+          {(["pt", "en"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setLocale(value)}
+              aria-pressed={lang === value}
+              className={cx("px-1.5 py-1 uppercase transition-colors", lang === value ? "text-white" : "text-mf-600 hover:text-mf-900")}
+            >
+              {value}
+            </button>
+          ))}
+        </span>
       </div>
     </div>
   );
@@ -178,8 +178,8 @@ function SystemBar() {
   const processing = meetings.filter((m) => m.status === "processing").length;
 
   return (
-    <div className="sticky top-0 z-30 hidden h-11 items-center justify-between border-b border-mf-300 bg-black/95 px-6 backdrop-blur lg:flex lg:px-10">
-      <nav aria-label="Breadcrumb" className="mf-num flex items-center gap-2.5 text-[11.5px] uppercase tracking-[0.06em]">
+    <div className="sticky top-0 z-30 hidden h-11 items-center justify-between border-b border-mf-300 bg-mf-50/95 px-6 backdrop-blur lg:flex lg:px-10">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[12.5px]">
         {crumbs.map((crumb, index) => (
           <Fragment key={crumb.href}>
             {index > 0 && <span className="text-mf-500">/</span>}
@@ -193,9 +193,9 @@ function SystemBar() {
           </Fragment>
         ))}
       </nav>
-      <div className="mf-num flex items-center gap-2 text-[11px] uppercase tracking-[0.06em] text-mf-600">
-        <span className={cx("size-1.5", processing ? "mf-blink bg-mf-warn" : "bg-mf-ok")} />
-        {processing ? `${processing} ${lang === "pt" ? "em processamento" : "processing"}` : lang === "pt" ? "Sistema pronto" : "System ready"}
+      <div className="flex items-center gap-2 text-[12px] text-mf-600">
+        <span className={cx("size-1.5 rounded-full", processing ? "mf-blink bg-mf-warn" : "bg-mf-ok")} />
+        {processing ? `${processing} ${lang === "pt" ? "em processamento" : "processing"}` : lang === "pt" ? "Todos os serviços operando" : "All systems operational"}
       </div>
     </div>
   );

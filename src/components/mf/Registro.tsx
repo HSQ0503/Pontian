@@ -109,7 +109,7 @@ export function Registro({ initialProject }: { initialProject?: string }) {
         <Card className="mt-4 overflow-hidden">
           <div className="mf-scroll overflow-x-auto">
             <table className="w-full min-w-[980px] text-left text-[13px]">
-              <thead className="border-b border-mf-300 text-[10.5px] uppercase tracking-[0.12em] text-mf-600">
+              <thead className="border-b border-mf-300 text-[11.5px] text-mf-600">
                 <tr>
                   <th className="w-24 px-4 py-3 font-semibold">Item</th>
                   <th className="w-28 px-4 py-3 font-semibold">{lang === "pt" ? "Origem" : "Origin"}</th>
@@ -259,15 +259,15 @@ export function Projetos() {
                 <div className="mt-6 grid grid-cols-3 border-t border-mf-300 pt-4">
                   <div>
                     <div className="mf-num text-[18px] text-white">{meetings.length}</div>
-                    <div className="text-[10.5px] uppercase tracking-[0.1em] text-mf-600">{c.projects.atas}</div>
+                    <div className="text-[11.5px] text-mf-600">{c.projects.atas}</div>
                   </div>
                   <div>
                     <div className="mf-num text-[18px] text-white">{open}</div>
-                    <div className="text-[10.5px] uppercase tracking-[0.1em] text-mf-600">{c.projects.open}</div>
+                    <div className="text-[11.5px] text-mf-600">{c.projects.open}</div>
                   </div>
                   <div>
                     <div className="mf-num text-[13px] text-white">{last ? shortDate(last.date) : "-"}</div>
-                    <div className="text-[10.5px] uppercase tracking-[0.1em] text-mf-600">{c.projects.lastMeeting}</div>
+                    <div className="text-[11.5px] text-mf-600">{c.projects.lastMeeting}</div>
                   </div>
                 </div>
                 <div className="mt-5 flex gap-2">

@@ -89,10 +89,10 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="flex flex-col gap-5 border-b border-mf-300 pb-7 md:flex-row md:items-end md:justify-between">
+    <header className="flex flex-col gap-4 pb-6 md:flex-row md:items-end md:justify-between">
       <div className="max-w-3xl">
-        {eyebrow && <div className="mf-eyebrow mb-3 text-mf-700">{eyebrow}</div>}
-        <h1 className="text-[26px] font-semibold leading-tight text-white md:text-[30px]">{title}</h1>
+        {eyebrow && <div className="mb-2 text-[12.5px] text-mf-600">{eyebrow}</div>}
+        <h1 className="text-[24px] font-semibold leading-tight text-white">{title}</h1>
         {lead && <p className="mt-2.5 max-w-2xl text-[14px] leading-relaxed text-mf-700">{lead}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -110,7 +110,7 @@ export function Page({ children, wide }: { children: ReactNode; wide?: boolean }
 
 export function Card({ className, children, ...rest }: ComponentProps<"div">) {
   return (
-    <div className={cx("rounded-none border border-mf-300 bg-mf-100", className)} {...rest}>
+    <div className={cx("border border-mf-300 bg-mf-100", className)} {...rest}>
       {children}
     </div>
   );
@@ -118,9 +118,9 @@ export function Card({ className, children, ...rest }: ComponentProps<"div">) {
 
 export function CardHeader({ title, lead, action }: { title: ReactNode; lead?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-mf-300 px-5 py-4">
+    <div className="flex items-start justify-between gap-4 border-b border-mf-300 px-5 py-3.5">
       <div>
-        <h2 className="mf-eyebrow text-white">{title}</h2>
+        <h2 className="text-[14px] font-semibold text-white">{title}</h2>
         {lead && <p className="mt-1.5 text-[13px] leading-relaxed text-mf-600">{lead}</p>}
       </div>
       {action}
@@ -139,7 +139,7 @@ export function Tag({ children, className, tone = "default" }: { children: React
   return (
     <span
       className={cx(
-        "mf-num inline-flex h-[22px] shrink-0 items-center gap-1.5 whitespace-nowrap rounded-none border px-2 text-[10.5px] font-medium uppercase tracking-[0.06em]",
+        "inline-flex h-[22px] shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[2px] border px-2 text-[11.5px] font-medium",
         tones[tone],
         className,
       )}
@@ -194,7 +194,7 @@ export function RiskBars({ risk, lang, showLabel = true }: { risk: Risk; lang: "
 export function Field({ label, hint, children, className }: { label: ReactNode; hint?: ReactNode; children: ReactNode; className?: string }) {
   return (
     <label className={cx("flex flex-col gap-1.5", className)}>
-      <span className="mf-eyebrow text-mf-700">{label}</span>
+      <span className="text-[12.5px] font-medium text-mf-700">{label}</span>
       {children}
       {hint && <span className="text-[12.5px] leading-snug text-mf-600">{hint}</span>}
     </label>

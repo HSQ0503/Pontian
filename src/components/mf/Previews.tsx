@@ -175,7 +175,7 @@ export function SchedulePreview() {
         <div className="mf-scroll overflow-x-auto px-5 py-5">
           <table className="min-w-[700px] text-[12px]">
             <thead>
-              <tr className="text-[10.5px] uppercase tracking-[0.12em] text-mf-600">
+              <tr className="text-[11.5px] text-mf-600">
                 <th className="w-56 pb-3 text-left font-semibold">{pt ? "Pessoa" : "Person"}</th>
                 {Array.from({ length: 8 }, (_, i) => <th key={i} className="pb-3 font-semibold">S{45 + i}</th>)}
               </tr>
@@ -232,7 +232,7 @@ export function DocumentsPreview() {
       <Card className="mt-8 overflow-hidden">
         <div className="mf-scroll overflow-x-auto">
           <table className="w-full min-w-[820px] text-left text-[13px]">
-            <thead className="border-b border-mf-300 text-[10.5px] uppercase tracking-[0.12em] text-mf-600">
+            <thead className="border-b border-mf-300 text-[11.5px] text-mf-600">
               <tr>
                 <th className="px-5 py-3 font-semibold">{pt ? "Código" : "Code"}</th>
                 <th className="px-5 py-3 font-semibold">{pt ? "Título" : "Title"}</th>

@@ -88,8 +88,8 @@ export function Help() {
     <Page>
       <div className="mx-auto max-w-[880px]">
         <div className="mf-eyebrow text-mf-600">{tr("Ajuda", "Help")}</div>
-        <h1 className="mt-3 text-[30px] font-semibold tracking-[-0.01em] text-white md:text-[36px]">{tr("Como usar o Brain MF", "How to use Brain MF")}</h1>
-        <p className="mt-3 text-[15px] leading-relaxed text-mf-700">
+        <h1 className="mt-2 text-[24px] font-semibold text-white">{tr("Como usar o Brain MF", "How to use Brain MF")}</h1>
+        <p className="mt-2 text-[14px] leading-relaxed text-mf-700">
           {tr("Do fim da reunião à ata aprovada em quatro passos.", "From the end of the meeting to approved minutes in four steps.")}
         </p>
 
@@ -113,7 +113,7 @@ export function Help() {
           <ArrowRight className="size-5" />
         </Link>
 
-        <h2 className="mt-12 text-[13px] font-semibold uppercase tracking-[0.14em] text-white">{tr("Perguntas frequentes", "Frequently asked questions")}</h2>
+        <h2 className="mt-12 text-[15px] font-semibold text-white">{tr("Perguntas frequentes", "Frequently asked questions")}</h2>
         <div className="mt-4 divide-y divide-mf-300 overflow-hidden rounded-none border border-mf-300 bg-mf-100">
           {faq.map((item) => (
             <details key={item.q} className="group">
