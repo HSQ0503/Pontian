@@ -189,8 +189,9 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
         )}
       </div>
       {ata && meeting.status === "draft" && (
-        <div className="flex flex-col gap-3 border border-mf-300 border-l-2 border-l-mf-warn bg-mf-100 px-5 py-3 sm:flex-row sm:items-center">
-          <p className="flex-1 text-[13.5px] text-mf-700">
+        <div className="glass flex flex-col gap-3 rounded-[20px] px-5 py-3 sm:flex-row sm:items-center">
+          <p className="flex flex-1 items-center gap-2.5 text-[13.5px] text-mf-700">
+            <span className="size-2 shrink-0 rounded-full bg-mf-warn shadow-[0_0_10px_rgba(255,159,10,0.6)]" />
             <span className="font-semibold text-white">{tr("Rascunho.", "Draft.")}</span>{" "}
             {tr("Clique em um item para corrigir, confira os falantes e aprove para registrar no RG.", "Click an item to correct it, check the speakers, then approve to record it in the RG.")}
           </p>
@@ -200,8 +201,9 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
         </div>
       )}
       {ata && approved && (
-        <div className="flex flex-col gap-3 border border-mf-300 border-l-2 border-l-mf-ok bg-mf-100 px-5 py-3 sm:flex-row sm:items-center">
-          <p className="flex-1 text-[13.5px] text-mf-700">
+        <div className="glass flex flex-col gap-3 rounded-[20px] px-5 py-3 sm:flex-row sm:items-center">
+          <p className="flex flex-1 items-center gap-2.5 text-[13.5px] text-mf-700">
+            <span className="size-2 shrink-0 rounded-full bg-mf-ok shadow-[0_0_10px_rgba(48,209,88,0.6)]" />
             <span className="font-semibold text-white">
               {tr("Aprovada por", "Approved by")} {meeting.approvedBy}.
             </span>{" "}
@@ -224,7 +226,7 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
 
       {ata && meeting.status !== "processing" && meeting.status !== "failed" && (
         <>
-          <div className="mf-scroll sticky top-14 z-20 -mx-4 mt-2 flex gap-1 overflow-x-auto border-b border-mf-300 bg-mf-50/95 px-4 backdrop-blur sm:-mx-6 sm:px-6 lg:top-11 lg:-mx-10 lg:px-10">
+          <div className="glass-strong mf-scroll sticky top-[72px] z-20 mt-5 flex w-fit max-w-full gap-1 overflow-x-auto rounded-full p-1 lg:top-[68px]">
             {(
               [
                 { key: "ata", icon: FileText, count: ata.items.length },
@@ -239,14 +241,13 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
                 onClick={() => setTab(key)}
                 aria-current={tab === key ? "page" : undefined}
                 className={cx(
-                  "relative inline-flex h-13 shrink-0 items-center gap-2 px-3.5 text-[14px] font-semibold transition-colors",
-                  tab === key ? "text-white" : "text-mf-600 hover:text-mf-900",
+                  "relative inline-flex h-9 shrink-0 items-center gap-2 rounded-full px-4 text-[13.5px] font-medium transition-all duration-200",
+                  tab === key ? "bg-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_4px_14px_-6px_rgba(0,0,0,0.6)]" : "text-mf-600 hover:text-mf-900",
                 )}
               >
                 <Icon className="size-4" />
                 {c.ws.tabs[key]}
                 <span className={cx("mf-num rounded-xl px-1.5 text-[11px]", tab === key ? "bg-white text-black" : "bg-mf-300 text-mf-700")}>{count}</span>
-                {tab === key && <span className="absolute inset-x-3 bottom-0 h-[2px] bg-white" />}
               </button>
             ))}
           </div>
@@ -266,7 +267,7 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
                     </div>
                     {!approved && <span className="text-[11.5px] text-mf-600">{c.ws.editHint}</span>}
                   </div>
-                  <div className="mf-scroll overflow-x-auto rounded-xl bg-mf-150 p-3 sm:p-6">
+                  <div className="mf-scroll overflow-x-auto glass rounded-[22px] p-3 sm:p-6">
                     <div className="min-w-[780px]">
                       <AtaDocument meeting={meeting} project={project} ata={ata} subsections={subsections} view={view} onEditItem={(item) => setEditing({ item, isNew: false })} />
                     </div>
@@ -346,7 +347,7 @@ function MoreMenu({ items }: { items: { icon: LucideIcon; label: string; action:
       {open && (
         <>
           <button type="button" aria-label={tr("Fechar", "Close")} className="fixed inset-0 z-30 cursor-default" onClick={() => setOpen(false)} />
-          <div className="mf-rise absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-mf-400 bg-mf-150 py-1">
+          <div className="mf-rise absolute right-0 z-40 mt-2 w-56 overflow-hidden glass rounded-[18px] py-1">
             {items.map((item) => (
               <button
                 key={item.label}
@@ -393,7 +394,7 @@ function ExportMenu({ meeting, onXlsx, view }: { meeting: Meeting; onXlsx: () =>
       {open && (
         <>
           <button type="button" aria-label={c.close} className="fixed inset-0 z-30 cursor-default" onClick={() => setOpen(false)} />
-          <div className="mf-rise absolute right-0 z-40 mt-2 w-60 overflow-hidden rounded-xl border border-mf-400 bg-mf-150 py-1">
+          <div className="mf-rise absolute right-0 z-40 mt-2 w-60 overflow-hidden glass rounded-[18px] py-1">
             {options.map((option) => (
               <button
                 key={option.label}
@@ -427,7 +428,7 @@ function ReviewRail({ meeting, onApprove }: { meeting: Meeting; onApprove: () =>
   const sections = [...new Set(ata.items.map((i) => i.section))].sort((a, b) => a - b);
 
   return (
-    <aside className="flex flex-col gap-4 xl:sticky xl:top-28 xl:self-start">
+    <aside className="flex flex-col gap-4 xl:sticky xl:top-[124px] xl:self-start">
       <Card>
         <div className="grid grid-cols-2">
           {stats.map((stat, index) => (

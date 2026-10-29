@@ -95,7 +95,7 @@ export function Help() {
 
         <ol className="mt-8 grid gap-3 sm:grid-cols-2">
           {steps.map((step) => (
-            <li key={step.title} className="rounded-xl border border-mf-300 bg-mf-100 p-6">
+            <li key={step.title} className="glass rounded-[22px] p-6">
               <span className="flex size-11 items-center justify-center rounded-xl bg-white text-black">
                 <step.icon className="size-5" />
               </span>
@@ -114,7 +114,7 @@ export function Help() {
         </Link>
 
         <h2 className="mt-12 text-[15px] font-semibold text-white">{tr("Perguntas frequentes", "Frequently asked questions")}</h2>
-        <div className="mt-4 divide-y divide-mf-300 overflow-hidden rounded-xl border border-mf-300 bg-mf-100">
+        <div className="mt-4 divide-y divide-mf-300 overflow-hidden glass rounded-[22px]">
           {faq.map((item) => (
             <details key={item.q} className="group">
               <summary className="flex list-none items-center gap-4 px-6 py-5 [&::-webkit-details-marker]:hidden">

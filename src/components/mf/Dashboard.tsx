@@ -147,7 +147,7 @@ export function Dashboard() {
 
 function Metric({ label, value, note, alert }: { label: string; value: number; note: string; alert?: boolean }) {
   return (
-    <div className="rounded-2xl bg-mf-100 px-5 py-4 ring-1 ring-white/[0.06]">
+    <div className="glass rounded-[22px] px-5 py-4">
       <div className="text-[13px] font-medium text-mf-600">{label}</div>
       <div className={cx("mf-num mt-1 text-[32px] font-bold leading-tight", alert ? "text-mf-rec" : "text-white")}>{value}</div>
       <div className="text-[12.5px] text-mf-600">{note}</div>
@@ -162,7 +162,7 @@ function List({ children }: { children: ReactNode }) {
 function ListRow({ href, title, subtitle, trailing, clamp }: { href: string; title: string; subtitle: string; trailing: ReactNode; clamp?: boolean }) {
   return (
     <li className="relative">
-      <Link href={href} className="group flex items-center gap-4 rounded-xl px-4 py-3 transition-colors hover:bg-white/[0.05]">
+      <Link href={href} className="group flex items-center gap-4 rounded-2xl px-4 py-3 transition-colors hover:bg-white/[0.07]">
         <span className="min-w-0 flex-1">
           <span className={cx("block text-[14.5px] leading-snug text-white", clamp ? "line-clamp-2" : "truncate font-medium")}>{title}</span>
           <span className="mf-num mt-0.5 block truncate text-[12.5px] text-mf-600">{subtitle}</span>

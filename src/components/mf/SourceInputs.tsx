@@ -33,7 +33,7 @@ export function AudioUpload({ value, onChange }: { value: AudioFile | null; onCh
     <div>
       <input ref={input} type="file" accept={AUDIO_ACCEPT} className="hidden" onChange={(event) => accept(event.target.files?.[0])} />
       {value ? (
-        <div className="mf-rise flex items-center gap-4 rounded-xl border border-mf-400 bg-mf-50 p-4">
+        <div className="mf-rise flex items-center gap-4 rounded-xl border border-white/[0.08] bg-white/[0.04] p-4">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white text-black">
             <Music className="size-5" />
           </span>
@@ -118,7 +118,7 @@ export function TranscriptUpload({ value, onChange }: { value: TranscriptInput; 
       />
       {error && <p className="text-[12.5px] text-mf-rec">{error}</p>}
       {parsed && (
-        <div className="mf-rise rounded-xl border border-mf-400 bg-mf-50 p-4">
+        <div className="mf-rise rounded-xl border border-white/[0.08] bg-white/[0.04] p-4">
           <div className="flex items-center gap-2 text-[12px] text-mf-800">
             <FileText className="size-3.5" />
             <span className="mf-eyebrow text-mf-700">{c.source.detected}</span>

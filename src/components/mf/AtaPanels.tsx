@@ -101,7 +101,7 @@ export function ItemDrawer({
     >
       <fieldset disabled={readOnly} className="flex flex-col gap-5">
         {draft.updates && (
-          <div className="rounded-xl border border-mf-400 bg-mf-50 px-3.5 py-2.5 text-[12.5px] text-mf-800">
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 text-[12.5px] text-mf-800">
             {c.item.carried} <span className="mf-num font-semibold text-white">{draft.updates}</span> · {draft.origins.join(" · ")}
           </div>
         )}
@@ -195,7 +195,7 @@ export function ItemDrawer({
                   key={index}
                   type="button"
                   onClick={() => onJump(evidence.time)}
-                  className="group flex gap-3 rounded-xl border border-mf-400 bg-mf-50 px-3.5 py-2.5 text-left transition-colors hover:border-mf-700"
+                  className="group flex gap-3 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 text-left transition-colors hover:border-mf-700"
                 >
                   <Quote className="mt-0.5 size-3.5 shrink-0 text-mf-600" />
                   <span className="flex-1 text-[12.5px] italic leading-relaxed text-mf-900">{evidence.quote}</span>
@@ -423,7 +423,7 @@ export function TranscriptPanel({ meeting, focus }: { meeting: Meeting; focus: {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="sticky top-[112px] z-10 flex flex-col gap-3 border border-mf-400 bg-mf-100/95 p-3 backdrop-blur lg:top-[100px] xl:flex-row xl:items-center">
+      <div className="glass-strong sticky top-[128px] z-10 flex flex-col gap-3 rounded-[22px] p-3 lg:top-[124px] xl:flex-row xl:items-center">
         {audioUrl ? (
           <div className="flex flex-1 items-center gap-3">
             <audio

@@ -20,7 +20,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { Fragment, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useState, type ReactNode } from "react";
 import { useCopy } from "@/lib/mf/copy";
 import { arCode } from "@/lib/mf/format";
 import { useMf } from "@/lib/mf/store";
@@ -109,7 +109,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <Link
           href="/mf/atas/nova"
           onClick={onNavigate}
-          className="flex h-9 w-full items-center justify-center gap-2 rounded-[10px] bg-white text-[13.5px] font-medium text-black transition-colors hover:bg-mf-900"
+          className="glass-white flex h-9 w-full items-center justify-center gap-2 rounded-full text-[13.5px] font-medium active:scale-[0.98]"
         >
           <Plus className="size-4" />
           {c.newAta}
@@ -127,8 +127,8 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   href={item.href}
                   onClick={onNavigate}
                   className={cx(
-                    "group relative flex h-8 items-center gap-2.5 rounded-[9px] px-2.5 text-[13.5px] transition-colors",
-                    active ? "bg-white/[0.1] font-medium text-white" : item.preview ? "text-mf-600 hover:bg-white/[0.05] hover:text-mf-900" : "text-mf-800 hover:bg-white/[0.05] hover:text-white",
+                    "group relative flex h-8 items-center gap-2.5 rounded-full px-3 text-[13.5px] transition-colors",
+                    active ? "bg-white/[0.12] font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]" : item.preview ? "text-mf-600 hover:bg-white/[0.05] hover:text-mf-900" : "text-mf-800 hover:bg-white/[0.05] hover:text-white",
                   )}
                 >
                   <item.icon className={cx("size-4", active ? "text-white" : "text-mf-600 group-hover:text-mf-800")} strokeWidth={1.75} />
@@ -140,7 +140,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         ))}
 
         {processing.length > 0 && (
-          <div className="mb-5 rounded-xl bg-white/[0.05] p-3">
+          <div className="mb-5 rounded-[18px] bg-white/[0.06] p-3">
             {processing.map((meeting) => (
               <Link key={meeting.id} href={`/mf/atas/${meeting.id}`} onClick={onNavigate} className="flex items-center gap-2.5 py-1 text-[12px] text-mf-800 hover:text-white">
                 <LoaderCircle className="size-3.5 animate-spin" />
@@ -152,7 +152,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         )}
       </nav>
 
-      <div className="flex items-center gap-3 border-t border-white/[0.06] px-5 py-3.5">
+      <div className="mx-3 mb-3 flex items-center gap-3 rounded-[18px] bg-white/[0.05] px-3 py-2.5">
         <span className="flex size-7 items-center justify-center rounded-full bg-white/[0.1] text-[10.5px] font-semibold text-white">MF</span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[12.5px] font-medium text-mf-900">{c.user}</span>
@@ -202,7 +202,7 @@ function SystemBar() {
   const processing = meetings.filter((m) => m.status === "processing").length;
 
   return (
-    <div className="sticky top-0 z-30 hidden h-11 items-center justify-between border-b border-white/[0.06] bg-black/80 px-6 backdrop-blur-xl lg:flex lg:px-10">
+    <div className="glass-strong sticky top-3 z-30 mx-3 mt-3 hidden h-11 items-center justify-between rounded-full px-5 lg:flex">
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[12.5px]">
         {crumbs.map((crumb, index) => (
           <Fragment key={crumb.href}>
@@ -230,19 +230,47 @@ export function MfShell({ children }: { children: ReactNode }) {
   const { c } = useCopy();
   const [open, setOpen] = useState(false);
 
+  // Glass surfaces catch a soft light under the pointer; one listener serves them all.
+  useEffect(() => {
+    const surfaces = ".glass, .glass-strong, .glass-pill";
+    const move = (event: PointerEvent) => {
+      const surface = (event.target as Element | null)?.closest?.(surfaces) as HTMLElement | null;
+      if (!surface) return;
+      const rect = surface.getBoundingClientRect();
+      surface.style.setProperty("--mx", `${event.clientX - rect.left}px`);
+      surface.style.setProperty("--my", `${event.clientY - rect.top}px`);
+    };
+    const leave = (event: PointerEvent) => {
+      const surface = (event.target as Element | null)?.closest?.(surfaces) as HTMLElement | null;
+      if (surface && !surface.contains(event.relatedTarget as Node | null)) {
+        surface.style.removeProperty("--mx");
+        surface.style.removeProperty("--my");
+      }
+    };
+    document.addEventListener("pointermove", move, { passive: true });
+    document.addEventListener("pointerout", leave, { passive: true });
+    return () => {
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerout", leave);
+    };
+  }, []);
+
   // The print view is a bare sheet of paper.
   if (pathname.endsWith("/imprimir") || pathname === "/mf/acesso") return <>{children}</>;
 
   return (
-    <div className="flex min-h-dvh bg-mf-50 text-mf-900">
-      <aside className="sticky top-0 hidden h-dvh w-[264px] shrink-0 border-r border-white/[0.06] bg-[#0b0b0d] lg:block">
-        <Sidebar />
+    <div className="flex min-h-dvh text-mf-900">
+      <div aria-hidden className="mf-ambient" />
+      <aside className="sticky top-0 hidden h-dvh w-[280px] shrink-0 p-3 pr-0 lg:block">
+        <div className="glass-strong h-full rounded-[26px]">
+          <Sidebar />
+        </div>
       </aside>
 
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <button type="button" aria-label={c.close} className="absolute inset-0 bg-black/70" onClick={() => setOpen(false)} />
-          <aside className="mf-rise relative h-full w-[284px] max-w-[85vw] border-r border-mf-400 bg-mf-0">
+          <button type="button" aria-label={c.close} className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setOpen(false)} />
+          <aside className="glass-strong mf-rise relative m-2 h-[calc(100%-16px)] w-[284px] max-w-[85vw] rounded-[26px]">
             <button
               type="button"
               aria-label={c.close}
@@ -257,12 +285,12 @@ export function MfShell({ children }: { children: ReactNode }) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-mf-300 bg-mf-0/90 px-4 backdrop-blur lg:hidden">
+        <header className="glass-strong sticky top-2 z-30 mx-2 mt-2 flex h-14 items-center justify-between rounded-full px-2 lg:hidden">
           <button
             type="button"
             aria-label={c.menu}
             onClick={() => setOpen(true)}
-            className="flex size-9 items-center justify-center rounded-xl text-mf-800 hover:bg-mf-200"
+            className="flex size-10 items-center justify-center rounded-full text-mf-800 hover:bg-white/[0.08]"
           >
             <Menu className="size-5" />
           </button>
@@ -270,7 +298,7 @@ export function MfShell({ children }: { children: ReactNode }) {
             <Image src="/mf/mf-logo-black.png" alt="Minerbo-Fuchs" width={206} height={105} className="h-6 w-auto invert" />
             <span className="mf-brand text-[11px] font-bold text-white">{c.brand.toUpperCase()}</span>
           </Link>
-          <Link href="/mf/atas/nova" aria-label={c.newAta} className="flex size-9 items-center justify-center rounded-xl bg-white text-black">
+          <Link href="/mf/atas/nova" aria-label={c.newAta} className="glass-white flex size-10 items-center justify-center rounded-full">
             <Plus className="size-4" />
           </Link>
         </header>

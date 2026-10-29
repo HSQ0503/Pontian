@@ -25,12 +25,12 @@ export function NewAta({ initialProject, initialMode }: { initialProject?: strin
 
 function Step({ n, title, lead, done, children }: { n: number; title: string; lead?: string; done: boolean; children: ReactNode }) {
   return (
-    <section className="relative rounded-xl border border-mf-300 bg-mf-100 p-5 sm:p-7">
+    <section className="relative glass rounded-[22px] p-5 sm:p-7">
       <header className="flex items-start gap-4">
         <span
           className={cx(
-            "mf-num flex h-9 w-11 shrink-0 items-center justify-center border text-[13px] font-medium transition-colors",
-            done ? "border-white bg-white text-black" : "border-mf-500 text-white",
+            "mf-num flex size-9 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold transition-colors",
+            done ? "glass-white" : "glass-pill text-white",
           )}
         >
           {done ? <Check className="size-4" strokeWidth={2.5} /> : String(n).padStart(2, "0")}
@@ -198,7 +198,7 @@ function NewAtaForm({
                     aria-pressed={selected}
                     className={cx(
                       "relative flex items-center gap-4 rounded-xl border p-4 text-left transition-colors",
-                      selected ? "border-white bg-mf-200" : "border-mf-400 bg-mf-50 hover:border-mf-600",
+                      selected ? "border-white bg-mf-200" : "border-white/[0.08] bg-white/[0.04] hover:border-mf-600",
                     )}
                   >
                     <span className={cx("mf-num flex h-12 min-w-14 items-center justify-center rounded-xl px-2 text-[17px] font-medium", selected ? "bg-white text-black" : "bg-mf-200 text-white")}>
@@ -242,7 +242,7 @@ function NewAtaForm({
                     aria-pressed={selected}
                     className={cx(
                       "group flex flex-col items-start rounded-xl border p-5 text-left transition-colors",
-                      selected ? "border-white bg-white text-black" : "border-mf-400 bg-mf-50 text-white hover:border-mf-600",
+                      selected ? "border-white bg-white text-black" : "border-white/[0.08] bg-white/[0.04] text-white hover:border-mf-600",
                     )}
                   >
                     <span className={cx("flex size-11 items-center justify-center rounded-xl", selected ? "bg-black text-white" : "bg-mf-200 text-white")}>
@@ -276,7 +276,7 @@ function NewAtaForm({
             title={tr("Detalhes da reunião", "Meeting details")}
             lead={tr("Opcional. O que ficar em branco a IA tenta preencher pela conversa.", "Optional. Anything left blank, the AI tries to fill in from the conversation.")}
           >
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-mf-400 bg-mf-50 px-4 py-3 text-[14px] text-mf-800">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-[14px] text-mf-800">
               <span>{longDate(date, lang)}</span>
               <span className="text-mf-600">·</span>
               <span className="mf-num">{startTime}</span>
@@ -386,7 +386,7 @@ function NewAtaForm({
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-mf-300 bg-black/90 backdrop-blur lg:left-[264px]">
+      <div className="glass-strong fixed inset-x-2 bottom-2 z-30 rounded-[26px] lg:left-[292px] lg:right-3 lg:bottom-3">
         <div className="mx-auto flex max-w-[920px] flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex items-center gap-4">
             {checklist.map((item) => (

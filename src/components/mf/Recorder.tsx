@@ -213,7 +213,7 @@ export function Recorder({ onChange }: { onChange: (recording: Recording | null)
   if (phase === "done" && result) {
     return (
       <div className="mf-rise flex flex-col gap-5">
-        <div className="flex items-center gap-4 rounded-xl border border-mf-400 bg-mf-50 p-4">
+        <div className="flex items-center gap-4 rounded-xl border border-white/[0.08] bg-white/[0.04] p-4">
           <span className="flex size-11 items-center justify-center rounded-xl bg-white text-black">
             <Mic className="size-5" />
           </span>
@@ -254,7 +254,7 @@ export function Recorder({ onChange }: { onChange: (recording: Recording | null)
             onClick={() => setWithSystem((value) => !value)}
             className={cx(
               "flex items-start gap-3 rounded-xl border px-3.5 py-2.5 text-left transition-colors",
-              withSystem ? "border-white bg-mf-200" : "border-mf-400 bg-mf-50 hover:border-mf-600",
+              withSystem ? "border-white bg-mf-200" : "border-white/[0.08] bg-white/[0.04] hover:border-mf-600",
             )}
           >
             <MonitorSpeaker className={cx("mt-0.5 size-4 shrink-0", withSystem ? "text-white" : "text-mf-700")} />
@@ -269,7 +269,7 @@ export function Recorder({ onChange }: { onChange: (recording: Recording | null)
         </div>
       )}
 
-      <div className="relative overflow-hidden rounded-xl border border-mf-400 bg-mf-50">
+      <div className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.04]">
         <div className="mf-grid-bg absolute inset-0 opacity-40" />
         <div className="relative flex flex-col items-center px-6 py-10">
           {live ? (

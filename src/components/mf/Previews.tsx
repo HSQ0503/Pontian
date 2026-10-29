@@ -73,7 +73,7 @@ export function BrainPreview() {
             </div>
           </div>
           <div className="border-t border-mf-300 p-4">
-            <div className="flex items-center gap-3 rounded-xl border border-mf-400 bg-mf-50 px-4 py-3 text-[13px] text-mf-600">
+            <div className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-[13px] text-mf-600">
               <span className="flex-1">{pt ? "Pergunte sobre qualquer projeto que você pode acessar…" : "Ask about any project you can access…"}</span>
               <Send className="size-4" />
             </div>

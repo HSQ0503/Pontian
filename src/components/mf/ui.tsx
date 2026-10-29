@@ -13,16 +13,16 @@ type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
 
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-white text-black hover:bg-mf-900 disabled:bg-mf-500 disabled:text-mf-700",
-  secondary: "bg-white/[0.08] text-white hover:bg-white/[0.13] disabled:text-mf-600",
-  ghost: "text-mf-800 hover:bg-white/[0.07] hover:text-white disabled:text-mf-600",
-  danger: "bg-white/[0.06] text-mf-800 hover:bg-mf-rec/15 hover:text-mf-rec",
+  primary: "glass-white text-black disabled:opacity-40",
+  secondary: "glass-pill text-white disabled:text-mf-600",
+  ghost: "text-mf-800 hover:bg-white/[0.08] hover:text-white disabled:text-mf-600",
+  danger: "glass-pill text-mf-800 hover:text-mf-rec",
 };
 
 const SIZES: Record<Size, string> = {
-  sm: "h-8 gap-1.5 rounded-[9px] px-3 text-[13px]",
-  md: "h-10 gap-2 rounded-[11px] px-4 text-[14px]",
-  lg: "h-12 gap-2.5 rounded-[13px] px-6 text-[15px]",
+  sm: "h-8 gap-1.5 rounded-full px-3.5 text-[13px]",
+  md: "h-10 gap-2 rounded-full px-[18px] text-[14px]",
+  lg: "h-12 gap-2.5 rounded-full px-6 text-[15px]",
 };
 
 type ButtonProps = {
@@ -35,7 +35,7 @@ type ButtonProps = {
 
 export function Button({ variant = "secondary", size = "md", icon, loading, href, className, children, ...rest }: ButtonProps) {
   const classes = cx(
-    "inline-flex shrink-0 select-none items-center justify-center font-medium transition-colors duration-150 disabled:cursor-not-allowed",
+    "inline-flex shrink-0 select-none items-center justify-center font-medium transition-[transform,background-color,color] duration-150 active:scale-[0.97] disabled:cursor-not-allowed disabled:active:scale-100",
     VARIANTS[variant],
     SIZES[size],
     className,
@@ -107,7 +107,7 @@ export function Page({ children, wide }: { children: ReactNode; wide?: boolean }
 
 export function Card({ className, children, ...rest }: ComponentProps<"div">) {
   return (
-    <div className={cx("rounded-2xl bg-mf-100 ring-1 ring-white/[0.06]", className)} {...rest}>
+    <div className={cx("glass rounded-[22px]", className)} {...rest}>
       {children}
     </div>
   );
@@ -181,13 +181,13 @@ export function Section({
 }) {
   const [open, toggle] = usePersistentToggle(id, defaultOpen);
   return (
-    <section className={cx("rounded-2xl bg-mf-100 ring-1 ring-white/[0.06]", className)}>
+    <section className={cx("glass rounded-[22px]", className)}>
       <div className="flex items-center gap-3 px-3 py-2">
         <button
           type="button"
           onClick={toggle}
           aria-expanded={open}
-          className="flex min-w-0 flex-1 items-center gap-2 rounded-xl px-2 py-1.5 text-left transition-colors hover:bg-white/[0.04]"
+          className="flex min-w-0 flex-1 items-center gap-2 rounded-full px-2.5 py-1.5 text-left transition-colors hover:bg-white/[0.06]"
         >
           <ChevronRight className={cx("size-4 shrink-0 text-mf-600 transition-transform duration-200", open && "rotate-90")} strokeWidth={2.25} />
           <h2 className="truncate text-[15px] font-semibold text-white">{title}</h2>
@@ -215,7 +215,7 @@ export function Tag({ children, className, tone = "default" }: { children: React
     rec: "bg-mf-rec/15 text-mf-rec",
   };
   return (
-    <span className={cx("inline-flex h-[22px] shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-[12px] font-medium", tones[tone], className)}>
+    <span className={cx("inline-flex h-[22px] shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-[12px] font-medium backdrop-blur-md", tones[tone], className)}>
       {children}
     </span>
   );
@@ -272,7 +272,7 @@ export function Field({ label, hint, children, className }: { label: ReactNode; 
 }
 
 const control =
-  "w-full rounded-[11px] border border-white/[0.08] bg-white/[0.05] px-3 text-[14px] text-white placeholder:text-mf-600 transition-colors focus:border-white/25 focus:bg-white/[0.07] focus:outline-none disabled:opacity-60";
+  "glass-field w-full rounded-[12px] px-3.5 text-[14px] text-white placeholder:text-mf-600 transition-colors focus:outline-none disabled:opacity-60";
 
 export function Input({ className, ...rest }: ComponentProps<"input">) {
   return <input className={cx(control, "h-10", className)} {...rest} />;
@@ -305,7 +305,7 @@ export function Segmented<T extends string>({
   size?: "sm" | "md";
 }) {
   return (
-    <div className="inline-flex rounded-[11px] bg-white/[0.07] p-[3px]" role="radiogroup">
+    <div className="glass-pill inline-flex rounded-full p-[3px]" role="radiogroup">
       {options.map((option) => (
         <button
           key={option.value}
@@ -314,9 +314,9 @@ export function Segmented<T extends string>({
           aria-checked={value === option.value}
           onClick={() => onChange(option.value)}
           className={cx(
-            "inline-flex items-center gap-1.5 whitespace-nowrap rounded-[8px] font-medium transition-all duration-150",
+            "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full font-medium transition-all duration-200",
             size === "sm" ? "h-7 px-3 text-[12.5px]" : "h-8 px-3.5 text-[13px]",
-            value === option.value ? "bg-mf-500 text-white shadow-[0_1px_3px_rgba(0,0,0,0.4)]" : "text-mf-700 hover:text-white",
+            value === option.value ? "bg-white/[0.18] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_3px_10px_rgba(0,0,0,0.35)]" : "text-mf-700 hover:text-white",
           )}
         >
           {option.label}
@@ -341,7 +341,7 @@ export function Drawer({ title, onClose, children, footer }: { title: ReactNode;
   return (
     <div className="fixed inset-0 z-50 flex justify-end p-0 sm:p-3">
       <button type="button" aria-label="Close" className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={onClose} />
-      <aside className="mf-rise relative flex h-full w-full max-w-[540px] flex-col overflow-hidden bg-mf-100 ring-1 ring-white/[0.08] sm:rounded-2xl">
+      <aside className="glass-strong mf-rise relative flex h-full w-full max-w-[540px] flex-col overflow-hidden sm:rounded-[26px]">
         <div className="flex items-center justify-between px-6 pb-3 pt-5">
           <h2 className="text-[17px] font-semibold text-white">{title}</h2>
           <IconButton label="Close" onClick={onClose}>
@@ -360,7 +360,7 @@ export function Modal({ title, onClose, children, footer }: { title: ReactNode; 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <button type="button" aria-label="Close" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="mf-rise relative w-full max-w-lg overflow-hidden rounded-2xl bg-mf-100 ring-1 ring-white/[0.08]">
+      <div className="glass-strong mf-rise relative w-full max-w-lg overflow-hidden rounded-[26px]">
         <div className="flex items-center justify-between px-6 pb-2 pt-5">
           <h2 className="text-[17px] font-semibold text-white">{title}</h2>
           <IconButton label="Close" onClick={onClose}>
@@ -376,7 +376,7 @@ export function Modal({ title, onClose, children, footer }: { title: ReactNode; 
 
 export function Empty({ icon, title, lead, action }: { icon: ReactNode; title: ReactNode; lead?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl bg-mf-100 px-6 py-16 text-center ring-1 ring-white/[0.06]">
+    <div className="glass flex flex-col items-center justify-center rounded-[22px] px-6 py-16 text-center">
       <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-white/[0.07] text-mf-800">{icon}</div>
       <h3 className="text-[17px] font-semibold text-white">{title}</h3>
       {lead && <p className="mt-2 max-w-md text-[14px] leading-relaxed text-mf-600">{lead}</p>}
