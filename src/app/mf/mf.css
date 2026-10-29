@@ -367,7 +367,8 @@ body:has(.mf-root)::after {
   .glass::after,
   .glass-strong::after,
   .glass-pill::after,
-  .glass-white::after {
+  .glass-white::after,
+  .glass-pane::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -391,6 +392,17 @@ body:has(.mf-root)::after {
 
   .glass-white::after {
     background: linear-gradient(150deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0.9));
+  }
+
+  /* The window pane every page sits on. It covers the whole viewport, so it skips the
+     backdrop filter: the light field behind it is already soft. */
+  .glass-pane {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.022) 38%, rgba(255, 255, 255, 0.03));
+    box-shadow:
+      0 30px 80px -30px rgba(0, 0, 0, 0.9),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
   }
 
   .glass-field {

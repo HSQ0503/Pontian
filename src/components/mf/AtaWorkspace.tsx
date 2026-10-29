@@ -226,7 +226,7 @@ function Workspace({ meeting, project, meetings }: { meeting: Meeting; project: 
 
       {ata && meeting.status !== "processing" && meeting.status !== "failed" && (
         <>
-          <div className="glass-strong mf-scroll sticky top-[72px] z-20 mt-5 flex w-fit max-w-full gap-1 overflow-x-auto rounded-full p-1 lg:top-[68px]">
+          <div className="glass-strong mf-scroll sticky top-[66px] z-20 mt-5 bg-[rgba(22,22,26,0.9)] flex w-fit max-w-full gap-1 overflow-x-auto rounded-full p-1 lg:top-[60px]">
             {(
               [
                 { key: "ata", icon: FileText, count: ata.items.length },
@@ -428,7 +428,7 @@ function ReviewRail({ meeting, onApprove }: { meeting: Meeting; onApprove: () =>
   const sections = [...new Set(ata.items.map((i) => i.section))].sort((a, b) => a - b);
 
   return (
-    <aside className="flex flex-col gap-4 xl:sticky xl:top-[124px] xl:self-start">
+    <aside className="flex flex-col gap-4 xl:sticky xl:top-[116px] xl:self-start">
       <Card>
         <div className="grid grid-cols-2">
           {stats.map((stat, index) => (

@@ -386,7 +386,7 @@ function NewAtaForm({
         </div>
       </div>
 
-      <div className="glass-strong fixed inset-x-2 bottom-2 z-30 rounded-[26px] lg:left-[292px] lg:right-3 lg:bottom-3">
+      <div className="glass-strong fixed inset-x-4 bottom-4 z-30 rounded-[22px] lg:left-[300px] lg:right-7 lg:bottom-7">
         <div className="mx-auto flex max-w-[920px] flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex items-center gap-4">
             {checklist.map((item) => (

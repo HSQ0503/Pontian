@@ -423,7 +423,7 @@ export function TranscriptPanel({ meeting, focus }: { meeting: Meeting; focus: {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="glass-strong sticky top-[128px] z-10 flex flex-col gap-3 rounded-[22px] p-3 lg:top-[124px] xl:flex-row xl:items-center">
+      <div className="glass-strong sticky top-[122px] z-10 bg-[rgba(22,22,26,0.9)] flex flex-col gap-3 rounded-[22px] p-3 lg:top-[116px] xl:flex-row xl:items-center">
         {audioUrl ? (
           <div className="flex flex-1 items-center gap-3">
             <audio

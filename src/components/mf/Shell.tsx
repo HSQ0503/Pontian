@@ -20,7 +20,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { Fragment, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useState, type ReactNode } from "react";
 import { useCopy } from "@/lib/mf/copy";
 import { arCode } from "@/lib/mf/format";
 import { useMf } from "@/lib/mf/store";
@@ -202,7 +202,7 @@ function SystemBar() {
   const processing = meetings.filter((m) => m.status === "processing").length;
 
   return (
-    <div className="glass-strong sticky top-3 z-30 mx-3 mt-3 hidden h-11 items-center justify-between rounded-full px-5 lg:flex">
+    <div className="sticky top-0 z-30 hidden h-12 shrink-0 items-center justify-between border-b border-white/[0.06] bg-[rgba(14,14,17,0.86)] px-6 backdrop-blur-2xl backdrop-saturate-150 lg:flex lg:px-10">
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[12.5px]">
         {crumbs.map((crumb, index) => (
           <Fragment key={crumb.href}>
@@ -230,13 +230,18 @@ export function MfShell({ children }: { children: ReactNode }) {
   const { c } = useCopy();
   const [open, setOpen] = useState(false);
 
+  // Pages scroll inside the glass pane, so a new route starts at its top.
+  useEffect(() => {
+    document.getElementById("mf-scroll")?.scrollTo({ top: 0 });
+  }, [pathname]);
+
   // The print view is a bare sheet of paper.
   if (pathname.endsWith("/imprimir") || pathname === "/mf/acesso") return <>{children}</>;
 
   return (
-    <div className="flex min-h-dvh text-mf-900">
+    <div className="flex h-dvh gap-3 overflow-hidden p-2 text-mf-900 lg:p-3">
       <div aria-hidden className="mf-ambient" />
-      <aside className="sticky top-0 hidden h-dvh w-[280px] shrink-0 p-3 pr-0 lg:block">
+      <aside className="hidden w-[264px] shrink-0 lg:block">
         <div className="glass-strong h-full rounded-[26px]">
           <Sidebar />
         </div>
@@ -259,8 +264,9 @@ export function MfShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="glass-strong sticky top-2 z-30 mx-2 mt-2 flex h-14 items-center justify-between rounded-full px-2 lg:hidden">
+      <div className="glass-pane min-w-0 flex-1 overflow-hidden rounded-[26px] lg:rounded-[28px]">
+        <div id="mf-scroll" className="mf-scroll flex h-full flex-col overflow-y-auto">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b border-white/[0.06] bg-[rgba(14,14,17,0.86)] px-2 backdrop-blur-2xl backdrop-saturate-150 lg:hidden">
           <button
             type="button"
             aria-label={c.menu}
@@ -279,6 +285,7 @@ export function MfShell({ children }: { children: ReactNode }) {
         </header>
         <SystemBar />
         <main className="min-w-0 flex-1">{children}</main>
+        </div>
       </div>
     </div>
   );
