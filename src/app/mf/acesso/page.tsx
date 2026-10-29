@@ -9,7 +9,7 @@ export default async function AccessPage({ searchParams }: PageProps<"/mf/acesso
     <main className="flex min-h-dvh items-center justify-center bg-black px-4">
       <form action="/api/mf/acesso" method="post" className="mf-rise w-full max-w-sm rounded-none border border-mf-400 bg-mf-100 p-8">
         <Image src="/mf/mf-logo-black.png" alt="Minerbo-Fuchs" width={206} height={105} priority className="h-10 w-auto invert" />
-        <h1 className="mt-8 text-[20px] font-semibold text-white">Brain MF</h1>
+        <h1 className="mf-brand mt-8 text-[18px] font-bold uppercase text-white">Brain MF</h1>
         <p className="mt-1.5 text-[13px] leading-relaxed text-mf-700">Informe o código de acesso / Enter the access code</p>
         <input type="hidden" name="next" value={typeof next === "string" ? next : "/mf"} />
         <input

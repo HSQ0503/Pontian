@@ -20,9 +20,9 @@ const VARIANTS: Record<Variant, string> = {
 };
 
 const SIZES: Record<Size, string> = {
-  sm: "h-9 gap-1.5 px-3.5 text-[13px]",
-  md: "h-11 gap-2 px-4.5 text-[14px]",
-  lg: "h-13 gap-2.5 px-6 text-[15px]",
+  sm: "h-8 gap-1.5 px-3 text-[12.5px]",
+  md: "h-10 gap-2 px-4 text-[13.5px]",
+  lg: "h-12 gap-2.5 px-6 text-[14.5px]",
 };
 
 type ButtonProps = {
@@ -92,8 +92,8 @@ export function PageHeader({
     <header className="flex flex-col gap-5 border-b border-mf-300 pb-7 md:flex-row md:items-end md:justify-between">
       <div className="max-w-3xl">
         {eyebrow && <div className="mf-eyebrow mb-3 text-mf-700">{eyebrow}</div>}
-        <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.01em] text-white md:text-[34px]">{title}</h1>
-        {lead && <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-mf-700">{lead}</p>}
+        <h1 className="text-[26px] font-semibold leading-tight text-white md:text-[30px]">{title}</h1>
+        {lead && <p className="mt-2.5 max-w-2xl text-[14px] leading-relaxed text-mf-700">{lead}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </header>
@@ -121,7 +121,7 @@ export function CardHeader({ title, lead, action }: { title: ReactNode; lead?: R
     <div className="flex items-start justify-between gap-4 border-b border-mf-300 px-5 py-4">
       <div>
         <h2 className="mf-eyebrow text-white">{title}</h2>
-        {lead && <p className="mt-1 text-[13.5px] leading-relaxed text-mf-700">{lead}</p>}
+        {lead && <p className="mt-1.5 text-[13px] leading-relaxed text-mf-600">{lead}</p>}
       </div>
       {action}
     </div>
@@ -202,10 +202,10 @@ export function Field({ label, hint, children, className }: { label: ReactNode; 
 }
 
 const control =
-  "w-full rounded-[2px] border border-mf-500 bg-mf-50 px-3.5 text-[14.5px] text-white placeholder:text-mf-600 transition-colors focus:border-mf-800 focus:outline-none focus:ring-2 focus:ring-white/10 disabled:opacity-60";
+  "w-full rounded-[2px] border border-mf-500 bg-mf-50 px-3 text-[14px] text-white placeholder:text-mf-600 transition-colors focus:border-mf-800 focus:outline-none focus:ring-2 focus:ring-white/10 disabled:opacity-60";
 
 export function Input({ className, ...rest }: ComponentProps<"input">) {
-  return <input className={cx(control, "h-11", className)} {...rest} />;
+  return <input className={cx(control, "h-10", className)} {...rest} />;
 }
 
 export function Textarea({ className, ...rest }: ComponentProps<"textarea">) {
@@ -215,7 +215,7 @@ export function Textarea({ className, ...rest }: ComponentProps<"textarea">) {
 export function Select({ className, children, ...rest }: ComponentProps<"select">) {
   return (
     <span className={cx("relative block", className)}>
-      <select className={cx(control, "h-11 appearance-none pr-9")} {...rest}>
+      <select className={cx(control, "h-10 appearance-none pr-9")} {...rest}>
         {children}
       </select>
       <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-mf-700" />

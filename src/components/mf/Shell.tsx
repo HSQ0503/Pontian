@@ -61,8 +61,8 @@ function Logo() {
       <Image src="/mf/mf-logo-black.png" alt="Minerbo-Fuchs" width={206} height={105} priority className="h-[34px] w-auto invert" />
       <span className="h-8 w-px bg-mf-400" />
       <span className="flex flex-col leading-none">
-        <span className="text-[13px] font-bold tracking-[0.18em] text-white">{c.brand.toUpperCase()}</span>
-        <span className="mt-1.5 text-[9.5px] font-medium uppercase tracking-[0.2em] text-mf-600">Engenharia</span>
+        <span className="mf-brand text-[13px] font-bold text-white">{c.brand.toUpperCase()}</span>
+        <span className="mf-brand mt-1.5 text-[9.5px] font-medium uppercase text-mf-600">Engenharia</span>
       </span>
     </Link>
   );
@@ -103,7 +103,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   href={item.href}
                   onClick={onNavigate}
                   className={cx(
-                    "group relative flex h-10 items-center gap-3 rounded-none px-3 text-[14px] font-medium transition-colors",
+                    "group relative flex h-9 items-center gap-3 rounded-none px-3 text-[13.5px] font-medium transition-colors",
                     active ? "bg-mf-200 text-white" : item.preview ? "text-mf-600 hover:bg-mf-150 hover:text-mf-900" : "text-mf-800 hover:bg-mf-150 hover:text-white",
                   )}
                 >
@@ -244,7 +244,7 @@ export function MfShell({ children }: { children: ReactNode }) {
           </button>
           <Link href="/mf" className="flex items-center gap-2.5">
             <Image src="/mf/mf-logo-black.png" alt="Minerbo-Fuchs" width={206} height={105} className="h-6 w-auto invert" />
-            <span className="text-[11px] font-bold tracking-[0.18em] text-white">{c.brand.toUpperCase()}</span>
+            <span className="mf-brand text-[11px] font-bold text-white">{c.brand.toUpperCase()}</span>
           </Link>
           <Link href="/mf/atas/nova" aria-label={c.newAta} className="flex size-9 items-center justify-center rounded-none bg-white text-black">
             <Plus className="size-4" />

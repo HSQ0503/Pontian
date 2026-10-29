@@ -3,11 +3,19 @@ import localFont from "next/font/local";
 import { MfShell } from "@/components/mf/Shell";
 import "./mf.css";
 
-// MF's own typography: Montserrat, as on minerbo-fuchs.com.br, plus a mono face for codes.
+// Inter carries the interface; Montserrat, MF's brand face, is kept for the wordmark.
 const sans = localFont({
-  src: "../../fonts/montserrat-latin-wght.woff2",
+  src: "../../fonts/inter-latin-wght.woff2",
   weight: "100 900",
   variable: "--font-mf-sans",
+  display: "swap",
+  fallback: ["Helvetica Neue", "Arial", "sans-serif"],
+});
+
+const brand = localFont({
+  src: "../../fonts/montserrat-latin-wght.woff2",
+  weight: "100 900",
+  variable: "--font-mf-brand",
   display: "swap",
   fallback: ["Helvetica Neue", "Arial", "sans-serif"],
 });
@@ -34,7 +42,7 @@ export const viewport: Viewport = {
 
 export default function MfLayout({ children }: LayoutProps<"/mf">) {
   return (
-    <div className={`mf-root ${sans.variable} ${mono.variable}`}>
+    <div className={`mf-root ${sans.variable} ${brand.variable} ${mono.variable}`}>
       <MfShell>{children}</MfShell>
     </div>
   );
