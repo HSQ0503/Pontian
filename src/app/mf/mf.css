@@ -394,6 +394,11 @@ body:has(.mf-root)::after {
     background: linear-gradient(150deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0.9));
   }
 
+  /* The pane's rim sits above its sticky toolbar so the edge reads as one unbroken line. */
+  .glass-pane::after {
+    z-index: 40;
+  }
+
   /* The window pane every page sits on. It covers the whole viewport, so it skips the
      backdrop filter: the light field behind it is already soft. */
   .glass-pane {

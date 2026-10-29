@@ -26,6 +26,10 @@ import { arCode } from "@/lib/mf/format";
 import { useMf } from "@/lib/mf/store";
 import { cx, usePersistentToggle } from "./ui";
 
+// Clear at rest; frosted with a hairline only once content scrolls underneath, like Apple's scroll edge.
+const TOOLBAR_EDGE =
+  "transition-[background-color,box-shadow,backdrop-filter] duration-200 group-data-[scrolled=true]/pane:bg-[rgba(14,14,17,0.86)] group-data-[scrolled=true]/pane:shadow-[0_1px_0_rgba(255,255,255,0.07)] group-data-[scrolled=true]/pane:backdrop-blur-2xl";
+
 type NavItem = { href: string; label: string; icon: LucideIcon; preview?: boolean; exact?: boolean };
 
 function useNav() {
@@ -202,7 +206,7 @@ function SystemBar() {
   const processing = meetings.filter((m) => m.status === "processing").length;
 
   return (
-    <div className="sticky top-0 z-30 hidden h-12 shrink-0 items-center justify-between border-b border-white/[0.06] bg-[rgba(14,14,17,0.86)] px-6 backdrop-blur-2xl backdrop-saturate-150 lg:flex lg:px-10">
+    <div className={cx("sticky top-0 z-30 hidden h-12 shrink-0 items-center justify-between px-6 lg:flex lg:px-10", TOOLBAR_EDGE)}>
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[12.5px]">
         {crumbs.map((crumb, index) => (
           <Fragment key={crumb.href}>
@@ -230,9 +234,18 @@ export function MfShell({ children }: { children: ReactNode }) {
   const { c } = useCopy();
   const [open, setOpen] = useState(false);
 
-  // Pages scroll inside the glass pane, so a new route starts at its top.
+  // Pages scroll inside the glass pane, so a new route starts at its top, and the
+  // toolbar only frosts once something has scrolled beneath it.
   useEffect(() => {
-    document.getElementById("mf-scroll")?.scrollTo({ top: 0 });
+    const scroller = document.getElementById("mf-scroll");
+    if (!scroller) return;
+    scroller.scrollTo({ top: 0 });
+    const update = () => {
+      scroller.dataset.scrolled = scroller.scrollTop > 2 ? "true" : "false";
+    };
+    update();
+    scroller.addEventListener("scroll", update, { passive: true });
+    return () => scroller.removeEventListener("scroll", update);
   }, [pathname]);
 
   // The print view is a bare sheet of paper.
@@ -265,8 +278,8 @@ export function MfShell({ children }: { children: ReactNode }) {
       )}
 
       <div className="glass-pane min-w-0 flex-1 overflow-hidden rounded-[26px] lg:rounded-[28px]">
-        <div id="mf-scroll" className="mf-scroll flex h-full flex-col overflow-y-auto">
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b border-white/[0.06] bg-[rgba(14,14,17,0.86)] px-2 backdrop-blur-2xl backdrop-saturate-150 lg:hidden">
+        <div id="mf-scroll" className="group/pane mf-scroll flex h-full flex-col overflow-y-auto">
+        <header className={cx("sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between px-2 lg:hidden", TOOLBAR_EDGE)}>
           <button
             type="button"
             aria-label={c.menu}
